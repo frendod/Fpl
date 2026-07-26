@@ -37,12 +37,20 @@ function extractJSON(html, varName){
 async function resolveUnderstatId(name, seasons){
   const target = normName(name);
   const targetLast = target.split(' ').slice(-1)[0];
+  const trace = { target, seasonsTried:[], reason:null };
+  if (!target){ trace.reason='empty name parameter'; return { id:null, confidence:'none', trace }; }
   for (const yr of seasons){
+    const step = { season:yr, fetchOk:false, parsed:0 };
     const res = await fetch('https://understat.com/league/EPL/'+yr, { headers: UA });
-    if (!res.ok) continue;
+    step.status = res.status;
+    if (!res.ok){ trace.seasonsTried.push(step); continue; }
+    step.fetchOk = true;
     const html = await res.text();
+    step.htmlLen = html.length;
     const players = extractJSON(html, 'playersData');
-    if (!players) continue;
+    if (!players){ step.parseFail=true; trace.seasonsTried.push(step); continue; }
+    step.parsed = players.length;
+    trace.seasonsTried.push(step);
 
     // exact full-name match first
     let hit = players.find(p => normName(p.player_name) === target);
@@ -55,14 +63,17 @@ async function resolveUnderstatId(name, seasons){
       });
       if (lastMatches.length === 1){ hit = lastMatches[0]; confidence = 'lastname'; }
       else if (lastMatches.length > 1){
-        // ambiguous — hand back candidates so the UI can ask
-        return { id:null, confidence:'ambiguous',
+        trace.reason='ambiguous surname in '+yr;
+        return { id:null, confidence:'ambiguous', trace,
           candidates:lastMatches.slice(0,6).map(p=>({id:p.id,name:p.player_name})) };
       }
     }
-    if (hit) return { id:hit.id, confidence, name:hit.player_name };
+    if (hit) return { id:hit.id, confidence, name:hit.player_name, trace };
   }
-  return { id:null, confidence:'none' };
+  trace.reason = trace.seasonsTried.every(x=>!x.fetchOk) ? 'all understat league fetches failed'
+    : trace.seasonsTried.every(x=>x.parseFail) ? 'league pages fetched but playersData never parsed'
+    : 'name not found in any parsed season';
+  return { id:null, confidence:'none', trace };
 }
 
 // Pull a player's full match list from their Understat page.
