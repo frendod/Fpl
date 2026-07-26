@@ -7,6 +7,7 @@
 // resolve the Understat id by name against the season's Understat player list
 // and report how confident that match is. Reached at /api/player?id=123&name=...
 
+const BUILD = 'v3-debug-2';
 const UA = { 'user-agent': 'Mozilla/5.0 (fplrock player history)' };
 
 function normName(s){
@@ -151,16 +152,27 @@ export default async (req) => {
   const HEADERS = {
     'content-type':'application/json',
     'access-control-allow-origin':'*',
-    'netlify-cdn-cache-control':'public, s-maxage=86400, stale-while-revalidate=604800',
+    // no CDN cache while debugging, so every call hits fresh code
+    'netlify-cdn-cache-control':'no-store',
+    'cache-control':'no-store',
   };
-  const url = new URL(req.url);
-  const fplId = url.searchParams.get('id');
-  const name  = url.searchParams.get('name') || '';
-  const uidParam = url.searchParams.get('uid'); // optional: user-confirmed Understat id
+  let url, fplId, name, uidParam;
+  try {
+    url = new URL(req.url);
+    fplId = url.searchParams.get('id');
+    name  = url.searchParams.get('name') || '';
+    uidParam = url.searchParams.get('uid');
+  } catch(e){
+    return new Response(JSON.stringify({build:BUILD, fatalError:'bad url: '+String(e.message||e)}),
+      {status:200,headers:HEADERS});
+  }
 
-  if (!fplId) return new Response(JSON.stringify({error:'missing id'}),{status:400,headers:HEADERS});
+  const out = { build:BUILD, received:{ id:fplId, name, uid:uidParam||null },
+                fpl:null, understat:null, vsClub:null, match:null };
 
-  const out = { fpl:null, understat:null, vsClub:null, match:null };
+  if (!fplId){ out.error='missing id'; return new Response(JSON.stringify(out),{status:200,headers:HEADERS}); }
+
+  try {
 
   // 1 ── FPL element-summary (points history + this-season log)
   try {
@@ -197,5 +209,8 @@ export default async (req) => {
     }
   } catch(e){ out.understatError = String(e.message||e); }
 
+  } catch(e){
+    out.fatalError = String(e && e.stack || e.message || e);
+  }
   return new Response(JSON.stringify(out), { status:200, headers:HEADERS });
 };
