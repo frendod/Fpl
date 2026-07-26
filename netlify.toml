@@ -11,3 +11,9 @@
   from = "/api/fpl"
   to = "/.netlify/functions/fpl"
   status = 200
+
+# Per-player history, fetched on click
+[[redirects]]
+  from = "/api/player"
+  to = "/.netlify/functions/player"
+  status = 200
