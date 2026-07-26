@@ -1,0 +1,13 @@
+# Site root is served as-is; the app is a single index.html.
+[build]
+  publish = "."
+
+[functions]
+  # modern ESM function syntax
+  node_bundler = "esbuild"
+
+# Give the function a clean, same-origin URL: /api/fpl
+[[redirects]]
+  from = "/api/fpl"
+  to = "/.netlify/functions/fpl"
+  status = 200
