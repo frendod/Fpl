@@ -7,7 +7,7 @@
 // resolve the Understat id by name against the season's Understat player list
 // and report how confident that match is. Reached at /api/player?id=123&name=...
 
-const BUILD = 'v3-debug-2';
+const BUILD = 'v4-inspect';
 const UA = { 'user-agent': 'Mozilla/5.0 (fplrock player history)' };
 
 function normName(s){
@@ -49,7 +49,14 @@ async function resolveUnderstatId(name, seasons){
     const html = await res.text();
     step.htmlLen = html.length;
     const players = extractJSON(html, 'playersData');
-    if (!players){ step.parseFail=true; trace.seasonsTried.push(step); continue; }
+    if (!players){
+      step.parseFail=true;
+      // capture the start of the page so we can see WHAT understat sent
+      step.htmlHead = html.slice(0,300).replace(/\s+/g,' ');
+      step.hasPlayersVar = html.includes('playersData');
+      step.title = (html.match(/<title>([^<]*)<\/title>/)||[])[1] || null;
+      trace.seasonsTried.push(step); continue;
+    }
     step.parsed = players.length;
     trace.seasonsTried.push(step);
 
