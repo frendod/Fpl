@@ -633,7 +633,7 @@ textarea:focus{border-color:var(--accent)}
         <div class="hist-eyebrow" id="histEyebrow">Player history</div>
         <div class="hist-name" id="histName">—</div>
       </div>
-      <button class="hist-close" id="histCloseBtn" aria-label="Close">✕</button>
+      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="document.getElementById('histOverlay').hidden=true;document.body.style.overflow='';">✕</button>
     </div>
     <div class="hist-body" id="histBody"></div>
     <div class="hist-foot" id="histFoot"></div>
