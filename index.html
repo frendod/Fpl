@@ -348,6 +348,76 @@ textarea:focus{border-color:var(--accent)}
 .plabel{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.15em;
   text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
 
+/* ─── PLAYER HISTORY MODAL ─────────────────────────────── */
+.prow-click{cursor:pointer}
+.hist-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(8,11,16,.72);
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0;backdrop-filter:blur(3px);
+  animation:histFade .18s ease;
+}
+@keyframes histFade{from{opacity:0}to{opacity:1}}
+.hist-modal{
+  background:var(--panel);border:1px solid var(--line2);
+  border-radius:14px 14px 0 0;
+  width:100%;max-width:680px;max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:histUp .24s cubic-bezier(.4,0,.2,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@keyframes histUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(min-width:680px){
+  .hist-overlay{align-items:center}
+  .hist-modal{border-radius:14px;max-height:82vh}
+  @keyframes histUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+}
+.hist-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 20px 14px;border-bottom:1px solid var(--line);flex-shrink:0;
+}
+.hist-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:5px;
+}
+.hist-name{font-family:'Instrument Serif',serif;font-size:26px;line-height:1;}
+.hist-close{
+  background:var(--panel2);border:1px solid var(--line2);color:var(--dim);
+  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.hist-close:hover{color:var(--paper);border-color:var(--line2)}
+.hist-body{overflow-y:auto;padding:4px 0;flex:1;-webkit-overflow-scrolling:touch}
+.hist-foot{
+  padding:11px 20px;border-top:1px solid var(--line);flex-shrink:0;
+  font-size:11px;color:var(--dimmer);line-height:1.5;
+}
+.hist-section{padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-section:last-child{border-bottom:none}
+.hist-section-title{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px;
+}
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{
+  font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);text-align:right;padding:5px 7px;
+  border-bottom:1px solid var(--line2);white-space:nowrap;
+}
+.hist-table th:first-child{text-align:left}
+.hist-table td{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;
+  padding:7px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.hist-table td:first-child{text-align:left;font-size:12px}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tbody tr:hover{background:rgba(232,228,220,.02)}
+.hist-price-up{color:var(--good)}
+.hist-price-down{color:var(--bad)}
+.hist-empty{padding:26px 20px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
+.hist-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--dim)}
+.hist-venue{display:inline-block;width:20px;font-size:10px;color:var(--dim)}
+
 /* ─── SEASON PLAN ──────────────────────────────────────── */
 .fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
 .fxgrid th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
@@ -555,6 +625,21 @@ textarea:focus{border-color:var(--accent)}
 
 </div>
 
+<!-- PLAYER HISTORY MODAL -->
+<div id="histOverlay" class="hist-overlay" hidden>
+  <div class="hist-modal" role="dialog" aria-modal="true" aria-labelledby="histName">
+    <div class="hist-head">
+      <div>
+        <div class="hist-eyebrow" id="histEyebrow">Player history</div>
+        <div class="hist-name" id="histName">—</div>
+      </div>
+      <button class="hist-close" id="histCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="hist-body" id="histBody"></div>
+    <div class="hist-foot" id="histFoot"></div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -649,6 +734,14 @@ const I18N={
     pasteOffline:'Offline mode: expected goals come from FPL\u2019s own figures, not Understat.',
     pasteBsFirst:'Paste the bootstrap-static response into the first box.',
     confMatched:'matched to last season', confFpl:'FPL data only',
+    histTitle:'Player history', histLoading:'Loading history…',
+    histErr:'Could not load history for this player.',
+    histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
+    hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
+    hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
+    histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
+    histClose:'Close', histNote:'FPL data only. Multi-season xG-by-opponent is coming once we wire up the new stats source.',
+    priceMove:'price',
     justNow:'just now', hAgo:h=>h+'h ago', dAgo:d=>d+'d ago', oneHAgo:'1h ago',
     F:{
       form:['Form','Points per match over the last five gameweeks'],
@@ -751,6 +844,14 @@ const I18N={
     pasteOffline:'Modo sin conexión: los goles esperados vienen de las cifras propias de FPL, no de Understat.',
     pasteBsFirst:'Pega la respuesta de bootstrap-static en el primer recuadro.',
     confMatched:'emparejado con la temporada pasada', confFpl:'solo datos FPL',
+    histTitle:'Historial del jugador', histLoading:'Cargando historial…',
+    histErr:'No se pudo cargar el historial de este jugador.',
+    histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
+    hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
+    hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
+    histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
+    histClose:'Cerrar', histNote:'Solo datos FPL. El xG por rival multitemporada llegará cuando conectemos la nueva fuente de estadísticas.',
+    priceMove:'precio',
     justNow:'ahora mismo', hAgo:h=>'hace '+h+'h', dAgo:d=>'hace '+d+'d', oneHAgo:'hace 1h',
     F:{
       form:['Forma','Puntos por partido en las últimas cinco jornadas'],
@@ -1354,7 +1455,7 @@ function renderTable(){
 
   $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
     const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
-    return '<tr><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
+    return '<tr class="prow-click" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
     +'<td><div>'+p.name+'</div><div class="mono" style="font-size:10px;color:var(--dim)">'+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
@@ -1369,12 +1470,140 @@ function renderTable(){
       +(p.mom>0?'+':'')+(Math.abs(p.mom)>=1000?(p.mom/1000).toFixed(1)+'k':p.mom)+'</td></tr>';
   }).join(''):'<tr><td colspan="12" class="empty">'+t('noMatch')+'</td></tr>';
 
+  // wire row taps to the history modal
+  $('tableBody').querySelectorAll('.prow-click').forEach(tr=>{
+    tr.addEventListener('click',()=>openHistory(tr.dataset.pid, decodeURIComponent(tr.dataset.pname)));
+  });
+
   $('pager').innerHTML='<button class="pg" id="pgPrev"'+(page<=1?' disabled':'')+'>'+t('prev')+'</button>'
     +'<span>'+t('pageOf')(page,pages)+'</span>'
     +'<button class="pg" id="pgNext"'+(page>=pages?' disabled':'')+'>'+t('next')+'</button>';
   const pv=$('pgPrev'),nx=$('pgNext');
   if(pv)pv.onclick=()=>{page=Math.max(1,page-1);renderTable()};
   if(nx)nx.onclick=()=>{page=Math.min(pages,page+1);renderTable()};
+}
+
+/* ══ PLAYER HISTORY MODAL ══════════════════════════════ */
+let histCache={};
+
+function clubName(teamId){
+  const teamsList=(bootstrap&&bootstrap.teams)||[];
+  const tm=teamsList.find(x=>x.id===teamId);
+  return tm?tm.short_name:('#'+teamId);
+}
+
+async function fetchPlayerHistory(pid){
+  if(histCache[pid])return histCache[pid];
+  // same fallback chain as main data: function first, proxy second
+  const tries=[
+    ()=>fetch('/api/player?id='+pid,{cache:'no-store'}),
+    ()=>fetch(PROXIES[0]('https://fantasy.premierleague.com/api/element-summary/'+pid+'/'))
+          .then(r=>r.json()).then(shapeFromRaw),
+  ];
+  for(let i=0;i<tries.length;i++){
+    try{
+      const res=await tries[i]();
+      const data=(res&&res.json)?await res.json():res;
+      if(data&&(data.pastSeasons||data.history_past)){
+        const norm=data.pastSeasons?data:shapeFromRaw(data.history_past?data:data);
+        histCache[pid]=norm; return norm;
+      }
+    }catch(e){/* try next */}
+  }
+  throw new Error('history unavailable');
+}
+
+// normalise a raw element-summary into the function's output shape (proxy fallback)
+function shapeFromRaw(raw){
+  const hp=raw.history_past||[], h=raw.history||[];
+  const past=hp.map(x=>({season:x.season_name,points:x.total_points,minutes:x.minutes,
+    goals:x.goals_scored,assists:x.assists,cleanSheets:x.clean_sheets,bonus:x.bonus,bps:x.bps,
+    startCost:x.start_cost/10,endCost:x.end_cost/10,xg:parseFloat(x.expected_goals)||0,
+    xa:parseFloat(x.expected_assists)||0,defcon:x.defensive_contribution||0,starts:x.starts||0}));
+  const ts=h.map(x=>({round:x.round,opponent:x.opponent_team,home:x.was_home,points:x.total_points,
+    minutes:x.minutes,goals:x.goals_scored,assists:x.assists,cleanSheet:x.clean_sheets,bonus:x.bonus,
+    xg:parseFloat(x.expected_goals)||0,xa:parseFloat(x.expected_assists)||0,
+    defcon:x.defensive_contribution||0,value:x.value/10}));
+  const by={};
+  ts.forEach(g=>{const k=g.opponent;if(!by[k])by[k]={opponent:k,games:0,points:0,goals:0,assists:0,xg:0,xa:0,home:0,away:0};
+    const b=by[k];b.games++;b.points+=g.points;b.goals+=g.goals;b.assists+=g.assists;b.xg+=g.xg;b.xa+=g.xa;
+    if(g.home)b.home++;else b.away++;});
+  const vs=Object.values(by).map(b=>({...b,xg:Math.round(b.xg*100)/100,xa:Math.round(b.xa*100)/100}))
+    .sort((a,b)=>b.points-a.points);
+  return {pastSeasons:past,thisSeason:ts,vsClubThis:vs};
+}
+
+async function openHistory(pid,pname){
+  const ov=$('histOverlay');
+  $('histName').textContent=pname;
+  $('histEyebrow').textContent=t('histTitle');
+  $('histFoot').textContent=t('histNote');
+  $('histBody').innerHTML='<div class="hist-loading"><div class="spin"></div>'
+    +'<div class="ltext">'+t('histLoading')+'</div></div>';
+  ov.hidden=false;
+  document.body.style.overflow='hidden';
+  try{
+    const d=await fetchPlayerHistory(pid);
+    renderHistory(d);
+  }catch(e){
+    $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')+'</div>';
+  }
+}
+
+function closeHistory(){
+  $('histOverlay').hidden=true;
+  document.body.style.overflow='';
+}
+
+function renderHistory(d){
+  const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
+  let html='';
+
+  // previous seasons
+  if(past.length){
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histPast')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
+      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
+      +past.map(s=>{
+        const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
+        return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
+          +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
+          +'<td>'+(s.defcon||'—')+'</td>'
+          +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  // this season, per-opponent
+  if(vs.length){
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClub')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hOpp')+'</th><th>'+t('hRound')+'</th><th>'+t('hPts')+'</th>'
+      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hVenue')+'</th></tr></thead><tbody>'
+      +vs.map(c=>'<tr><td>'+clubName(c.opponent)+'</td><td>'+c.games+'</td><td>'+c.points+'</td>'
+        +'<td>'+c.goals+'</td><td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
+        +'<td>'+c.home+'/'+c.away+'</td></tr>').join('')
+      +'</tbody></table></div>';
+
+    // this season, game by game
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histThis')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
+      +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
+      +'<th>'+t('hBonus')+'</th></tr></thead><tbody>'
+      +ts.map(g=>'<tr><td>'+g.round+'</td><td>'+clubName(g.opponent)+'</td>'
+        +'<td><span class="hist-venue">'+(g.home?'H':'A')+'</span></td><td>'+g.points+'</td>'
+        +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
+        +'<td>'+g.bonus+'</td></tr>').join('')
+      +'</tbody></table></div>';
+  } else {
+    html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
+  }
+
+  if(!past.length&&!vs.length)html='<div class="hist-empty">'+t('histErr')+'</div>';
+  $('histBody').innerHTML=html;
 }
 
 function renderDiag(){
@@ -1856,6 +2085,11 @@ document.documentElement.lang=LANG;
 document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
 renderWeights();
 paintState();
+
+// history modal close wiring
+$('histCloseBtn').addEventListener('click',closeHistory);
+$('histOverlay').addEventListener('click',e=>{ if(e.target===$('histOverlay'))closeHistory(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').hidden)closeHistory(); });
 
 /* ══ STARTUP ═══════════════════════════════════════════
    Paint instantly from cache if we have it, then quietly try
