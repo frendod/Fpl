@@ -350,6 +350,9 @@ textarea:focus{border-color:var(--accent)}
 
 /* ─── PLAYER HISTORY MODAL ─────────────────────────────── */
 .prow-click{cursor:pointer}
+.hist-overlay[hidden]{display:none!important}
+/* the hidden attribute must beat any display: rule below (flex/grid/etc) */
+[hidden]{display:none!important}
 .hist-overlay{
   position:fixed;inset:0;z-index:50;
   background:rgba(8,11,16,.72);
@@ -626,14 +629,14 @@ textarea:focus{border-color:var(--accent)}
 </div>
 
 <!-- PLAYER HISTORY MODAL -->
-<div id="histOverlay" class="hist-overlay" hidden>
+<div id="histOverlay" class="hist-overlay" hidden style="display:none">
   <div class="hist-modal" role="dialog" aria-modal="true" aria-labelledby="histName">
     <div class="hist-head">
       <div>
         <div class="hist-eyebrow" id="histEyebrow">Player history</div>
         <div class="hist-name" id="histName">—</div>
       </div>
-      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="document.getElementById('histOverlay').hidden=true;document.body.style.overflow='';">✕</button>
+      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="var o=document.getElementById('histOverlay');o.hidden=true;o.style.display='none';document.body.style.overflow='';">✕</button>
     </div>
     <div class="hist-body" id="histBody"></div>
     <div class="hist-foot" id="histFoot"></div>
@@ -645,7 +648,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-26a';
+const APP_BUILD = 'app-2026-07-27d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1554,6 +1557,7 @@ async function openHistory(pid,pname){
   $('histBody').innerHTML='<div class="hist-loading"><div class="spin"></div>'
     +'<div class="ltext">'+t('histLoading')+'</div></div>';
   ov.hidden=false;
+  ov.style.display='flex';       // clear the inline failsafe so it shows
   document.body.style.overflow='hidden';
   try{
     const d=await fetchPlayerHistory(pid);
@@ -1566,7 +1570,9 @@ async function openHistory(pid,pname){
 }
 
 function closeHistory(){
-  $('histOverlay').hidden=true;
+  const ov=$('histOverlay');
+  ov.hidden=true;
+  ov.style.display='none';       // restore the inline failsafe
   document.body.style.overflow='';
 }
 
@@ -1928,17 +1934,18 @@ async function load(){
     +'<div class="ltext">'+t('loading')+'</div></div>';
 
   let bundle=null, source='';
+  const loadTrace=[];
 
   // 1 ── the site's own serverless function (best case: live, same-origin)
   try{
     btn.textContent=t('fetching');
     bundle=await fetchApiData();
     source='api';
-  }catch(e){/* fall through */}
+  }catch(e){ loadTrace.push('api: '+(e&&e.message||e)); }
 
   // 2 ── a static data.json in the site root, if present
   if(!bundle){
-    try{ bundle=await fetchRepoData(); source='repo'; }catch(e){}
+    try{ bundle=await fetchRepoData(); source='repo'; }catch(e){ loadTrace.push('repo: '+(e&&e.message||e)); }
   }
 
   // 3 ── live proxies, last network resort
@@ -1947,7 +1954,7 @@ async function load(){
       btn.textContent=t('tryingLive');
       const [bs,fx]=await Promise.all([fplGet('/bootstrap-static/'),fplGet('/fixtures/')]);
       if(bs&&bs.elements){bundle={bootstrap:bs,fixtures:Array.isArray(fx)?fx:[],fetched_at:new Date().toISOString()};source='proxy'}
-    }catch(e){}
+    }catch(e){ loadTrace.push('proxy: '+(e&&e.message||e)); }
   }
 
   // 4 ── last cached bundle from a previous visit
@@ -1955,12 +1962,16 @@ async function load(){
     btn.textContent=t('checkingCache');
     const cached=await cacheLoad();
     if(cached&&cached.bootstrap){bundle=cached;source='cache'}
+    else loadTrace.push('cache: empty');
   }
 
-  // nothing worked — offer paste
+  // nothing worked — offer paste, and SHOW WHY
   if(!bundle){
     err(t('noSource'));
-    $('pickGrid').innerHTML=''; $('pastePanel').hidden=false;
+    $('pickGrid').innerHTML='<div class="note err" style="margin:0">'
+      +'<b>Load failed at every source:</b><br>'
+      +loadTrace.map(x=>'· '+x).join('<br>')+'</div>';
+    $('pastePanel').hidden=false;
     btn.textContent=t('loadData'); btn.disabled=false;
     return;
   }
