@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player History Test</title>
+<style>
+  body{background:#0d1117;color:#e6edf3;font-family:-apple-system,system-ui,sans-serif;
+    margin:0;padding:20px;line-height:1.5}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#7d8590;font-size:13px;margin-bottom:20px}
+  .row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  input{flex:1;min-width:120px;background:#161b22;border:1px solid #30363d;color:#e6edf3;
+    font-size:16px;padding:11px 14px;border-radius:8px;outline:none}
+  button{background:#d9a441;color:#0d1117;border:none;font-size:15px;font-weight:600;
+    padding:11px 22px;border-radius:8px;cursor:pointer}
+  button:active{opacity:.8}
+  .step{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px;
+    margin-bottom:10px;font-size:13px}
+  .step .label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:#7d8590;margin-bottom:6px}
+  .ok{color:#3ddc84}
+  .bad{color:#ff5c5c}
+  .info{color:#4da3ff}
+  pre{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:12px;
+    overflow-x:auto;font-size:11px;color:#8b949e;white-space:pre-wrap;word-break:break-all;
+    max-height:300px;overflow-y:auto}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+  th,td{text-align:right;padding:6px 8px;border-bottom:1px solid #21262d;
+    font-family:ui-monospace,monospace}
+  th:first-child,td:first-child{text-align:left}
+  th{color:#7d8590;font-size:10px;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <h1>Player History — Isolated Test</h1>
+  <div class="sub">This page does ONE thing: fetch a player's history and show every step. Build: <b>test-1</b></div>
+
+  <div class="row">
+    <input type="number" id="pid" value="328" placeholder="FPL player id">
+    <button onclick="run()">Fetch history</button>
+  </div>
+
+  <div id="steps"></div>
+  <div id="result"></div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const PROXY = t => 'https://corsproxy.io/?url=' + encodeURIComponent(t);
+
+function step(label, msg, cls){
+  const d = document.createElement('div');
+  d.className = 'step';
+  d.innerHTML = '<div class="label">'+label+'</div><div class="'+(cls||'')+'">'+msg+'</div>';
+  $('steps').appendChild(d);
+  return d;
+}
+
+async function run(){
+  $('steps').innerHTML = '';
+  $('result').innerHTML = '';
+  const pid = $('pid').value.trim();
+  if(!pid){ step('error','Enter a player id','bad'); return; }
+
+  step('1. Player ID', pid, 'info');
+
+  // ── Attempt A: the Netlify function ──
+  let data = null, source = null;
+  const s2 = step('2. Trying /api/player', 'fetching…', 'info');
+  try {
+    const res = await fetch('/api/player?id='+pid, {cache:'no-store'});
+    s2.querySelector('div:last-child').innerHTML =
+      'HTTP '+res.status+' '+(res.ok?'<span class="ok">OK</span>':'<span class="bad">FAIL</span>');
+    if(res.ok){
+      const j = await res.json();
+      step('2b. Response build', (j.build||'(no build field)')+' · keys: '+Object.keys(j).join(', '),
+        j.build?'ok':'bad');
+      if(j.error) step('2c. Function error', j.error, 'bad');
+      if(j.pastSeasons){ data = j; source = '/api/player'; }
+    }
+  } catch(e){
+    s2.querySelector('div:last-child').innerHTML = '<span class="bad">threw: '+e.message+'</span>';
+  }
+
+  // ── Attempt B: proxy → element-summary ──
+  if(!data){
+    const s3 = step('3. Falling back to proxy', 'fetching element-summary…', 'info');
+    try {
+      const res = await fetch(PROXY('https://fantasy.premierleague.com/api/element-summary/'+pid+'/'));
+      s3.querySelector('div:last-child').innerHTML =
+        'HTTP '+res.status+' '+(res.ok?'<span class="ok">OK</span>':'<span class="bad">FAIL</span>');
+      if(res.ok){
+        const raw = await res.json();
+        step('3b. Raw keys', Object.keys(raw).join(', '), raw.history_past?'ok':'bad');
+        step('3c. history_past length', String((raw.history_past||[]).length),
+          (raw.history_past||[]).length?'ok':'bad');
+        if(raw.history_past){ data = shapeRaw(raw); source = 'proxy'; }
+      }
+    } catch(e){
+      s3.querySelector('div:last-child').innerHTML = '<span class="bad">threw: '+e.message+'</span>';
+    }
+  }
+
+  // ── Render or report ──
+  if(!data){
+    step('RESULT', 'No data from either source. See failures above.', 'bad');
+    return;
+  }
+  step('RESULT', 'Got data from '+source+' — '+data.pastSeasons.length+' past seasons, '
+    +data.thisSeason.length+' games this season', 'ok');
+
+  render(data);
+}
+
+function shapeRaw(raw){
+  const past = (raw.history_past||[]).map(x=>({
+    season:x.season_name, points:x.total_points, minutes:x.minutes,
+    goals:x.goals_scored, assists:x.assists, xg:parseFloat(x.expected_goals)||0,
+    xa:parseFloat(x.expected_assists)||0, defcon:x.defensive_contribution||0,
+    startCost:x.start_cost/10, endCost:x.end_cost/10,
+  }));
+  const ts = (raw.history||[]).map(x=>({round:x.round, points:x.total_points, goals:x.goals_scored}));
+  return {pastSeasons:past, thisSeason:ts, vsClubThis:[]};
+}
+
+function render(d){
+  let html = '<h2 style="font-size:15px;margin:20px 0 8px">Previous seasons</h2>';
+  html += '<table><thead><tr><th>Season</th><th>Pts</th><th>Min</th><th>G</th><th>A</th><th>xG</th><th>DefCon</th><th>Price</th></tr></thead><tbody>';
+  d.pastSeasons.forEach(s=>{
+    html += '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td><td>'+s.goals
+      +'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+(s.defcon||'—')
+      +'</td><td>'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  if(!d.thisSeason.length){
+    html += '<p style="color:#7d8590;font-size:13px;margin-top:16px">No games played yet this season (expected pre-season).</p>';
+  }
+  $('result').innerHTML = html;
+}
+</script>
+</body>
+</html>
