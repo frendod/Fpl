@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FPL Model">
+<meta name="theme-color" content="#10151c">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<title>FPL Scoring Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10151c;
+  --panel:#171d26;
+  --panel2:#1e2530;
+  --line:rgba(232,228,220,.10);
+  --line2:rgba(232,228,220,.18);
+  --paper:#e8e4dc;
+  --dim:#7b8795;
+  --dimmer:#576270;
+  --prior:#d9a441;
+  --live:#4da3ff;
+  --good:#4ec9a0;
+  --bad:#e5657a;
+  --accent:#d9a441;
+  --accent-soft:rgba(217,164,65,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink);
+  -webkit-tap-highlight-color:rgba(77,163,255,.15);
+  overscroll-behavior-y:none;
+  color:var(--paper);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* faint ledger ruling — the data-sheet motif */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(180deg,transparent 0 39px,rgba(232,228,220,.022) 39px 40px);
+}
+.wrap{
+  position:relative;z-index:1;max-width:1180px;margin:0 auto;
+  padding-left:calc(20px + env(safe-area-inset-left));
+  padding-right:calc(20px + env(safe-area-inset-right));
+  padding-bottom:calc(90px + env(safe-area-inset-bottom));
+}
+.masthead{padding-top:calc(38px + env(safe-area-inset-top))}
+
+/* ─── MASTHEAD ─────────────────────────────────────────── */
+.masthead{padding:38px 0 22px;border-bottom:1px solid var(--line2)}
+.masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--dim);
+}
+.langtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.langbtn{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s;
+}
+.langbtn:hover{color:var(--paper)}
+.langbtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.langbtn:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
+.masthead h1{
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:clamp(34px,7vw,58px);font-weight:400;line-height:.98;letter-spacing:-.01em;
+}
+.masthead h1 em{font-style:italic;color:var(--accent);transition:color .6s ease}
+.masthead p{
+  color:var(--dim);font-size:13px;max-width:52ch;margin-top:12px;
+}
+
+/* ─── SIGNATURE: EVIDENCE BLEND ────────────────────────── */
+.evidence{
+  margin:28px 0 32px;padding:22px 24px;
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+}
+.evidence-top{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:16px;flex-wrap:wrap;margin-bottom:16px;
+}
+.evidence-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);
+}
+.evidence-state{
+  font-family:'Instrument Serif',serif;font-size:24px;font-style:italic;color:var(--accent);
+  transition:color .6s ease;
+}
+.blend-track{
+  position:relative;height:34px;border-radius:2px;overflow:hidden;
+  background:var(--panel2);border:1px solid var(--line);
+}
+.blend-prior,.blend-live{
+  position:absolute;top:0;bottom:0;
+  display:flex;align-items:center;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;white-space:nowrap;overflow:hidden;
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+}
+.blend-prior{left:0;background:linear-gradient(90deg,rgba(217,164,65,.30),rgba(217,164,65,.16));
+  color:var(--prior);padding-left:12px;border-right:1px solid var(--line2)}
+.blend-live{right:0;background:linear-gradient(270deg,rgba(77,163,255,.28),rgba(77,163,255,.13));
+  color:var(--live);padding-right:12px;justify-content:flex-end}
+.blend-legend{
+  display:flex;justify-content:space-between;margin-top:9px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dimmer);letter-spacing:.06em;
+}
+.evidence-note{
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--dim);line-height:1.6;
+}
+
+/* ─── CONTROLS ─────────────────────────────────────────── */
+.controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px}
+.btn{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;padding:12px 22px;border-radius:2px;cursor:pointer;
+  border:1px solid var(--accent);background:var(--accent);color:var(--ink);
+  font-weight:600;transition:opacity .15s,transform .1s;
+}
+.btn:hover{opacity:.88}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--paper);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+
+/* ─── PANELS ───────────────────────────────────────────── */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  margin-bottom:22px;overflow:hidden;
+}
+.panel-head{
+  padding:15px 20px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.panel-title{
+  font-family:'Instrument Serif',serif;font-size:21px;letter-spacing:.005em;
+}
+.panel-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.08em}
+
+/* ─── WEIGHTS ──────────────────────────────────────────── */
+.preset-strip{display:flex;gap:6px;flex-wrap:wrap}
+.preset{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer;
+  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
+}
+.preset:hover{color:var(--paper);border-color:var(--line2)}
+.preset[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.preset:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+
+.wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
+.wgroup:last-child{border-bottom:none}
+.wgroup-head{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.wgroup-name{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--paper);
+}
+.wgroup-desc{font-size:11.5px;color:var(--dimmer)}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
+.wrow{display:flex;flex-direction:column;gap:6px}
+.wrow-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.wname{font-size:13px;color:var(--paper)}
+.wval{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);min-width:34px;text-align:right;transition:color .6s ease}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:1px;
+  background:var(--line2);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--ink);cursor:pointer;transition:transform .12s,background .6s ease;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
+input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;background:var(--accent);
+  border:2px solid var(--ink);cursor:pointer;
+}
+input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px}
+.wtag{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;padding:1px 6px;border-radius:2px;
+}
+.wtag.live{background:rgba(77,163,255,.14);color:var(--live)}
+.wtag.cold{background:rgba(217,164,65,.14);color:var(--prior)}
+.wtag.pos{background:rgba(78,201,160,.13);color:var(--good)}
+.wrow.muted{opacity:.4}
+.whint{font-size:10.5px;color:var(--dimmer);line-height:1.4}
+
+/* ─── TABS ─────────────────────────────────────────────── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line2);margin-bottom:22px;overflow-x:auto}
+.tab{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.15em;
+  text-transform:uppercase;padding:13px 20px;cursor:pointer;color:var(--dim);
+  background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;
+  white-space:nowrap;transition:color .15s;
+}
+.tab:hover{color:var(--paper)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
+.view{display:none}
+.view.on{display:block}
+
+/* ─── PICK LISTS ───────────────────────────────────────── */
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-bottom:22px}
+.prow{
+  display:flex;align-items:center;gap:12px;padding:11px 20px;
+  border-bottom:1px solid var(--line);
+}
+.prow:last-child{border-bottom:none}
+.pidx{
+  font-family:'Instrument Serif',serif;font-size:17px;color:var(--dimmer);
+  width:20px;flex-shrink:0;text-align:right;
+}
+.pidx.lead{color:var(--accent)}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmeta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
+.pscore{text-align:right;flex-shrink:0}
+.pscore b{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.conf{
+  display:flex;gap:2px;margin-top:5px;justify-content:flex-end;
+}
+.conf i{width:5px;height:5px;border-radius:50%;background:var(--line2);display:block}
+.conf i.on{background:var(--live)}
+.conf i.prior{background:var(--prior)}
+
+/* ─── TABLE ────────────────────────────────────────────── */
+.filters{display:flex;gap:9px;flex-wrap:wrap;padding:13px 20px;border-bottom:1px solid var(--line)}
+.filters input,.filters select{
+  background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 11px;border-radius:2px;outline:none;
+}
+.filters input{flex:1;min-width:150px}
+.filters input:focus,.filters select:focus{border-color:var(--accent)}
+.filters select option{background:var(--panel)}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);padding:10px 14px;text-align:left;border-bottom:1px solid var(--line2);
+  white-space:nowrap;user-select:none;
+}
+thead th.sortable{cursor:pointer}
+thead th.sortable:hover{color:var(--paper)}
+thead th[aria-sort]{color:var(--accent)}
+thead th[aria-sort="descending"]::after{content:' ↓'}
+thead th[aria-sort="ascending"]::after{content:' ↑'}
+tbody tr{border-bottom:1px solid var(--line)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(232,228,220,.022)}
+tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
+.mono{font-family:'IBM Plex Mono',monospace}
+.pos{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  padding:2px 6px;border-radius:2px;
+}
+.pos-GKP{background:rgba(217,164,65,.15);color:var(--prior)}
+.pos-DEF{background:rgba(77,163,255,.15);color:var(--live)}
+.pos-MID{background:rgba(78,201,160,.15);color:var(--good)}
+.pos-FWD{background:rgba(229,101,122,.15);color:var(--bad)}
+.sc{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.sc.mid{color:var(--paper);opacity:.75}
+.sc.lo{color:var(--dimmer)}
+.pager{display:flex;gap:9px;align-items:center;padding:13px 20px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.pg{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 11px;border-radius:2px;cursor:pointer}
+.pg:hover{border-color:var(--accent);color:var(--accent)}
+.pg:disabled{opacity:.28;cursor:not-allowed}
+
+/* ─── XI ───────────────────────────────────────────────── */
+.xistats{display:flex;gap:26px;flex-wrap:wrap;padding:17px 20px;background:var(--panel);
+  border:1px solid var(--line);border-radius:3px;margin-bottom:18px}
+.xistat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.xistat b{font-family:'Instrument Serif',serif;font-size:23px;font-weight:400}
+.pitch{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  padding:26px 12px;margin-bottom:22px;position:relative;overflow:hidden;
+}
+.pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:var(--line);transform:translateX(-50%)}
+.prow-xi{display:flex;justify-content:center;gap:5px;margin-bottom:17px;flex-wrap:wrap;position:relative}
+.prow-xi:last-child{margin-bottom:0}
+.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px}
+.pdisc{
+  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;position:relative;
+  border:1px solid;
+}
+.pdisc.GKP{background:rgba(217,164,65,.16);border-color:rgba(217,164,65,.5);color:var(--prior)}
+.pdisc.DEF{background:rgba(77,163,255,.16);border-color:rgba(77,163,255,.5);color:var(--live)}
+.pdisc.MID{background:rgba(78,201,160,.16);border-color:rgba(78,201,160,.5);color:var(--good)}
+.pdisc.FWD{background:rgba(229,101,122,.16);border-color:rgba(229,101,122,.5);color:var(--bad)}
+.capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
+  background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:8px;
+  font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
+.pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:62px;color:var(--paper)}
+.pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer)}
+
+/* ─── DIAGNOSTICS ──────────────────────────────────────── */
+.diag{padding:0}
+.drow{display:flex;justify-content:space-between;gap:16px;padding:11px 20px;
+  border-bottom:1px solid var(--line);font-size:12.5px}
+.drow:last-child{border-bottom:none}
+.dk{color:var(--dim)}
+.dv{font-family:'IBM Plex Mono',monospace;text-align:right}
+.dv.ok{color:var(--good)}
+.dv.warn{color:var(--prior)}
+.dv.off{color:var(--bad)}
+
+/* ─── STATES ───────────────────────────────────────────── */
+.note{padding:13px 17px;border-radius:2px;font-size:12.5px;line-height:1.6;margin-bottom:18px}
+.note.err{background:rgba(229,101,122,.09);border:1px solid rgba(229,101,122,.3);color:#f0a3b0}
+.note.warn{background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);color:#e8c584}
+.loading{display:flex;flex-direction:column;align-items:center;gap:13px;padding:54px 20px;color:var(--dim)}
+.spin{width:22px;height:22px;border:1.5px solid var(--line2);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ltext{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.empty{padding:44px 20px;text-align:center;color:var(--dim);font-size:13px}
+
+/* ─── PASTE ────────────────────────────────────────────── */
+textarea{
+  width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px;border-radius:2px;
+  outline:none;resize:vertical;min-height:72px;
+}
+textarea:focus{border-color:var(--accent)}
+.pstep{font-size:12.5px;color:var(--dim);line-height:1.75}
+.pstep code{font-family:'IBM Plex Mono',monospace;color:var(--live);font-size:11.5px;word-break:break-all}
+.plabel{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
+
+/* ─── PLAYER HISTORY MODAL ─────────────────────────────── */
+.prow-click{cursor:pointer}
+.phist{cursor:pointer;-webkit-tap-highlight-color:rgba(217,164,65,.15)}
+.phist:active{opacity:.7}
+.hist-overlay[hidden]{display:none!important}
+/* the hidden attribute must beat any display: rule below (flex/grid/etc) */
+[hidden]{display:none!important}
+.hist-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(8,11,16,.72);
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0;backdrop-filter:blur(3px);
+  animation:histFade .18s ease;
+}
+@keyframes histFade{from{opacity:0}to{opacity:1}}
+.hist-modal{
+  background:var(--panel);border:1px solid var(--line2);
+  border-radius:14px 14px 0 0;
+  width:100%;max-width:680px;max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:histUp .24s cubic-bezier(.4,0,.2,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@keyframes histUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(min-width:680px){
+  .hist-overlay{align-items:center}
+  .hist-modal{border-radius:14px;max-height:82vh}
+  @keyframes histUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+}
+.hist-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 20px 14px;border-bottom:1px solid var(--line);flex-shrink:0;
+}
+.hist-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:5px;
+}
+.hist-name{font-family:'Instrument Serif',serif;font-size:26px;line-height:1;}
+.hist-close{
+  background:var(--panel2);border:1px solid var(--line2);color:var(--dim);
+  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.hist-close:hover{color:var(--paper);border-color:var(--line2)}
+.hist-body{overflow-y:auto;padding:4px 0;flex:1;-webkit-overflow-scrolling:touch}
+.hist-foot{
+  padding:11px 20px;border-top:1px solid var(--line);flex-shrink:0;
+  font-size:11px;color:var(--dimmer);line-height:1.5;
+}
+.hist-section{padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-section:last-child{border-bottom:none}
+.hist-section-title{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px;
+}
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{
+  font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);text-align:right;padding:5px 7px;
+  border-bottom:1px solid var(--line2);white-space:nowrap;
+}
+.hist-table th:first-child{text-align:left}
+.hist-table td{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;
+  padding:7px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.hist-table td:first-child{text-align:left;font-size:12px}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table tbody tr:hover{background:rgba(232,228,220,.02)}
+.hist-price-up{color:var(--good)}
+.hist-price-down{color:var(--bad)}
+.hist-empty{padding:26px 20px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
+.hist-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--dim)}
+.hist-venue{display:inline-block;width:20px;font-size:10px;color:var(--dim)}
+
+/* ─── SEASON PLAN ──────────────────────────────────────── */
+.fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
+.fxgrid th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  color:var(--dim);padding:5px 4px;text-align:center;border:none;white-space:nowrap}
+.fxgrid th.club{text-align:left;padding-left:14px;position:sticky;left:0;background:var(--panel);z-index:2}
+.fxgrid td.club{font-family:'IBM Plex Mono',monospace;font-size:11px;padding-left:14px;
+  position:sticky;left:0;background:var(--panel);z-index:2;white-space:nowrap}
+.fxgrid tbody tr:hover{background:none}
+.fxgrid tbody tr:hover td:not(.club){filter:brightness(1.25)}
+.cell{min-width:44px;padding:5px 3px;border-radius:2px;font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;text-align:center;line-height:1.25}
+.d1{background:rgba(78,201,160,.34);color:#bff0dd}
+.d2{background:rgba(78,201,160,.19);color:#a9e2cc}
+.d3{background:rgba(232,228,220,.09);color:var(--dim)}
+.d4{background:rgba(229,101,122,.19);color:#f2b5c0}
+.d5{background:rgba(229,101,122,.34);color:#ffc9d2}
+.d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
+  color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
+.cell .dbl{display:block;font-size:8px;letter-spacing:.08em;color:var(--live);margin-top:1px}
+.halfmark{border-left:2px solid var(--accent)!important}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);align-items:center}
+.legend i{display:inline-block;width:16px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.chipcard{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;
+  align-items:flex-start;flex-wrap:wrap}
+.chipcard:last-child{border-bottom:none}
+.chipname{font-family:'Instrument Serif',serif;font-size:19px;width:130px;flex-shrink:0}
+.chipbody{flex:1;min-width:200px}
+.chipwin{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:3px}
+.chipwhy{font-size:12px;color:var(--dim);line-height:1.55}
+.chiphalf{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dimmer);margin-bottom:4px}
+.halfsplit{padding:11px 20px;background:var(--panel2);border-bottom:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent)}
+.swingrow{display:flex;justify-content:space-between;gap:14px;padding:9px 20px;
+  border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
+.swingrow:last-child{border-bottom:none}
+.swingbar{flex:1;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;max-width:220px}
+.swingfill{height:4px;border-radius:2px;background:var(--good)}
+
+@media (hover:none) and (pointer:coarse){
+  .filters input,.filters select,textarea,input[type=text],input[type=number]{
+    font-size:16px;
+  }
+  .tab{padding:14px 18px}
+  .btn{padding:14px 22px}
+  input[type=range]{height:3px}
+  input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+  .pg,.preset{padding:9px 14px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+@media (max-width:640px){
+  .wgrid{grid-template-columns:1fr}
+  .pickgrid{grid-template-columns:1fr}
+  .xistats{gap:18px}
+  .masthead{padding:28px 0 18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="masthead-row">
+      <div class="eyebrow">Fantasy Premier League · 2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
+      <div class="langtoggle" role="group" aria-label="Language">
+        <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
+      </div>
+    </div>
+    <h1><span id="i18n-engineA">Scoring</span> <em id="i18n-engineB">Engine</em></h1>
+    <p id="i18n-tagline">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
+  </div>
+
+  <!-- SIGNATURE: evidence blend -->
+  <div class="evidence">
+    <div class="evidence-top">
+      <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
+      <div class="evidence-state" id="stateLabel">Not loaded</div>
+    </div>
+    <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
+      <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
+      <div class="blend-live" id="blendLive" style="width:0%">This season</div>
+    </div>
+    <div class="blend-legend">
+      <span id="legendPrior">prior 100%</span>
+      <span id="legendLive">live 0%</span>
+    </div>
+    <div class="evidence-note" id="evidenceNote">
+      Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="runBtn">Load data</button>
+    <button class="btn ghost" id="pasteBtn">Paste data instead</button>
+  </div>
+
+  <div id="errNote" class="note err" hidden></div>
+  <div id="warnNote" class="note warn" hidden></div>
+
+  <!-- PASTE -->
+  <div class="panel" id="pastePanel" hidden>
+    <div class="panel-head"><div class="panel-title" id="i18n-pasteData">Paste data</div></div>
+    <div style="padding:18px 20px">
+      <div class="pstep" id="pasteSteps">
+        Use this when the network is blocked — common inside the Claude app.
+        <ol style="margin:9px 0 0 17px">
+          <li>Open <code>fantasy.premierleague.com/api/bootstrap-static/</code> in Safari or Chrome, not the Claude app.</li>
+          <li>Select all, copy, paste into the first box.</li>
+          <li>Optionally repeat with <code>fantasy.premierleague.com/api/fixtures/</code> for fixture difficulty.</li>
+        </ol>
+      </div>
+      <div style="margin-top:16px">
+        <label class="plabel" for="pasteBs" data-i18n="bsRequired">bootstrap-static — required</label>
+        <textarea id="pasteBs" placeholder="Paste here"></textarea>
+      </div>
+      <div style="margin-top:12px">
+        <label class="plabel" for="pasteFx" data-i18n="fxOptional">fixtures — optional</label>
+        <textarea id="pasteFx" placeholder="Paste here" style="min-height:56px"></textarea>
+      </div>
+      <button class="btn" id="pasteRun" style="margin-top:14px" data-i18n="scorePasted">Score pasted data</button>
+    </div>
+  </div>
+
+  <!-- WEIGHTS -->
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title" data-i18n="weights">Weights</div>
+      <div class="preset-strip" id="presets"></div>
+    </div>
+    <div id="weightBody"></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist" id="tabs" hidden>
+    <button class="tab" role="tab" aria-selected="true" data-view="picks" data-i18n="tabPicks">Picks</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="xi" data-i18n="tabXI">Best XI</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="table" data-i18n="tabTable">All players</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="plan" data-i18n="tabPlan">Season plan</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="diag" data-i18n="tabDiag">Diagnostics</button>
+  </div>
+
+  <div class="view on" id="view-picks"><div class="pickgrid" id="pickGrid"></div></div>
+  <div class="view" id="view-xi"><div id="xiBody"></div></div>
+
+  <div class="view" id="view-table">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title" data-i18n="allPlayers">All players</div>
+        <div class="panel-meta" id="tableCount"></div>
+      </div>
+      <div class="filters">
+        <input type="text" id="fSearch" placeholder="Player or club" aria-label="Search players">
+        <select id="fPos" aria-label="Filter by position">
+          <option value="" data-i18n="allPos">All positions</option>
+          <option value="GKP" data-i18n="posGK">Goalkeeper</option><option value="DEF" data-i18n="posDF">Defender</option>
+          <option value="MID" data-i18n="posMD">Midfielder</option><option value="FWD" data-i18n="posFW">Forward</option>
+        </select>
+        <select id="fPrice" aria-label="Filter by price">
+          <option value="" data-i18n="anyPrice">Any price</option>
+          <option value="4.5">Up to 4.5</option><option value="6">Up to 6.0</option>
+          <option value="8">Up to 8.0</option><option value="10">Up to 10.0</option>
+          <option value="13">Up to 13.0</option>
+        </select>
+        <select id="fAvail" aria-label="Filter by availability">
+          <option value="" data-i18n="allAvail">All players</option>
+          <option value="fit" data-i18n="fitOnly">Fully available only</option>
+        </select>
+      </div>
+      <div class="tscroll">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th class="sortable" data-sort="name" data-i18n="thPlayer">Player</th>
+            <th>Pos</th>
+            <th class="sortable" data-sort="price" data-i18n="thPrice">Price</th>
+            <th class="sortable" data-sort="score" aria-sort="descending" data-i18n="thScore">Score</th>
+            <th class="sortable" data-sort="mins" data-i18n="thMins">Mins</th>
+            <th class="sortable" data-sort="xg90">xG/90</th>
+            <th class="sortable" data-sort="xa90">xA/90</th>
+            <th class="sortable" data-sort="defcon" data-i18n="thDefcon">DefCon</th>
+            <th class="sortable" data-sort="fdr">FDR</th>
+            <th class="sortable" data-sort="sel" data-i18n="thOwned">Owned</th>
+            <th class="sortable" data-sort="mom" data-i18n="thMom">Momentum</th>
+          </tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-plan"><div id="planBody"></div></div>
+
+  <div class="view" id="view-diag">
+    <div class="panel"><div class="panel-head"><div class="panel-title" data-i18n="diagnostics">Diagnostics</div>
+      <div class="panel-meta" data-i18n="diagMeta">What the engine actually found</div></div>
+      <div class="diag" id="diagBody"></div></div>
+  </div>
+
+</div>
+
+<!-- PLAYER HISTORY MODAL -->
+<div id="histOverlay" class="hist-overlay" hidden style="display:none">
+  <div class="hist-modal" role="dialog" aria-modal="true" aria-labelledby="histName">
+    <div class="hist-head">
+      <div>
+        <div class="hist-eyebrow" id="histEyebrow">Player history</div>
+        <div class="hist-name" id="histName">—</div>
+      </div>
+      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="var o=document.getElementById('histOverlay');o.hidden=true;o.style.display='none';document.body.style.overflow='';">✕</button>
+    </div>
+    <div class="hist-body" id="histBody"></div>
+    <div class="hist-foot" id="histFoot"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* App build stamp — bump this whenever index.html changes, so you can confirm
+   which version is live. Shows in the header and logs to the console. */
+const APP_BUILD = 'app-2026-07-27e';
+
+/* ══ I18N ══════════════════════════════════════════════
+   Every user-facing string keyed here. t(key) returns it in
+   the active language. Some values are functions of arguments.
+════════════════════════════════════════════════════════ */
+const I18N={
+  en:{
+    tagline:'Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.',
+    engineA:'Scoring', engineB:'Engine',
+    evidenceBlend:'Evidence blend',
+    notLoaded:'Not loaded', coldStart:'Cold start', warmingUp:'Warming up', liveData:'Live data',
+    lastSeason:'Last season', thisSeason:'This season', priorShort:'Temp. pasada', liveShort:'Esta temp.',
+    priorPct:p=>'prior '+p+'%', livePct:p=>'live '+p+'%',
+    blendAria:'Proportion of evidence from last season versus this season',
+    noteInit:"Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.",
+    noteCold:'No matches played yet. Form, points per game, ICT, bonus and defensive contribution are all zero, so the engine gives them no weight — it is ranking on last season\u2019s expected goals per 90, price, fixtures and minutes risk. Treat the output as a starting shortlist, not a verdict.',
+    noteBlend:(gw,ramp,pct)=>'Gameweek '+gw+' of '+ramp+' in the ramp. This season\u2019s numbers carry '+pct+'% of the weight on live inputs; last season still fills the gap on expected goals. Small samples move fast, so expect the order to shift week to week.',
+    noteLive:'Enough of the season has been played that live data carries full weight and last season no longer contributes. Every input is ranked against the current pool, then scaled by chance of playing — so most of the league sits low and only regular starters climb. Compare scores against each other, not against ten.',
+    loadData:'Load data', pasteInstead:'Paste data instead', loading:'Loading', reload:'Reload',
+    fetching:'Fetching', tryingLive:'Trying live API', checkingCache:'Checking cache',
+    readingUnderstat:'Reading Understat', scoring:'Scoring',
+    pasteData:'Paste data', scorePasted:'Score pasted data',
+    pasteIntro:'Use this when the network is blocked — common inside the Claude app.',
+    pasteStep1a:'Open ', pasteStep1b:' in Safari or Chrome, not the Claude app.',
+    pasteStep2:'Select all, copy, paste into the first box.',
+    pasteStep3a:'Optionally repeat with ', pasteStep3b:' for fixture difficulty.',
+    bsRequired:'bootstrap-static — required', fxOptional:'fixtures — optional',
+    pasteHere:'Paste here',
+    weights:'Weights',
+    gReturns:'FPL returns', gReturnsD:'What the game has actually paid out',
+    gThreat:'Underlying threat', gThreatD:'Chances created and taken, per 90 minutes',
+    gDefence:'Defensive work', gDefenceD:'Defensive contribution points',
+    gContext:'Context', gContextD:'Fixtures, minutes, market',
+    pBalanced:'Balanced', pForm:'Form', pFixtures:'Fixtures', pThreat:'Threat', pDefensive:'Defensive', pDifferential:'Differential',
+    tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
+    tabPicks:'Picks', tabXI:'Best XI', tabTable:'All players', tabPlan:'Season plan', tabDiag:'Diagnostics',
+    allPlayers:'All players', searchPh:'Player or club', searchAria:'Search players',
+    allPos:'All positions', posGK:'Goalkeeper', posDF:'Defender', posMD:'Midfielder', posFW:'Forward',
+    anyPrice:'Any price', upTo:'Up to ', allAvail:'All players', fitOnly:'Fully available only',
+    thPlayer:'Player', thPos:'Pos', thPrice:'Price', thScore:'Score', thMins:'Mins',
+    thDefcon:'DefCon', thOwned:'Owned', thMom:'Momentum', thForm:'Form', thFDR:'FDR',
+    diagnostics:'Diagnostics', diagMeta:'What the engine actually found',
+    capTitle:'Captain', capMeta:'Highest score, available, playing',
+    valTitle:'Best value', valMeta:'Score per million',
+    difTitle:'Differentials', difMeta:'Under 12% owned',
+    owned:'owned', perM:'per m', nothingQ:'Nothing qualifies yet.',
+    noSide:'Not enough available players to build a side.',
+    shape:'Shape', meanScore:'Mean score', cost:'Cost', captain:'Captain',
+    theEleven:'The eleven', elevenMeta:'Top scorer per position, not budget-optimised',
+    noMatch:'No players match those filters.', ofN:' of ',
+    prev:'Previous', next:'Next', pageOf:(a,b)=>'Page '+a+' of '+b,
+    // planner
+    noPlan:'No fixture data loaded, so there is nothing to plan against. Load with the network on, or paste the fixtures response too.',
+    fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
+    legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
+    club:'Club',
+    chipWindows:'Chip windows', chipMeta:d=>'Two sets of four · first expires at the GW'+d+' deadline',
+    firstSet:'First set', secondSet:'Second set',
+    benchBoost:'Bench Boost', tripleCap:'Triple Captain', freeHit:'Free Hit', wildcard:'Wildcard',
+    noHalf:'No gameweeks left in this half.',
+    gameweekN:n=>'Gameweek '+n, noWindow:'No window yet',
+    bbWhy:(pct,dbl)=>pct+'% of the shortlist has a fixture'+(dbl?', '+dbl+' of them twice':'')+'. It scores best for a Bench Boost in this half.',
+    tcWhy:(name,isDbl)=>name+' has the strongest single fixture here'+(isDbl?' — a double gameweek':'')+'.',
+    fhBlank:n=>n+' of the shortlist blanks this week, which is when a Free Hit earns its place.',
+    fhDbl:n=>n+' clubs play twice — worth holding for a bigger swing.',
+    fhNone:'Nothing in this half forces one. Blanks and doubles only appear once cup ties are postponed, so this is worth revisiting after the third round.',
+    wcWhy:gain=>'The next five gameweeks improve most from here'+(gain>0?' — ease climbs '+gain.toFixed(1)+' against the two before it':', though the gain is marginal')+'.',
+    noBlankDbl:'No blanks or doubles exist in the fixture list yet — they only appear once cup ties force postponements. Until then Bench Boost and Free Hit windows are guesses off fixture difficulty alone, which is the weakest thing to plan a chip on. Wildcard and Triple Captain timings are more meaningful now.',
+    bestRuns:'Best runs', bestRunsMeta:(a,b)=>'Mean ease over GW'+a+'\u2013'+b,
+    // diagnostics rows
+    dSeasonState:'Season state', dGwPlayed:'Gameweeks played', dNextGw:'Next gameweek',
+    dLiveWeight:'Live weight', dScored:'Players scored', dDefField:'Defensive contribution field',
+    dStartsField:'Starts field present', dUnderstatLive:'Understat this season', dUnderstatPrior:'Understat last season',
+    dMatched:'Matched to Understat', dMatchedPrior:'Matched to last season', dFixturesKnown:'Fixtures known', dProxy:'Proxy used',
+    dNotFound:'not found', dSummed:parts=>'summed from '+parts, dUnavail:'unavailable', dPlayers:' players',
+    dYes:'yes', dNo:'no', dNone:'none — pasted data',
+    // load messages
+    srcLive:'live data', srcPublished:'published data', srcLiveApi:'live API', srcSaved:'saved data',
+    loadedFrom:(src,age)=>'Loaded from '+src+(age?' ('+age+')':'')+'.',
+    offlineStale:' Offline — this is your last saved copy, so numbers may be stale.',
+    understatFB:'. Expected goals use FPL\u2019s own figures (Understat not loaded).',
+    noDefWarn:'No defensive contribution field found — that input scores neutral. Check Diagnostics.',
+    noSource:'No data source reachable — the function did not answer, no data.json is published, every proxy failed, and nothing is cached. Paste data once to get going; after that it is remembered.',
+    pasteSaved:'Saved. Next time this opens it will load from here automatically — no need to paste again.',
+    openedSaved:age=>'Opened from saved data'+(age?' ('+age+')':'')+'. Tap Reload for the latest.',
+    pasteBadJson:'That is not valid JSON. Copy the whole page from the bootstrap-static URL, including the opening brace.',
+    pasteNoFields:'That JSON has no elements or teams. It is probably the wrong page.',
+    pasteFxBad:'The fixtures box was not valid JSON, so fixture difficulty is off.',
+    pasteNoFx:'No fixtures pasted — fixture difficulty and home advantage score neutral.',
+    pasteOffline:'Offline mode: expected goals come from FPL\u2019s own figures, not Understat.',
+    pasteBsFirst:'Paste the bootstrap-static response into the first box.',
+    confMatched:'matched to last season', confFpl:'FPL data only',
+    histTitle:'Player history', histLoading:'Loading history…',
+    histErr:'Could not load history for this player.',
+    histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
+    hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
+    hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
+    histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
+    histClose:'Close', histNote:'FPL data only. Multi-season xG-by-opponent is coming once we wire up the new stats source.',
+    priceMove:'price',
+    justNow:'just now', hAgo:h=>h+'h ago', dAgo:d=>d+'d ago', oneHAgo:'1h ago',
+    F:{
+      form:['Form','Points per match over the last five gameweeks'],
+      ppg:['Points per game',''],
+      ict:['ICT index',''],
+      bps:['Bonus points system','Ranked within position — a keeper and a centre-back no longer earn BPS the same way'],
+      xg90:['Expected goals /90','Ranked within position. A defender is measured against defenders, so keepers are not punished for never shooting'],
+      xa90:['Expected assists /90',''],
+      xgdiff:['Finishing vs xG','Goals above or below expected. A high figure can mean a clinical finisher, or a hot run about to cool'],
+      defcon:['Defensive contribution','Ranked within position. Two points per match at ten defensive actions for defenders, twelve for everyone else'],
+      fdr:['Fixture difficulty','Next three gameweeks, easier fixtures score higher'],
+      home:['Home fixtures',''],
+      mins:['Minutes security','Applied as a multiplier, not added in. Expected points are chance of playing times points when playing. Raise it to punish rotation and injury harder, drop it to nil to ignore availability'],
+      own:['Ownership','Negative weight rewards low-owned players. Positive follows the crowd'],
+      mom:['Transfer momentum','Net transfers this gameweek as a share of the player\u2019s existing owners, so a stampede into a differential is not drowned out by noise around a premium. Off until a gameweek has been played'],
+      price:['Price as a prior','Before there is form to read, what FPL charges is a signal. Fades out as real data arrives'],
+    },
+    weightLabel:'weight',
+  },
+  es:{
+    tagline:'Clasifica a cada jugador según evidencia ponderada y luego ajusta por su probabilidad de jugar. Cuánta de esa evidencia procede de esta temporada depende de cuánta temporada se ha disputado.',
+    engineA:'Motor de', engineB:'Puntuación',
+    evidenceBlend:'Mezcla de evidencia',
+    notLoaded:'Sin cargar', coldStart:'Arranque frío', warmingUp:'Calentando', liveData:'Datos actuales',
+    lastSeason:'Temp. pasada', thisSeason:'Esta temp.', priorShort:'Temp. pasada', liveShort:'Esta temp.',
+    priorPct:p=>'previa '+p+'%', livePct:p=>'actual '+p+'%',
+    blendAria:'Proporción de evidencia de la temporada pasada frente a esta temporada',
+    noteInit:'Carga datos para empezar. Antes de que ruede el balón, la forma, los puntos por partido, el ICT y la bonificación son cero — así que esas entradas no tienen peso y el motor se apoya en los goles esperados de la temporada pasada, el precio y el calendario. Las entradas actuales van entrando durante las primeras ocho jornadas.',
+    noteCold:'Aún no se han jugado partidos. La forma, los puntos por partido, el ICT, la bonificación y la contribución defensiva son cero, así que el motor no les da peso — clasifica según los goles esperados por 90 de la temporada pasada, el precio, el calendario y el riesgo de minutos. Toma el resultado como una preselección inicial, no como un veredicto.',
+    noteBlend:(gw,ramp,pct)=>'Jornada '+gw+' de '+ramp+' en la rampa. Los números de esta temporada aportan el '+pct+'% del peso en las entradas actuales; la temporada pasada aún cubre el hueco en los goles esperados. Las muestras pequeñas se mueven rápido, así que espera que el orden cambie semana a semana.',
+    noteLive:'Se ha jugado suficiente temporada para que los datos actuales tengan todo el peso y la temporada pasada ya no aporte. Cada entrada se clasifica frente al grupo actual y luego se ajusta por la probabilidad de jugar — así que la mayoría de la liga queda baja y solo los titulares habituales suben. Compara las puntuaciones entre sí, no contra diez.',
+    loadData:'Cargar datos', pasteInstead:'Pegar datos', loading:'Cargando', reload:'Recargar',
+    fetching:'Obteniendo', tryingLive:'Probando API en vivo', checkingCache:'Revisando caché',
+    readingUnderstat:'Leyendo Understat', scoring:'Puntuando',
+    pasteData:'Pegar datos', scorePasted:'Puntuar datos pegados',
+    pasteIntro:'Usa esto cuando la red está bloqueada — habitual dentro de la app de Claude.',
+    pasteStep1a:'Abre ', pasteStep1b:' en Safari o Chrome, no en la app de Claude.',
+    pasteStep2:'Selecciona todo, copia y pega en el primer recuadro.',
+    pasteStep3a:'Opcionalmente repite con ', pasteStep3b:' para la dificultad del calendario.',
+    bsRequired:'bootstrap-static — obligatorio', fxOptional:'fixtures — opcional',
+    pasteHere:'Pega aquí',
+    weights:'Pesos',
+    gReturns:'Rendimiento FPL', gReturnsD:'Lo que el juego ha pagado realmente',
+    gThreat:'Amenaza de fondo', gThreatD:'Ocasiones creadas y aprovechadas, por 90 minutos',
+    gDefence:'Trabajo defensivo', gDefenceD:'Puntos de contribución defensiva',
+    gContext:'Contexto', gContextD:'Calendario, minutos, mercado',
+    pBalanced:'Equilibrado', pForm:'Forma', pFixtures:'Calendario', pThreat:'Amenaza', pDefensive:'Defensivo', pDifferential:'Diferencial',
+    tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
+    tabPicks:'Selecciones', tabXI:'Mejor XI', tabTable:'Jugadores', tabPlan:'Plan de temporada', tabDiag:'Diagnóstico',
+    allPlayers:'Todos los jugadores', searchPh:'Jugador o club', searchAria:'Buscar jugadores',
+    allPos:'Todas las posiciones', posGK:'Portero', posDF:'Defensa', posMD:'Centrocampista', posFW:'Delantero',
+    anyPrice:'Cualquier precio', upTo:'Hasta ', allAvail:'Todos', fitOnly:'Solo plenamente disponibles',
+    thPlayer:'Jugador', thPos:'Pos', thPrice:'Precio', thScore:'Puntos', thMins:'Min',
+    thDefcon:'DefCon', thOwned:'Propiedad', thMom:'Impulso', thForm:'Forma', thFDR:'FDR',
+    diagnostics:'Diagnóstico', diagMeta:'Lo que el motor encontró realmente',
+    capTitle:'Capitán', capMeta:'Mayor puntuación, disponible, jugando',
+    valTitle:'Mejor valor', valMeta:'Puntos por millón',
+    difTitle:'Diferenciales', difMeta:'Menos del 12% de propiedad',
+    owned:'prop.', perM:'por m', nothingQ:'Nada califica todavía.',
+    noSide:'No hay suficientes jugadores disponibles para formar un once.',
+    shape:'Formación', meanScore:'Puntuación media', cost:'Coste', captain:'Capitán',
+    theEleven:'El once', elevenMeta:'Mejor puntuación por posición, sin optimizar presupuesto',
+    noMatch:'Ningún jugador coincide con esos filtros.', ofN:' de ',
+    prev:'Anterior', next:'Siguiente', pageOf:(a,b)=>'Página '+a+' de '+b,
+    noPlan:'No hay datos de calendario cargados, así que no hay nada que planificar. Carga con la red activa, o pega también la respuesta de fixtures.',
+    fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
+    legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
+    club:'Club',
+    chipWindows:'Ventanas de comodines', chipMeta:d=>'Dos juegos de cuatro · el primero caduca en el límite de la J'+d,
+    firstSet:'Primer juego', secondSet:'Segundo juego',
+    benchBoost:'Bench Boost', tripleCap:'Triple Capitán', freeHit:'Free Hit', wildcard:'Comodín',
+    noHalf:'No quedan jornadas en esta mitad.',
+    gameweekN:n=>'Jornada '+n, noWindow:'Aún sin ventana',
+    bbWhy:(pct,dbl)=>'El '+pct+'% de la preselección tiene partido'+(dbl?', '+dbl+' de ellos dos veces':'')+'. Es lo mejor para un Bench Boost en esta mitad.',
+    tcWhy:(name,isDbl)=>name+' tiene el mejor partido individual aquí'+(isDbl?' — jornada doble':'')+'.',
+    fhBlank:n=>n+' de la preselección no juega esta jornada, que es cuando el Free Hit vale la pena.',
+    fhDbl:n=>n+' clubes juegan dos veces — conviene esperar a un cambio mayor.',
+    fhNone:'Nada en esta mitad lo obliga. Las jornadas sin partido y dobles solo aparecen cuando se aplazan partidos de copa, así que conviene revisarlo tras la tercera ronda.',
+    wcWhy:gain=>'Las próximas cinco jornadas mejoran más desde aquí'+(gain>0?' — la facilidad sube '+gain.toFixed(1)+' frente a las dos anteriores':', aunque la ganancia es marginal')+'.',
+    noBlankDbl:'Aún no hay jornadas sin partido ni dobles en el calendario — solo aparecen cuando los partidos de copa fuerzan aplazamientos. Hasta entonces, las ventanas de Bench Boost y Free Hit son conjeturas basadas solo en la dificultad, lo más débil sobre lo que planificar un comodín. Los tiempos de Comodín y Triple Capitán son más fiables ahora.',
+    bestRuns:'Mejores rachas', bestRunsMeta:(a,b)=>'Facilidad media en J'+a+'\u2013'+b,
+    dSeasonState:'Estado de temporada', dGwPlayed:'Jornadas jugadas', dNextGw:'Próxima jornada',
+    dLiveWeight:'Peso actual', dScored:'Jugadores puntuados', dDefField:'Campo de contribución defensiva',
+    dStartsField:'Campo de titularidades', dUnderstatLive:'Understat esta temporada', dUnderstatPrior:'Understat temp. pasada',
+    dMatched:'Emparejados con Understat', dMatchedPrior:'Emparejados con temp. pasada', dFixturesKnown:'Partidos conocidos', dProxy:'Proxy usado',
+    dNotFound:'no encontrado', dSummed:parts=>'sumado de '+parts, dUnavail:'no disponible', dPlayers:' jugadores',
+    dYes:'sí', dNo:'no', dNone:'ninguno — datos pegados',
+    srcLive:'datos en vivo', srcPublished:'datos publicados', srcLiveApi:'API en vivo', srcSaved:'datos guardados',
+    loadedFrom:(src,age)=>'Cargado desde '+src+(age?' ('+age+')':'')+'.',
+    offlineStale:' Sin conexión — esta es tu última copia guardada, los números pueden estar desactualizados.',
+    understatFB:'. Los goles esperados usan las cifras propias de FPL (Understat no cargado).',
+    noDefWarn:'No se encontró el campo de contribución defensiva — esa entrada puntúa neutra. Revisa Diagnóstico.',
+    noSource:'Ninguna fuente de datos accesible — la función no respondió, no hay data.json publicado, todos los proxies fallaron y no hay nada en caché. Pega datos una vez para empezar; después se recuerda.',
+    pasteSaved:'Guardado. La próxima vez se cargará desde aquí automáticamente — no hará falta pegar de nuevo.',
+    openedSaved:age=>'Abierto desde datos guardados'+(age?' ('+age+')':'')+'. Pulsa Recargar para lo último.',
+    pasteBadJson:'Eso no es JSON válido. Copia la página entera desde la URL de bootstrap-static, incluida la llave de apertura.',
+    pasteNoFields:'Ese JSON no tiene elements ni teams. Probablemente es la página equivocada.',
+    pasteFxBad:'El recuadro de fixtures no era JSON válido, así que la dificultad del calendario está desactivada.',
+    pasteNoFx:'No se pegaron fixtures — la dificultad del calendario y la ventaja de local puntúan neutras.',
+    pasteOffline:'Modo sin conexión: los goles esperados vienen de las cifras propias de FPL, no de Understat.',
+    pasteBsFirst:'Pega la respuesta de bootstrap-static en el primer recuadro.',
+    confMatched:'emparejado con la temporada pasada', confFpl:'solo datos FPL',
+    histTitle:'Historial del jugador', histLoading:'Cargando historial…',
+    histErr:'No se pudo cargar el historial de este jugador.',
+    histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
+    hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
+    hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
+    histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
+    histClose:'Cerrar', histNote:'Solo datos FPL. El xG por rival multitemporada llegará cuando conectemos la nueva fuente de estadísticas.',
+    priceMove:'precio',
+    justNow:'ahora mismo', hAgo:h=>'hace '+h+'h', dAgo:d=>'hace '+d+'d', oneHAgo:'hace 1h',
+    F:{
+      form:['Forma','Puntos por partido en las últimas cinco jornadas'],
+      ppg:['Puntos por partido',''],
+      ict:['Índice ICT',''],
+      bps:['Sistema de bonificación (BPS)','Clasificado dentro de la posición — un portero y un central ya no ganan BPS igual'],
+      xg90:['Goles esperados /90','Clasificado dentro de la posición. Un defensa se mide frente a defensas, así los porteros no se penalizan por no tirar'],
+      xa90:['Asistencias esperadas /90',''],
+      xgdiff:['Definición vs xG','Goles por encima o por debajo de lo esperado. Un valor alto puede indicar un rematador letal, o una buena racha a punto de enfriarse'],
+      defcon:['Contribución defensiva','Clasificado dentro de la posición. Dos puntos por partido con diez acciones defensivas para defensas, doce para el resto'],
+      fdr:['Dificultad del calendario','Próximas tres jornadas, los partidos más fáciles puntúan más alto'],
+      home:['Partidos en casa',''],
+      mins:['Seguridad de minutos','Se aplica como multiplicador, no como suma. Los puntos esperados son la probabilidad de jugar por los puntos al jugar. Súbelo para penalizar más la rotación y las lesiones, ponlo a cero para ignorar la disponibilidad'],
+      own:['Propiedad','El peso negativo premia a los jugadores poco seleccionados. El positivo sigue a la mayoría'],
+      mom:['Impulso de fichajes','Fichajes netos de esta jornada como proporción de los propietarios actuales del jugador, para que una avalancha hacia un diferencial no quede ahogada por el ruido de un premium. Inactivo hasta que se juegue una jornada'],
+      price:['Precio como referencia previa','Antes de que haya forma que leer, lo que cobra FPL es una señal. Se desvanece a medida que llegan datos reales'],
+    },
+    weightLabel:'peso',
+  }
+};
+let LANG=(function(){try{return localStorage.getItem('fplLang')||'en'}catch(e){return 'en'}})();
+function t(key){const v=(I18N[LANG]&&I18N[LANG][key]!==undefined)?I18N[LANG][key]:I18N.en[key];return v;}
+function setLang(l){
+  LANG=l;
+  try{localStorage.setItem('fplLang',l)}catch(e){}
+  document.documentElement.lang=l;
+  applyStaticI18n();
+  document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===l)));
+  if(typeof players!=='undefined'&&players.length){renderWeights();renderAll();}
+  else{renderWeights();paintState();}
+}
+
+/* ══ CONFIG ════════════════════════════════════════════ */
+const FPL='https://fantasy.premierleague.com/api';
+const PROXIES=[
+  t=>'https://corsproxy.io/?url='+encodeURIComponent(t),
+  t=>'https://api.allorigins.win/raw?url='+encodeURIComponent(t),
+  t=>'https://api.codetabs.com/v1/proxy/?quest='+t,
+  t=>'https://thingproxy.freeboard.io/fetch/'+t,
+];
+// Understat labels a season by its starting year: 2026 = 2026/27, 2025 = 2025/26.
+const SEASON_LIVE=2026, SEASON_PRIOR=2025;
+const RAMP_GWS=8;          // gameweeks until live data carries full weight
+const PAGE=30;
+
+/* ══ STATE ═════════════════════════════════════════════ */
+let bootstrap=null, fixtures=[], uLive={}, uPrior={};
+let players=[], filtered=[], page=1, sortKey='score', sortAsc=false;
+let state={mode:'unloaded',gwPlayed:0,liveWeight:0,nextGW:1};
+let fields={defcon:null,defconParts:[],starts:false};
+let diag={};
+
+/* ══ FEATURE SPEC ══════════════════════════════════════
+   availability:
+     'live'   — needs a sample of matches; weight scales with liveWeight
+     'played' — meaningless before GW1 but fully valid from GW1; no ramp
+     'cold'   — a stand-in for absent data; weight scales with 1-liveWeight
+     'any'    — usable at any point in the season
+   scope: 'pos' ranks within position, 'all' ranks across everyone
+════════════════════════════════════════════════════════ */
+const FEATURES={
+  form     :{label:'Form',              group:'returns', avail:'live', scope:'all', hint:'Points per match over the last five gameweeks'},
+  ppg      :{label:'Points per game',   group:'returns', avail:'live', scope:'all'},
+  ict      :{label:'ICT index',         group:'returns', avail:'live', scope:'all'},
+  bps      :{label:'Bonus points system',group:'returns',avail:'live', scope:'pos', hint:'Ranked within position — a keeper and a centre-back no longer earn BPS the same way'},
+  xg90     :{label:'Expected goals /90',group:'threat',  avail:'any',  scope:'pos', hint:'Ranked within position. A defender is measured against defenders, so keepers are not punished for never shooting'},
+  xa90     :{label:'Expected assists /90',group:'threat',avail:'any',  scope:'pos'},
+  xgdiff   :{label:'Finishing vs xG',   group:'threat',  avail:'any',  scope:'pos', hint:'Goals above or below expected. A high figure can mean a clinical finisher, or a hot run about to cool'},
+  defcon   :{label:'Defensive contribution',group:'defence',avail:'live',scope:'pos', hint:'Ranked within position. Two points per match at ten defensive actions for defenders, twelve for everyone else'},
+  fdr      :{label:'Fixture difficulty',group:'context', avail:'any',  scope:'all', hint:'Next three gameweeks, easier fixtures score higher'},
+  home     :{label:'Home fixtures',     group:'context', avail:'any',  scope:'all'},
+  mins     :{label:'Minutes security',  group:'context', avail:'any',  scope:'all', role:'gate', hint:'Applied as a multiplier, not added in. Expected points are chance of playing times points when playing. Raise it to punish rotation and injury harder, drop it to nil to ignore availability'},
+  own      :{label:'Ownership',         group:'context', avail:'any',  scope:'all', hint:'Negative weight rewards low-owned players. Positive follows the crowd'},
+  mom      :{label:'Transfer momentum', group:'context', avail:'played', scope:'all', hint:'Net transfers this gameweek as a share of the player\u2019s existing owners, so a stampede into a differential is not drowned out by noise around a premium. Off until a gameweek has been played'},
+  price    :{label:'Price as a prior',  group:'context', avail:'cold', scope:'all', hint:'Before there is form to read, what FPL charges is a signal. Fades out as real data arrives'},
+};
+
+const GROUPS=[
+  {id:'returns',nameK:'gReturns',descK:'gReturnsD'},
+  {id:'threat', nameK:'gThreat', descK:'gThreatD'},
+  {id:'defence',nameK:'gDefence',descK:'gDefenceD'},
+  {id:'context',nameK:'gContext',descK:'gContextD'},
+];
+
+const WEIGHTS={form:18,ppg:12,ict:8,bps:6,xg90:20,xa90:12,xgdiff:4,defcon:10,fdr:16,home:4,mins:14,own:-8,mom:4,price:22};
+
+const PRESETS={
+  balanced:{form:18,ppg:12,ict:8,bps:6,xg90:20,xa90:12,xgdiff:4,defcon:10,fdr:16,home:4,mins:14,own:-8,mom:4,price:22},
+  form    :{form:34,ppg:20,ict:12,bps:8,xg90:12,xa90:8,xgdiff:5,defcon:6,fdr:9,home:3,mins:12,own:-5,mom:8,price:14},
+  fixtures:{form:12,ppg:8,ict:6,bps:4,xg90:15,xa90:9,xgdiff:3,defcon:8,fdr:36,home:11,mins:13,own:-5,mom:3,price:16},
+  threat  :{form:9,ppg:7,ict:6,bps:4,xg90:34,xa90:22,xgdiff:9,defcon:5,fdr:13,home:3,mins:12,own:-6,mom:3,price:14},
+  defensive:{form:12,ppg:10,ict:5,bps:9,xg90:8,xa90:6,xgdiff:2,defcon:32,fdr:18,home:4,mins:14,own:-6,mom:3,price:14},
+  differential:{form:16,ppg:11,ict:7,bps:5,xg90:19,xa90:12,xgdiff:4,defcon:9,fdr:14,home:4,mins:15,own:-30,mom:6,price:18},
+};
+let activePreset='balanced';
+
+/* ══ UTIL ══════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const POSN={1:'GKP',2:'DEF',3:'MID',4:'FWD'};
+
+function normName(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z\s'-]/g,'').replace(/\s+/g,' ').trim();
+}
+
+/* Rank-based percentile with tie averaging. Uniform input → everyone 0.5. */
+function percentiles(list,valueFn,groupFn){
+  const buckets={};
+  list.forEach(p=>{
+    const g=groupFn?groupFn(p):'*';
+    (buckets[g]=buckets[g]||[]).push({id:p.id,v:Number(valueFn(p))||0});
+  });
+  const out={};
+  Object.values(buckets).forEach(arr=>{
+    const vs=arr.map(a=>a.v);
+    const lo=Math.min.apply(null,vs), hi=Math.max.apply(null,vs);
+    if(hi===lo||arr.length<2){arr.forEach(a=>out[a.id]=0.5);return;}
+    const sorted=arr.slice().sort((a,b)=>a.v-b.v);
+    const n=sorted.length; let i=0;
+    while(i<n){
+      let j=i;
+      while(j+1<n&&sorted[j+1].v===sorted[i].v)j++;
+      const r=(i+j)/2/(n-1);
+      for(let k=i;k<=j;k++)out[sorted[k].id]=r;
+      i=j+1;
+    }
+  });
+  return out;
+}
+
+/* ══ FETCH ═════════════════════════════════════════════ */
+async function viaProxy(url,asText){
+  let last=null;
+  for(let i=0;i<PROXIES.length;i++){
+    try{
+      const ctl=new AbortController();
+      const timer=setTimeout(()=>ctl.abort(),13000);
+      const r=await fetch(PROXIES[i](url),{signal:ctl.signal});
+      clearTimeout(timer);
+      if(!r.ok){last=new Error('proxy '+(i+1)+' returned '+r.status);continue;}
+      diag.proxyUsed=i+1;
+      return asText?await r.text():await r.json();
+    }catch(e){last=e}
+  }
+  throw last||new Error('every proxy failed');
+}
+const fplGet=p=>viaProxy(FPL+p,false);
+
+async function understat(year){
+  try{
+    const html=await viaProxy('https://understat.com/league/EPL/'+year,true);
+    let raw=null;
+    const pats=[/var playersData\s*=\s*JSON\.parse\('([\s\S]+?)'\)/,
+                /var playersData\s*=\s*JSON\.parse\("([\s\S]+?)"\)/];
+    for(const p of pats){const m=html.match(p);if(m){raw=m[1];break}}
+    if(!raw)return{n:0,map:{}};
+    const json=raw
+      .replace(/\\x([0-9A-Fa-f]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16)))
+      .replace(/\\u([0-9A-Fa-f]{4})/g,(_,h)=>String.fromCharCode(parseInt(h,16)))
+      .replace(/\\'/g,"'").replace(/\\\\/g,'\\');
+    const arr=JSON.parse(json);
+    const map={};
+    arr.forEach(p=>{
+      const mins=parseFloat(p.time)||0;
+      if(mins<1)return;
+      const per90=v=>(parseFloat(v)||0)/(mins/90);
+      const rec={
+        xg90:per90(p.xG), xa90:per90(p.xA), npxg90:per90(p.npxG),
+        xgdiff90:((parseInt(p.goals)||0)-(parseFloat(p.xG)||0))/(mins/90),
+        mins, games:parseInt(p.games)||0,
+      };
+      const full=normName(p.player_name);
+      const parts=full.split(' ');
+      const last=parts[parts.length-1];
+      if(!map[full])map[full]=rec;
+      if(last&&!map[last])map[last]=rec;          // last name, first writer wins
+    });
+    return{n:arr.length,map};
+  }catch(e){
+    console.warn('understat '+year+':',e.message);
+    return{n:0,map:{}};
+  }
+}
+
+function lookupU(map,p){
+  const cands=[
+    normName((p.first_name||'')+' '+(p.second_name||'')),
+    normName(p.web_name),
+    normName(p.second_name),
+  ];
+  const sn=normName(p.second_name).split(' ');
+  if(sn.length)cands.push(sn[sn.length-1]);
+  for(const c of cands){if(c&&map[c])return map[c]}
+  return null;
+}
+
+/* ══ SEASON STATE ══════════════════════════════════════ */
+function readState(bs){
+  const evs=bs.events||[];
+  const played=evs.filter(e=>e.finished).length;
+  const totalMins=bs.elements.reduce((s,p)=>s+(p.minutes||0),0);
+  const nextEv=evs.find(e=>e.is_next)||evs.find(e=>e.is_current)||evs.find(e=>!e.finished);
+  const gwPlayed=totalMins===0?0:played;
+  const liveWeight=clamp(gwPlayed/RAMP_GWS,0,1);
+  let mode='live';
+  if(gwPlayed===0)mode='cold';
+  else if(liveWeight<1)mode='blend';
+  return{mode,gwPlayed,liveWeight,nextGW:nextEv?nextEv.id:(played+1)};
+}
+
+function probe(elements,names){
+  for(const n of names){
+    if(elements.some(e=>e[n]!==undefined&&e[n]!==null))return n;
+  }
+  return null;
+}
+
+function readFields(bs){
+  const els=bs.elements;
+  const defcon=probe(els,['defensive_contribution','defensive_contributions','defcon','clearances_blocks_interceptions']);
+  const parts=['clearances_blocks_interceptions','tackles','recoveries'].filter(f=>probe(els,[f]));
+  return{defcon,defconParts:parts,starts:!!probe(els,['starts'])};
+}
+
+function defconValue(p){
+  if(fields.defcon)return Number(p[fields.defcon])||0;
+  if(fields.defconParts.length)
+    return fields.defconParts.reduce((s,f)=>s+(Number(p[f])||0),0);
+  return 0;
+}
+
+/* ══ FIXTURES ══════════════════════════════════════════ */
+function fdrFor(teamId,gws){
+  const fs=fixtures.filter(f=>gws.indexOf(f.event)>-1&&(f.team_h===teamId||f.team_a===teamId));
+  if(!fs.length)return{avg:3,homeShare:.5,count:0,known:false};
+  let sum=0,home=0;
+  fs.forEach(f=>{
+    const isH=f.team_h===teamId;
+    sum+=isH?f.team_h_difficulty:f.team_a_difficulty;
+    if(isH)home++;
+  });
+  return{avg:sum/fs.length,homeShare:home/fs.length,count:fs.length,known:true};
+}
+
+/* ══ MINUTES ═══════════════════════════════════════════ */
+function minutesSecurity(p){
+  const st={a:1,d:.55,i:.08,s:.08,u:0,n:.15}[p.status];
+  const statusMult=st===undefined?.5:st;
+  const cop=p.chance_of_playing_next_round;
+  const copMult=(cop===null||cop===undefined)?1:clamp(Number(cop),0,100)/100;
+  let rate=.6;                                    // neutral prior
+  if(state.gwPlayed>0&&fields.starts){
+    const obs=clamp((p.starts||0)/state.gwPlayed,0,1);
+    rate=state.liveWeight*obs+(1-state.liveWeight)*.6;
+  }else if(state.gwPlayed>0){
+    const obs=clamp((p.minutes||0)/(state.gwPlayed*90),0,1);
+    rate=state.liveWeight*obs+(1-state.liveWeight)*.6;
+  }
+  return rate*statusMult*copMult;
+}
+
+/* ══ WEIGHTING ═════════════════════════════════════════ */
+function effWeight(key){
+  const w=WEIGHTS[key]||0, av=FEATURES[key].avail;
+  if(av==='live')return w*state.liveWeight;
+  if(av==='played')return state.gwPlayed>0?w:0;
+  if(av==='cold')return w*(1-state.liveWeight);
+  return w;
+}
+
+/* ══ BUILD & SCORE ═════════════════════════════════════ */
+function build(){
+  const teams={}; bootstrap.teams.forEach(t=>teams[t.id]=t);
+  const managers=Number(bootstrap.total_players)||0;
+  const gws=[state.nextGW,state.nextGW+1,state.nextGW+2];
+
+  // Keep anyone FPL still lists. The old minutes>0 filter emptied the board pre-season.
+  const pool=bootstrap.elements.filter(p=>p.status!=='u');
+
+  const raw=pool.map(p=>{
+    const uL=lookupU(uLive.map||{},p), uP=lookupU(uPrior.map||{},p);
+    const lw=state.liveWeight;
+    const pick=(k,fplFallback)=>{
+      const live=uL?uL[k]:(fplFallback!==undefined?fplFallback:0);
+      const prior=uP?uP[k]:0;
+      if(!uL&&!uP)return fplFallback!==undefined?fplFallback:0;
+      if(!uP)return live;
+      if(!uL)return prior;
+      return lw*live+(1-lw)*prior;
+    };
+    // FPL ships season-to-date expected stats; convert to per 90 for a fair comparison.
+    const mins=p.minutes||0;
+    const fplXg90=mins>0?(parseFloat(p.expected_goals)||0)/(mins/90):0;
+    const fplXa90=mins>0?(parseFloat(p.expected_assists)||0)/(mins/90):0;
+
+    // Net transfers mean nothing in the raw. Scale them against the owners the
+    // player already has, so growth is comparable across the price range.
+    const net=(p.transfers_in_event||0)-(p.transfers_out_event||0);
+    const sel=parseFloat(p.selected_by_percent)||0;
+    const ownerBase=managers?managers*sel/100:0;
+    // Shrinkage: add a constant to the denominator so thinly-owned players
+    // cannot post enormous growth rates off a handful of transfers.
+    const shrink=managers?Math.max(managers*0.002,5000):0;
+    const rate=managers?net/(ownerBase+shrink):0;
+
+    const f=fdrFor(p.team,gws);
+    return{
+      id:p.id, el:p,
+      name:p.web_name,
+      club:(teams[p.team]||{}).short_name||'—',
+      teamId:p.team,
+      pos:POSN[p.element_type]||'—',
+      price:p.now_cost/10,
+      sel:parseFloat(p.selected_by_percent)||0,
+      status:p.status,
+      minutes:mins,
+      starts:p.starts||0,
+      form:parseFloat(p.form)||0,
+      ppg:parseFloat(p.points_per_game)||0,
+      ict:parseFloat(p.ict_index)||0,
+      bps:Number(p.bps)||0,
+      defcon:defconValue(p),
+      xg90:pick('xg90',fplXg90),
+      xa90:pick('xa90',fplXa90),
+      xgdiff:pick('xgdiff90',0),
+      fdr:f.avg, fdrKnown:f.known, homeShare:f.homeShare, fdrCount:f.count,
+      mins:minutesSecurity(p),
+      mom:net,
+      momRate:rate,
+      owners:Math.round(ownerBase),
+      matchedU:!!(uL||uP),
+      matchedPrior:!!uP,
+    };
+  });
+
+  // Percentile every feature. No hardcoded ceilings anywhere.
+  const byPos=p=>p.pos;
+  const P={
+    form  :percentiles(raw,p=>p.form),
+    ppg   :percentiles(raw,p=>p.ppg),
+    ict   :percentiles(raw,p=>p.ict),
+    bps   :percentiles(raw,p=>p.bps,byPos),
+    defcon:percentiles(raw,p=>p.defcon,byPos),
+    xg90  :percentiles(raw,p=>p.xg90,byPos),
+    xa90  :percentiles(raw,p=>p.xa90,byPos),
+    xgdiff:percentiles(raw,p=>p.xgdiff,byPos),
+    fdr   :percentiles(raw,p=>p.fdrKnown?-p.fdr:0),   // easier fixtures rank higher
+    home  :percentiles(raw,p=>p.homeShare),
+    mins  :percentiles(raw,p=>p.mins),
+    own   :percentiles(raw,p=>-p.sel),                // low ownership ranks higher
+    mom   :percentiles(raw,p=>managers?p.momRate:p.mom),
+    price :percentiles(raw,p=>p.price),
+  };
+
+  const keys=Object.keys(FEATURES).filter(k=>FEATURES[k].role!=='gate');
+  const denom=keys.reduce((s,k)=>s+Math.abs(effWeight(k)),0)||1;
+
+  players=raw.map(p=>{
+    const parts={};
+    let sum=0;
+    keys.forEach(k=>{
+      const w=effWeight(k);
+      if(w===0)return;
+      const pct=P[k][p.id];
+      const c=(w/denom)*pct;
+      parts[k]=c;
+      sum+=c;
+    });
+    // Availability gate. Exponent 0 ignores minutes entirely; 1 is fully
+    // multiplicative; above 1 punishes rotation risk harder.
+    const expo=clamp((WEIGHTS.mins||0)/25,0,2);
+    const gate=expo===0?1:Math.pow(clamp(p.mins,0,1),expo);
+    const score=clamp(sum,0,1)*10*gate;
+    return Object.assign(p,{
+      score:Math.round(score*10)/10,
+      gate,
+      parts,
+      pct:{xg90:P.xg90[p.id],defcon:P.defcon[p.id],mins:P.mins[p.id],bps:P.bps[p.id]},
+    });
+  }).sort((a,b)=>b.score-a.score);
+
+  players.forEach((p,i)=>p.rank=i+1);
+  filtered=players.slice();
+
+  diag.matched=raw.filter(p=>p.matchedU).length;
+  diag.matchedPrior=raw.filter(p=>p.matchedPrior).length;
+  diag.pool=raw.length;
+  diag.fdrKnown=raw.filter(p=>p.fdrKnown).length;
+}
+
+/* ══ RENDER: chrome ════════════════════════════════════ */
+function lerpColor(a,b,t){
+  const h=s=>[parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];
+  const [r1,g1,b1]=h(a),[r2,g2,b2]=h(b);
+  const m=(x,y)=>Math.round(x+(y-x)*t);
+  return'#'+[m(r1,r2),m(g1,g2),m(b1,b2)].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+function paintState(){
+  const lw=state.liveWeight;
+  const accent=lerpColor('#d9a441','#4da3ff',lw);
+  document.documentElement.style.setProperty('--accent',accent);
+  document.documentElement.style.setProperty('--accent-soft',
+    'rgba('+parseInt(accent.slice(1,3),16)+','+parseInt(accent.slice(3,5),16)+','+parseInt(accent.slice(5,7),16)+',.14)');
+
+  const pp=Math.round((1-lw)*100), lp=100-pp;
+  $('blendPrior').style.width=pp+'%';
+  $('blendLive').style.width=lp+'%';
+  $('blendPrior').textContent=pp>18?t('lastSeason'):'';
+  $('blendLive').textContent=lp>18?t('thisSeason'):'';
+  $('legendPrior').textContent=t('priorPct')(pp);
+  $('legendLive').textContent=t('livePct')(lp);
+
+  const labels={unloaded:t('notLoaded'),cold:t('coldStart'),blend:t('warmingUp'),live:t('liveData')};
+  $('stateLabel').textContent=labels[state.mode]||state.mode;
+
+  let note;
+  if(state.mode==='cold'){
+    note=t('noteCold');
+  }else if(state.mode==='blend'){
+    note=t('noteBlend')(state.gwPlayed,RAMP_GWS,Math.round(lw*100));
+  }else{
+    note=t('noteLive');
+  }
+  $('evidenceNote').textContent=note;
+}
+
+function renderWeights(){
+  const strip=$('presets');
+  const pnames={balanced:'pBalanced',form:'pForm',fixtures:'pFixtures',threat:'pThreat',defensive:'pDefensive',differential:'pDifferential'};
+  strip.innerHTML=Object.keys(PRESETS).map(k=>{
+    return '<button class="preset" data-preset="'+k+'" aria-pressed="'+(k===activePreset)+'">'+t(pnames[k])+'</button>';
+  }).join('');
+
+  const F=t('F');
+  $('weightBody').innerHTML=GROUPS.map(g=>{
+    const rows=Object.keys(FEATURES).filter(k=>FEATURES[k].group===g.id).map(k=>{
+      const f=FEATURES[k],w=WEIGHTS[k];
+      const label=(F[k]&&F[k][0])||f.label;
+      const hint=(F[k]&&F[k][1])||'';
+      const dead=(f.avail==='live'&&state.liveWeight===0)||(f.avail==='cold'&&state.liveWeight===1);
+      const tags=[];
+      if(f.avail==='live')tags.push('<span class="wtag live">'+t('tagLive')+'</span>');
+      if(f.avail==='played')tags.push('<span class="wtag live">'+t('tagPlayed')+'</span>');
+      if(f.avail==='cold')tags.push('<span class="wtag cold">'+t('tagCold')+'</span>');
+      if(f.scope==='pos')tags.push('<span class="wtag pos">'+t('tagPos')+'</span>');
+      return '<div class="wrow'+(dead?' muted':'')+'">'
+        +'<div class="wrow-top"><span class="wname">'+label+' '+tags.join(' ')+'</span>'
+        +'<span class="wval" id="wv-'+k+'">'+w+'</span></div>'
+        +'<input type="range" id="w-'+k+'" min="'+(k==='own'?-50:0)+'" max="50" value="'+w+'" aria-label="'+label+' '+t('weightLabel')+'">'
+        +(hint?'<span class="whint">'+hint+'</span>':'')
+        +'</div>';
+    }).join('');
+    return '<div class="wgroup"><div class="wgroup-head"><span class="wgroup-name">'+t(g.nameK)+'</span>'
+      +'<span class="wgroup-desc">'+t(g.descK)+'</span></div><div class="wgrid">'+rows+'</div></div>';
+  }).join('');
+
+  strip.querySelectorAll('.preset').forEach(b=>{
+    b.addEventListener('click',()=>applyPreset(b.dataset.preset));
+  });
+  Object.keys(FEATURES).forEach(k=>{
+    const el=$('w-'+k);
+    if(el)el.addEventListener('input',()=>{
+      WEIGHTS[k]=parseInt(el.value,10);
+      $('wv-'+k).textContent=WEIGHTS[k];
+      activePreset=null;
+      document.querySelectorAll('.preset').forEach(b=>b.setAttribute('aria-pressed','false'));
+      if(players.length)rescore();
+    });
+  });
+}
+
+function applyPreset(name){
+  Object.assign(WEIGHTS,PRESETS[name]);
+  activePreset=name;
+  Object.keys(FEATURES).forEach(k=>{
+    const el=$('w-'+k); if(el)el.value=WEIGHTS[k];
+    const lab=$('wv-'+k); if(lab)lab.textContent=WEIGHTS[k];
+  });
+  document.querySelectorAll('.preset').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.preset===name)));
+  if(players.length)rescore();
+}
+
+function rescore(){ if(!bootstrap)return; build(); renderAll(); }
+
+/* ══ RENDER: outputs ═══════════════════════════════════ */
+function confDots(p){
+  const on=Math.round(state.liveWeight*3);
+  let h='<div class="conf" title="'+(p.matchedPrior?t('confMatched'):t('confFpl'))+'">';
+  for(let i=0;i<3;i++)h+='<i class="'+(i<on?'on':(p.matchedPrior?'prior':''))+'"></i>';
+  return h+'</div>';
+}
+
+function pickCard(title,note,list,metaFn){
+  if(!list.length)return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div></div><div class="empty">'+t('nothingQ')+'</div></div>';
+  const rows=list.map((p,i)=>
+    '<div class="prow phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pidx'+(i===0?' lead':'')+'">'+(i+1)+'</div>'
+    +'<div class="pinfo"><div class="pname">'+p.name+'</div>'
+    +'<div class="pmeta">'+p.club+' · '+p.pos+' · '+p.price.toFixed(1)+metaFn(p)+'</div></div>'
+    +'<div class="pscore"><b>'+p.score.toFixed(1)+'</b>'+confDots(p)+'</div></div>').join('');
+  return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div>'
+    +'<div class="panel-meta">'+note+'</div></div>'+rows+'</div>';
+}
+
+function renderPicks(){
+  const fit=players.filter(p=>p.status==='a'&&p.mins>.35);
+  const cap=fit.slice(0,5);
+  const value=fit.slice().sort((a,b)=>(b.score/b.price)-(a.score/a.price)).slice(0,5);
+  const diff=fit.filter(p=>p.sel<12).slice(0,5);
+  $('pickGrid').innerHTML=
+    pickCard(t('capTitle'),t('capMeta'),cap,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'))
+   +pickCard(t('valTitle'),t('valMeta'),value,p=>' · '+(p.score/p.price).toFixed(2)+' '+t('perM'))
+   +pickCard(t('difTitle'),t('difMeta'),diff,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'));
+}
+
+function renderXI(){
+  const fit=players.filter(p=>p.status==='a'&&p.mins>.3);
+  const by=t=>fit.filter(p=>p.pos===t);
+  const gk=by('GKP').slice(0,1), df=by('DEF').slice(0,4),
+        md=by('MID').slice(0,4), fw=by('FWD').slice(0,2);
+  if(!gk.length){$('xiBody').innerHTML='<div class="empty">'+t('noSide')+'</div>';return}
+  const squad=gk.concat(df,md,fw);
+  const cap=squad.slice().sort((a,b)=>b.score-a.score)[0];
+
+  const disc=p=>{
+    const fx=fixtures.find(f=>f.event===state.nextGW&&(f.team_h===p.teamId||f.team_a===p.teamId));
+    let opp='—';
+    if(fx){const h=fx.team_h===p.teamId;
+      const o=bootstrap.teams.find(t=>t.id===(h?fx.team_a:fx.team_h));
+      opp=((o||{}).short_name||'?')+(h?' H':' A')}
+    return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pdisc '+p.pos+'">'+p.score.toFixed(1)
+      +(p.id===cap.id?'<span class="capmark">C</span>':'')+'</div>'
+      +'<div class="pcname">'+p.name+'</div><div class="pcsub">'+opp+'</div></div>';
+  };
+
+  const cost=squad.reduce((s,p)=>s+p.price,0);
+  const avg=squad.reduce((s,p)=>s+p.score,0)/squad.length;
+
+  $('xiBody').innerHTML=
+    '<div class="xistats">'
+    +'<div class="xistat"><span>'+t('shape')+'</span><b>4-4-2</b></div>'
+    +'<div class="xistat"><span>'+t('meanScore')+'</span><b>'+avg.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+t('cost')+'</span><b>'+cost.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:19px">'+cap.name+'</b></div>'
+    +'</div>'
+    +'<div class="pitch">'
+      +'<div class="prow-xi">'+gk.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+df.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+md.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+fw.map(disc).join('')+'</div>'
+    +'</div>'
+    +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('theEleven')+'</div>'
+    +'<div class="panel-meta">'+t('elevenMeta')+'</div></div>'
+    +'<div class="tscroll"><table><thead><tr><th>'+t('thPlayer')+'</th><th>'+t('thPos')+'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th>'
+    +'<th>'+t('thMins')+'</th><th>xG/90</th><th>xA/90</th><th>DefCon</th><th>FDR</th></tr></thead><tbody>'
+    +squad.map(p=>'<tr class="phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">C</span>':'')+'</td>'
+      +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
+      +'<td class="mono">'+p.price.toFixed(1)+'</td>'
+      +'<td class="sc">'+p.score.toFixed(1)+'</td>'
+      +'<td class="mono">'+Math.round(p.mins*100)+'%</td>'
+      +'<td class="mono">'+p.xg90.toFixed(2)+'</td>'
+      +'<td class="mono">'+p.xa90.toFixed(2)+'</td>'
+      +'<td class="mono">'+(fields.defcon||fields.defconParts.length?Math.round(p.pct.defcon*100)+'%':'—')+'</td>'
+      +'<td class="mono">'+(p.fdrKnown?p.fdr.toFixed(1):'—')+'</td></tr>').join('')
+    +'</tbody></table></div></div>';
+}
+
+function applyFilters(){
+  const q=($('fSearch').value||'').toLowerCase().trim();
+  const pos=$('fPos').value, cap=parseFloat($('fPrice').value)||Infinity;
+  const fit=$('fAvail').value==='fit';
+  filtered=players.filter(p=>{
+    if(pos&&p.pos!==pos)return false;
+    if(p.price>cap)return false;
+    if(fit&&p.status!=='a')return false;
+    if(q&&p.name.toLowerCase().indexOf(q)<0&&p.club.toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  sortList(); page=1; renderTable();
+}
+
+function sortList(){
+  const key=sortKey;
+  filtered.sort((a,b)=>{
+    let av=a[key],bv=b[key];
+    if(key==='name'){return sortAsc?a.name.localeCompare(b.name):b.name.localeCompare(a.name)}
+    if(key==='fdr'){av=a.fdrKnown?a.fdr:99;bv=b.fdrKnown?b.fdr:99;return sortAsc?av-bv:bv-av}
+    av=Number(av)||0;bv=Number(bv)||0;
+    return sortAsc?av-bv:bv-av;
+  });
+}
+
+function renderTable(){
+  const start=(page-1)*PAGE;
+  const slice=filtered.slice(start,start+PAGE);
+  const pages=Math.max(1,Math.ceil(filtered.length/PAGE));
+  $('tableCount').textContent=filtered.length+t('ofN')+players.length;
+  const hasDef=!!(fields.defcon||fields.defconParts.length);
+
+  $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
+    const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
+    return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
+    +'<td><div>'+p.name+'</div><div class="mono" style="font-size:10px;color:var(--dim)">'+p.club+'</div></td>'
+    +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
+    +'<td class="mono">'+p.price.toFixed(1)+'</td>'
+    +'<td class="'+cls+'">'+p.score.toFixed(1)+'</td>'
+    +'<td class="mono">'+Math.round(p.mins*100)+'%</td>'
+    +'<td class="mono">'+p.xg90.toFixed(2)+'</td>'
+    +'<td class="mono">'+p.xa90.toFixed(2)+'</td>'
+    +'<td class="mono">'+(hasDef?Math.round(p.pct.defcon*100)+'%':'—')+'</td>'
+    +'<td class="mono">'+(p.fdrKnown?p.fdr.toFixed(1):'—')+'</td>'
+    +'<td class="mono" style="color:var(--dim)">'+p.sel.toFixed(1)+'%</td>'
+    +'<td class="mono" style="color:'+(p.mom>0?'var(--good)':p.mom<0?'var(--bad)':'var(--dimmer)')+'">'
+      +(p.mom>0?'+':'')+(Math.abs(p.mom)>=1000?(p.mom/1000).toFixed(1)+'k':p.mom)+'</td></tr>';
+  }).join(''):'<tr><td colspan="12" class="empty">'+t('noMatch')+'</td></tr>';
+
+  // taps handled globally by the delegated .phist listener (covers every view)
+
+  $('pager').innerHTML='<button class="pg" id="pgPrev"'+(page<=1?' disabled':'')+'>'+t('prev')+'</button>'
+    +'<span>'+t('pageOf')(page,pages)+'</span>'
+    +'<button class="pg" id="pgNext"'+(page>=pages?' disabled':'')+'>'+t('next')+'</button>';
+  const pv=$('pgPrev'),nx=$('pgNext');
+  if(pv)pv.onclick=()=>{page=Math.max(1,page-1);renderTable()};
+  if(nx)nx.onclick=()=>{page=Math.min(pages,page+1);renderTable()};
+}
+
+/* ══ PLAYER HISTORY MODAL ══════════════════════════════ */
+let histCache={};
+
+function clubName(teamId){
+  const teamsList=(bootstrap&&bootstrap.teams)||[];
+  const tm=teamsList.find(x=>x.id===teamId);
+  return tm?tm.short_name:('#'+teamId);
+}
+
+async function fetchPlayerHistory(pid){
+  if(histCache[pid])return histCache[pid];
+  window.__histDebug={pid, attempts:[]};
+  const tries=[
+    {label:'api', run:()=>fetch('/api/player?id='+pid,{cache:'no-store'})},
+    {label:'proxy', run:()=>fetch(PROXIES[0]('https://fantasy.premierleague.com/api/element-summary/'+pid+'/'))
+          .then(r=>r.json()).then(shapeFromRaw)},
+  ];
+  for(let i=0;i<tries.length;i++){
+    const att={label:tries[i].label};
+    try{
+      const res=await tries[i].run();
+      const data=(res&&typeof res.json==='function')?await res.json():res;
+      att.gotData=!!data;
+      att.keys=data?Object.keys(data).slice(0,8):null;
+      att.hasPast=!!(data&&(data.pastSeasons||data.history_past));
+      att.error=data&&data.error||null;
+      window.__histDebug.attempts.push(att);
+      if(data&&(data.pastSeasons||data.history_past)){
+        const norm=data.pastSeasons?data:shapeFromRaw(data);
+        histCache[pid]=norm; return norm;
+      }
+    }catch(e){
+      att.threw=String(e&&e.message||e);
+      window.__histDebug.attempts.push(att);
+    }
+  }
+  throw new Error('history unavailable: '+JSON.stringify(window.__histDebug.attempts));
+}
+
+// normalise a raw element-summary into the function's output shape (proxy fallback)
+function shapeFromRaw(raw){
+  const hp=raw.history_past||[], h=raw.history||[];
+  const past=hp.map(x=>({season:x.season_name,points:x.total_points,minutes:x.minutes,
+    goals:x.goals_scored,assists:x.assists,cleanSheets:x.clean_sheets,bonus:x.bonus,bps:x.bps,
+    startCost:x.start_cost/10,endCost:x.end_cost/10,xg:parseFloat(x.expected_goals)||0,
+    xa:parseFloat(x.expected_assists)||0,defcon:x.defensive_contribution||0,starts:x.starts||0}));
+  const ts=h.map(x=>({round:x.round,opponent:x.opponent_team,home:x.was_home,points:x.total_points,
+    minutes:x.minutes,goals:x.goals_scored,assists:x.assists,cleanSheet:x.clean_sheets,bonus:x.bonus,
+    xg:parseFloat(x.expected_goals)||0,xa:parseFloat(x.expected_assists)||0,
+    defcon:x.defensive_contribution||0,value:x.value/10}));
+  const by={};
+  ts.forEach(g=>{const k=g.opponent;if(!by[k])by[k]={opponent:k,games:0,points:0,goals:0,assists:0,xg:0,xa:0,home:0,away:0};
+    const b=by[k];b.games++;b.points+=g.points;b.goals+=g.goals;b.assists+=g.assists;b.xg+=g.xg;b.xa+=g.xa;
+    if(g.home)b.home++;else b.away++;});
+  const vs=Object.values(by).map(b=>({...b,xg:Math.round(b.xg*100)/100,xa:Math.round(b.xa*100)/100}))
+    .sort((a,b)=>b.points-a.points);
+  return {pastSeasons:past,thisSeason:ts,vsClubThis:vs};
+}
+
+async function openHistory(pid,pname){
+  const ov=$('histOverlay');
+  $('histName').textContent=pname;
+  $('histEyebrow').textContent=t('histTitle');
+  $('histFoot').textContent=t('histNote');
+  $('histBody').innerHTML='<div class="hist-loading"><div class="spin"></div>'
+    +'<div class="ltext">'+t('histLoading')+'</div></div>';
+  ov.hidden=false;
+  ov.style.display='flex';       // clear the inline failsafe so it shows
+  document.body.style.overflow='hidden';
+  try{
+    const d=await fetchPlayerHistory(pid);
+    renderHistory(d);
+  }catch(e){
+    $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
+      +'<div style="margin-top:12px;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--dimmer);word-break:break-all;text-align:left">'
+      +String(e&&e.message||e)+'</div></div>';
+  }
+}
+
+function closeHistory(){
+  const ov=$('histOverlay');
+  ov.hidden=true;
+  ov.style.display='none';       // restore the inline failsafe
+  document.body.style.overflow='';
+}
+
+function renderHistory(d){
+  const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
+  let html='';
+
+  // previous seasons
+  if(past.length){
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histPast')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
+      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
+      +past.map(s=>{
+        const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
+        return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
+          +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
+          +'<td>'+(s.defcon||'—')+'</td>'
+          +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  // this season, per-opponent
+  if(vs.length){
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClub')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hOpp')+'</th><th>'+t('hRound')+'</th><th>'+t('hPts')+'</th>'
+      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hVenue')+'</th></tr></thead><tbody>'
+      +vs.map(c=>'<tr><td>'+clubName(c.opponent)+'</td><td>'+c.games+'</td><td>'+c.points+'</td>'
+        +'<td>'+c.goals+'</td><td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
+        +'<td>'+c.home+'/'+c.away+'</td></tr>').join('')
+      +'</tbody></table></div>';
+
+    // this season, game by game
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histThis')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
+      +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
+      +'<th>'+t('hBonus')+'</th></tr></thead><tbody>'
+      +ts.map(g=>'<tr><td>'+g.round+'</td><td>'+clubName(g.opponent)+'</td>'
+        +'<td><span class="hist-venue">'+(g.home?'H':'A')+'</span></td><td>'+g.points+'</td>'
+        +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
+        +'<td>'+g.bonus+'</td></tr>').join('')
+      +'</tbody></table></div>';
+  } else {
+    html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
+  }
+
+  if(!past.length&&!vs.length)html='<div class="hist-empty">'+t('histErr')+'</div>';
+  $('histBody').innerHTML=html;
+}
+
+function renderDiag(){
+  const row=(k,v,cls)=>'<div class="drow"><span class="dk">'+k+'</span><span class="dv '+(cls||'')+'">'+v+'</span></div>';
+  const uL=uLive.n||0, uP=uPrior.n||0;
+  const defSrc=fields.defcon?fields.defcon
+    :fields.defconParts.length?t('dSummed')(fields.defconParts.join(', ')):t('dNotFound');
+  const ofN=t('ofN'), pl=t('dPlayers');
+  $('diagBody').innerHTML=
+     row(t('dSeasonState'),state.mode)
+    +row(t('dGwPlayed'),state.gwPlayed)
+    +row(t('dNextGw'),state.nextGW)
+    +row(t('dLiveWeight'),Math.round(state.liveWeight*100)+'%')
+    +row(t('dScored'),diag.pool||0)
+    +row(t('dDefField'),defSrc,fields.defcon?'ok':fields.defconParts.length?'warn':'off')
+    +row(t('dStartsField'),fields.starts?t('dYes'):t('dNo'),fields.starts?'ok':'warn')
+    +row(t('dUnderstatLive'),uL?uL+pl:t('dUnavail'),uL?'ok':'warn')
+    +row(t('dUnderstatPrior'),uP?uP+pl:t('dUnavail'),uP?'ok':'warn')
+    +row(t('dMatched'),(diag.matched||0)+ofN+(diag.pool||0),
+        (diag.matched/(diag.pool||1))>.5?'ok':'warn')
+    +row(t('dMatchedPrior'),(diag.matchedPrior||0)+ofN+(diag.pool||0),
+        (diag.matchedPrior/(diag.pool||1))>.5?'ok':'warn')
+    +row(t('dFixturesKnown'),(diag.fdrKnown||0)+ofN+(diag.pool||0),diag.fdrKnown?'ok':'off')
+    +row(t('dProxy'),diag.proxyUsed?('#'+diag.proxyUsed):t('dNone'));
+}
+
+function renderAll(){ paintState(); renderWeights(); renderPicks(); renderXI(); applyFilters(); renderPlan(); renderDiag(); }
+
+/* ══ SEASON PLAN ═══════════════════════════════════════
+   Chips come in two sets. The first expires at the Gameweek 19
+   deadline and cannot be carried over, so the season is planned
+   as two separate problems either side of that line.
+════════════════════════════════════════════════════════ */
+const HALF_DEADLINE=19;   // last gameweek of the first chip set
+
+function buildGrid(){
+  const from=state.nextGW, to=38;
+  const gws=[]; for(let g=from;g<=to;g++)gws.push(g);
+  const grid={};
+  bootstrap.teams.forEach(t=>{grid[t.id]={};gws.forEach(g=>grid[t.id][g]={n:0,diff:0,opps:[]})});
+  fixtures.forEach(f=>{
+    if(gws.indexOf(f.event)<0)return;
+    [[f.team_h,f.team_a,true,f.team_h_difficulty],
+     [f.team_a,f.team_h,false,f.team_a_difficulty]].forEach(function(row){
+      const tid=row[0],oid=row[1],home=row[2],d=row[3];
+      const c=grid[tid]&&grid[tid][f.event]; if(!c)return;
+      c.n++; c.diff=(c.diff*(c.n-1)+(Number(d)||3))/c.n;
+      const o=bootstrap.teams.find(t=>t.id===oid);
+      c.opps.push(((o||{}).short_name||'?')+(home?'':'*'));
+    });
+  });
+  return{gws,grid};
+}
+
+/* Ease of a single gameweek for one club: harder fixtures score lower,
+   a double counts twice, a blank counts nothing. */
+function cellEase(c){ return c.n===0?0:(6-c.diff)*c.n; }
+
+function squadProxy(){
+  const fit=players.filter(p=>p.status==='a'&&p.mins>.35);
+  const want={GKP:1,DEF:5,MID:5,FWD:3}, out=[];
+  Object.keys(want).forEach(k=>{
+    out.push.apply(out,fit.filter(p=>p.pos===k).slice(0,want[k]));
+  });
+  return out;
+}
+
+function windows(plan,squad){
+  const tids=squad.map(p=>p.teamId);
+  return plan.gws.map(function(g){
+    let played=0,blank=0,dbl=0,ease=0,best=0,bestP=null;
+    squad.forEach(function(p){
+      const c=plan.grid[p.teamId]&&plan.grid[p.teamId][g];
+      if(!c)return;
+      if(c.n===0)blank++; else{played++; if(c.n>1)dbl++;}
+      const e=cellEase(c); ease+=e;
+      if(e>best){best=e;bestP=p}
+    });
+    const n=squad.length||1;
+    return{gw:g,played:played,blank:blank,dbl:dbl,
+      ease:ease/n, coverage:played/n, best:best, bestP:bestP};
+  });
+}
+
+function pickWindows(w){
+  const half=function(lo,hi){return w.filter(function(x){return x.gw>=lo&&x.gw<=hi})};
+  const top=function(arr,fn){
+    if(!arr.length)return null;
+    return arr.slice().sort(function(a,b){return fn(b)-fn(a)})[0];
+  };
+  const forward=function(arr,i,k){
+    const sl=arr.slice(i,i+k); if(!sl.length)return 0;
+    return sl.reduce(function(s,x){return s+x.ease},0)/sl.length;
+  };
+  const plan=function(lo,hi){
+    const seg=half(lo,hi);
+    if(!seg.length)return null;
+    // Wildcard: the point where the next five gameweeks improve most on the last two.
+    let wc=null,wcGain=-1e9;
+    seg.forEach(function(x,i){
+      const ahead=forward(seg,i,5);
+      const behind=i>0?forward(seg,Math.max(0,i-2),2):ahead;
+      const gain=ahead-behind;
+      if(gain>wcGain){wcGain=gain;wc=x}
+    });
+    return{
+      bench:top(seg,function(x){return x.coverage*x.ease}),
+      triple:top(seg,function(x){return x.best}),
+      free:top(seg,function(x){return x.blank*2+x.dbl}),
+      wild:wc, wcGain:wcGain, seg:seg
+    };
+  };
+  return{first:plan(Math.max(state.nextGW,1),HALF_DEADLINE),
+         second:plan(HALF_DEADLINE+1,38)};
+}
+
+function renderPlan(){
+  if(!fixtures.length){
+    $('planBody').innerHTML='<div class="panel"><div class="empty">'
+      +t('noPlan')+'</div></div>';
+    return;
+  }
+  const plan=buildGrid();
+  const squad=squadProxy();
+  const w=windows(plan,squad);
+  const picks=pickWindows(w);
+
+  const anyBlank=w.some(function(x){return x.blank>0});
+  const anyDbl=w.some(function(x){return x.dbl>0});
+
+  /* ── fixture grid ── */
+  const show=plan.gws.slice(0,16);
+  const head=show.map(function(g){
+    return '<th class="'+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+g+'</th>';
+  }).join('');
+
+  const ranked=bootstrap.teams.slice().map(function(t){
+    const es=show.map(function(g){return cellEase(plan.grid[t.id][g])});
+    return{t:t,mean:es.reduce(function(a,b){return a+b},0)/(es.length||1)};
+  }).sort(function(a,b){return b.mean-a.mean});
+
+  const rows=ranked.map(function(r){
+    const cells=show.map(function(g){
+      const c=plan.grid[r.t.id][g];
+      const cls=c.n===0?'d0':'d'+Math.max(1,Math.min(5,Math.round(c.diff)));
+      const txt=c.n===0?'—':c.opps.join(' ');
+      return '<td class="cell '+cls+' '+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+txt
+        +(c.n>1?'<span class="dbl">DGW</span>':'')+'</td>';
+    }).join('');
+    return '<tr><td class="club">'+r.t.short_name+'</td>'+cells+'</tr>';
+  }).join('');
+
+  const gridPanel='<div class="panel"><div class="panel-head">'
+    +'<div class="panel-title">'+t('fixtureRuns')+'</div>'
+    +'<div class="panel-meta">'+t('runsMeta')(show[0],show[show.length-1])+'</div></div>'
+    +'<div class="legend">'
+      +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d3"></i>'+t('legEven')+'</span>'
+      +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
+      +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
+      +'<span style="color:var(--dimmer)">* '+t('legAway')+'</span>'
+      +'<span style="color:var(--accent)">| '+t('legDeadline')+'</span></div>'
+    +'<div class="gridscroll"><table class="fxgrid"><thead><tr><th class="club">'+t('club')+'</th>'
+    +head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+
+  /* ── chip windows ── */
+  const chipRow=function(name,pick,why){
+    if(!pick)return '<div class="chipcard"><div class="chipname">'+name+'</div>'
+      +'<div class="chipbody"><div class="chipwhy">'+t('noHalf')+'</div></div></div>';
+    return '<div class="chipcard"><div class="chipname">'+name+'</div><div class="chipbody">'
+      +'<div class="chipwin">'+t('gameweekN')(pick.gw)+'</div>'
+      +'<div class="chipwhy">'+why+'</div></div></div>';
+  };
+
+  const halfPanel=function(label,range,p){
+    if(!p)return '';
+    const bb=p.bench,tc=p.triple,fh=p.free,wc=p.wild;
+    return '<div class="halfsplit">'+label+' \u00b7 '+range+'</div>'
+      +chipRow(t('benchBoost'),bb, bb?t('bbWhy')(Math.round(bb.coverage*100),bb.dbl):'')
+      +chipRow(t('tripleCap'),tc, tc&&tc.bestP?t('tcWhy')(tc.bestP.name,tc.best>5):'')
+      +(fh&&(fh.blank>0||fh.dbl>0)
+          ?chipRow(t('freeHit'),fh, fh.blank>0?t('fhBlank')(fh.blank):t('fhDbl')(fh.dbl))
+          :'<div class="chipcard"><div class="chipname">'+t('freeHit')+'</div><div class="chipbody">'
+            +'<div class="chipwin" style="color:var(--dimmer)">'+t('noWindow')+'</div>'
+            +'<div class="chipwhy">'+t('fhNone')+'</div></div></div>')
+      +chipRow(t('wildcard'),wc, wc?t('wcWhy')(p.wcGain):'');
+  };
+
+  const chipPanel='<div class="panel"><div class="panel-head">'
+    +'<div class="panel-title">'+t('chipWindows')+'</div>'
+    +'<div class="panel-meta">'+t('chipMeta')(HALF_DEADLINE)+'</div></div>'
+    +halfPanel(t('firstSet'),'GW'+Math.max(state.nextGW,1)+'\u2013'+HALF_DEADLINE,picks.first)
+    +halfPanel(t('secondSet'),'GW'+(HALF_DEADLINE+1)+'\u201338',picks.second)
+    +'</div>';
+
+  /* ── caveat ── */
+  let caveat='';
+  if(!anyBlank&&!anyDbl){
+    caveat='<div class="note warn" style="margin-bottom:22px">'+t('noBlankDbl')+'</div>';
+  }
+
+  const swing='<div class="panel"><div class="panel-head">'
+    +'<div class="panel-title">'+t('bestRuns')+'</div>'
+    +'<div class="panel-meta">'+t('bestRunsMeta')(show[0],show[show.length-1])+'</div></div>'
+    +ranked.slice(0,8).map(function(r){
+      const pct=Math.min(100,(r.mean/8)*100);
+      return '<div class="swingrow"><span class="mono">'+r.t.short_name+'</span>'
+        +'<div class="swingbar"><div class="swingfill" style="width:'+pct+'%"></div></div>'
+        +'<span class="mono" style="color:var(--dim);min-width:34px;text-align:right">'
+        +r.mean.toFixed(1)+'</span></div>';
+    }).join('')+'</div>';
+
+  $('planBody').innerHTML=caveat+chipPanel+gridPanel+swing;
+}
+
+/* ══ NOTES ═════════════════════════════════════════════ */
+function err(m){const e=$('errNote');e.textContent=m;e.hidden=false}
+function warn(m){const w=$('warnNote');w.textContent=m;w.hidden=false}
+function clearNotes(){$('errNote').hidden=true;$('warnNote').hidden=true;$('errNote').textContent='';$('warnNote').textContent=''}
+function addWarn(m){const w=$('warnNote');w.textContent=(w.textContent?w.textContent+' ':'')+m;w.hidden=false}
+
+/* ══ LOAD ══════════════════════════════════════════════ */
+/* ══ LOCAL CACHE (IndexedDB) ═══════════════════════════
+   Stores the last good bundle so the app opens instantly and
+   works with no network at all. Survives closing the tab.
+════════════════════════════════════════════════════════ */
+const DB_NAME='fplModel', STORE='cache', CACHE_KEY='lastBundle';
+function idb(){
+  return new Promise((res,rej)=>{
+    let req;
+    try{req=indexedDB.open(DB_NAME,1)}catch(e){return rej(e)}
+    req.onupgradeneeded=()=>{const db=req.result;
+      if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE)};
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function cacheSave(bundle){
+  try{
+    const db=await idb();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).put(bundle,CACHE_KEY);
+      tx.oncomplete=res; tx.onerror=()=>rej(tx.error);
+    });
+    db.close();
+  }catch(e){console.warn('cache save failed:',e.message)}
+}
+async function cacheLoad(){
+  try{
+    const db=await idb();
+    const val=await new Promise((res,rej)=>{
+      const tx=db.transaction(STORE,'readonly');
+      const rq=tx.objectStore(STORE).get(CACHE_KEY);
+      rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error);
+    });
+    db.close();
+    return val||null;
+  }catch(e){return null}
+}
+
+function stamp(iso){
+  if(!iso)return '';
+  const d=new Date(iso), now=Date.now();
+  const hrs=(now-d.getTime())/3.6e6;
+  if(hrs<1)return t('justNow');
+  if(hrs<1.5)return t('oneHAgo');
+  if(hrs<24)return t('hAgo')(Math.round(hrs));
+  return t('dAgo')(Math.round(hrs/24));
+}
+
+/* Apply a {bootstrap,fixtures,fetched_at} bundle and score it. */
+function applyBundle(b,sourceLabel){
+  bootstrap=b.bootstrap; fixtures=Array.isArray(b.fixtures)?b.fixtures:[];
+  state=readState(bootstrap); fields=readFields(bootstrap);
+  build(); renderAll();
+  if(b.fetched_at&&sourceLabel)
+    $('gwmeta')&&($('gwmeta').textContent='');
+  return b.fetched_at;
+}
+
+/* Try the site's own Netlify function — same origin, server-side fetch,
+   no CORS and always current. This is the primary path on fplrock. */
+async function fetchApiData(){
+  const r=await fetch('/api/fpl',{cache:'no-store'});
+  if(!r.ok)throw new Error('/api/fpl '+r.status);
+  const b=await r.json();
+  if(b.error)throw new Error(b.error);
+  if(!b.bootstrap||!b.bootstrap.elements)throw new Error('/api/fpl malformed');
+  return b;
+}
+
+/* Try a static data.json in the site root — the fallback if a function
+   is not deployed (e.g. GitHub Pages). Same origin, so no CORS either. */
+async function fetchRepoData(){
+  const r=await fetch('./data.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('data.json '+r.status);
+  const b=await r.json();
+  if(!b.bootstrap||!b.bootstrap.elements)throw new Error('data.json malformed');
+  return b;
+}
+
+async function load(){
+  clearNotes();
+  const btn=$('runBtn'); btn.disabled=true; btn.textContent=t('loading');
+  $('tabs').hidden=false;
+  $('pickGrid').innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div>'
+    +'<div class="ltext">'+t('loading')+'</div></div>';
+
+  let bundle=null, source='';
+  const loadTrace=[];
+
+  // 1 ── the site's own serverless function (best case: live, same-origin)
+  try{
+    btn.textContent=t('fetching');
+    bundle=await fetchApiData();
+    source='api';
+  }catch(e){ loadTrace.push('api: '+(e&&e.message||e)); }
+
+  // 2 ── a static data.json in the site root, if present
+  if(!bundle){
+    try{ bundle=await fetchRepoData(); source='repo'; }catch(e){ loadTrace.push('repo: '+(e&&e.message||e)); }
+  }
+
+  // 3 ── live proxies, last network resort
+  if(!bundle){
+    try{
+      btn.textContent=t('tryingLive');
+      const [bs,fx]=await Promise.all([fplGet('/bootstrap-static/'),fplGet('/fixtures/')]);
+      if(bs&&bs.elements){bundle={bootstrap:bs,fixtures:Array.isArray(fx)?fx:[],fetched_at:new Date().toISOString()};source='proxy'}
+    }catch(e){ loadTrace.push('proxy: '+(e&&e.message||e)); }
+  }
+
+  // 4 ── last cached bundle from a previous visit
+  if(!bundle){
+    btn.textContent=t('checkingCache');
+    const cached=await cacheLoad();
+    if(cached&&cached.bootstrap){bundle=cached;source='cache'}
+    else loadTrace.push('cache: empty');
+  }
+
+  // nothing worked — offer paste, and SHOW WHY
+  if(!bundle){
+    err(t('noSource'));
+    $('pickGrid').innerHTML='<div class="note err" style="margin:0">'
+      +'<b>Load failed at every source:</b><br>'
+      +loadTrace.map(x=>'· '+x).join('<br>')+'</div>';
+    $('pastePanel').hidden=false;
+    btn.textContent=t('loadData'); btn.disabled=false;
+    return;
+  }
+
+  // score whatever we got
+  bootstrap=bundle.bootstrap; fixtures=Array.isArray(bundle.fixtures)?bundle.fixtures:[];
+  state=readState(bootstrap); fields=readFields(bootstrap);
+
+  // Understat only when we have live network (api/repo/proxy paths)
+  uLive={n:0,map:{}}; uPrior={n:0,map:{}};
+  if(source!=='cache'){
+    btn.textContent=t('readingUnderstat');
+    try{
+      const wants=[understat(SEASON_LIVE)];
+      if(state.liveWeight<1)wants.push(understat(SEASON_PRIOR));
+      const got=await Promise.all(wants);
+      uLive=got[0]; uPrior=got[1]||{n:0,map:{}};
+    }catch(e){}
+  }
+
+  btn.textContent=t('scoring');
+  build(); renderAll();
+
+  // persist for next time (never re-persist stale cache)
+  if(source!=='cache')
+    cacheSave({bootstrap:bootstrap,fixtures:fixtures,fetched_at:bundle.fetched_at});
+
+  const age=stamp(bundle.fetched_at);
+  const src={api:t('srcLive'),repo:t('srcPublished'),proxy:t('srcLiveApi'),cache:t('srcSaved')}[source];
+  addWarn(t('loadedFrom')(src,age)
+    +(source==='cache'?t('offlineStale'):'')
+    +((!uLive.n&&!uPrior.n)?t('understatFB'):''));
+  if(!fields.defcon&&!fields.defconParts.length)
+    addWarn(t('noDefWarn'));
+
+  btn.textContent=t('reload'); btn.disabled=false;
+}
+
+function loadPasted(){
+  clearNotes();
+  const bsRaw=$('pasteBs').value.trim();
+  if(!bsRaw){err(t('pasteBsFirst'));return}
+  try{bootstrap=JSON.parse(bsRaw)}
+  catch(e){err(t('pasteBadJson'));return}
+  if(!bootstrap.elements||!bootstrap.teams){err(t('pasteNoFields'));return}
+
+  fixtures=[];
+  const fxRaw=$('pasteFx').value.trim();
+  if(fxRaw){
+    try{const f=JSON.parse(fxRaw); if(Array.isArray(f))fixtures=f}
+    catch(e){addWarn(t('pasteFxBad'))}
+  }
+  if(!fixtures.length)addWarn(t('pasteNoFx'));
+
+  state=readState(bootstrap); fields=readFields(bootstrap);
+  uLive={n:0,map:{}}; uPrior={n:0,map:{}};
+  addWarn(t('pasteOffline'));
+  if(!fields.defcon&&!fields.defconParts.length)
+    addWarn('No defensive contribution field found — that input is neutral. Check Diagnostics.');
+
+  $('tabs').hidden=false;
+  build(); renderAll();
+  cacheSave({bootstrap:bootstrap,fixtures:fixtures,fetched_at:new Date().toISOString()});
+  addWarn(t('pasteSaved'));
+  $('pastePanel').hidden=true;
+}
+
+/* ══ WIRING ════════════════════════════════════════════ */
+$('runBtn').addEventListener('click',load);
+$('pasteBtn').addEventListener('click',()=>{const p=$('pastePanel');p.hidden=!p.hidden});
+$('pasteRun').addEventListener('click',loadPasted);
+['fSearch','fPos','fPrice','fAvail'].forEach(id=>{
+  const el=$(id);
+  el.addEventListener(id==='fSearch'?'input':'change',applyFilters);
+});
+document.querySelectorAll('th.sortable').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const k=th.dataset.sort;
+    if(sortKey===k)sortAsc=!sortAsc; else{sortKey=k;sortAsc=(k==='name'||k==='fdr')}
+    document.querySelectorAll('th.sortable').forEach(o=>o.removeAttribute('aria-sort'));
+    th.setAttribute('aria-sort',sortAsc?'ascending':'descending');
+    sortList(); page=1; renderTable();
+  });
+});
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(o=>o.setAttribute('aria-selected','false'));
+    t.setAttribute('aria-selected','true');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    $('view-'+t.dataset.view).classList.add('on');
+  });
+});
+
+/* Translate all static HTML that lives outside the render functions. */
+function applyStaticI18n(){
+  const set=(id,key)=>{const el=$(id);if(el)el.textContent=t(key)};
+  set('i18n-engineA','engineA');
+  set('i18n-engineB','engineB');
+  set('i18n-tagline','tagline');
+  set('i18n-evidenceBlend','evidenceBlend');
+  set('i18n-pasteData','pasteData');
+  // data-i18n attributes
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v=t(el.dataset.i18n);
+    if(typeof v==='string')el.textContent=v;
+  });
+  // inputs with translatable placeholders / aria
+  const fs=$('fSearch');
+  if(fs){fs.placeholder=t('searchPh');fs.setAttribute('aria-label',t('searchAria'))}
+  const pbs=$('pasteBs'),pfx=$('pasteFx');
+  if(pbs)pbs.placeholder=t('pasteHere');
+  if(pfx)pfx.placeholder=t('pasteHere');
+  // price dropdown options that carry numbers
+  const fp=$('fPrice');
+  if(fp){[...fp.options].forEach(o=>{
+    if(o.value&&o.value!==''){o.textContent=t('upTo')+parseFloat(o.value).toFixed(1)}
+  })}
+  // buttons whose label the JS also sets — only reset when idle
+  const rb=$('runBtn');
+  if(rb&&(rb.textContent===I18N.en.loadData||rb.textContent===I18N.es.loadData||
+          rb.textContent===I18N.en.reload||rb.textContent===I18N.es.reload)){
+    rb.textContent=(typeof players!=='undefined'&&players.length)?t('reload'):t('loadData');
+  }
+  const pb=$('pasteBtn'); if(pb)pb.textContent=t('pasteInstead');
+  // rebuild the paste steps block (has inline <code> and <ol>)
+  const ps=$('pasteSteps');
+  if(ps)ps.innerHTML=t('pasteIntro')
+    +'<ol style="margin:9px 0 0 17px">'
+    +'<li>'+t('pasteStep1a')+'<code>fantasy.premierleague.com/api/bootstrap-static/</code>'+t('pasteStep1b')+'</li>'
+    +'<li>'+t('pasteStep2')+'</li>'
+    +'<li>'+t('pasteStep3a')+'<code>fantasy.premierleague.com/api/fixtures/</code>'+t('pasteStep3b')+'</li>'
+    +'</ol>';
+}
+
+applyStaticI18n();
+document.documentElement.lang=LANG;
+document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
+renderWeights();
+paintState();
+
+// stamp the build so you can confirm which index.html is live
+(function(){
+  const el=$('buildStamp');
+  if(el)el.textContent=APP_BUILD;
+  try{ console.log('%cFPL Model build: '+APP_BUILD,'color:#d9a441;font-weight:bold'); }catch(e){}
+})();
+
+// history modal close wiring
+// history modal close wiring
+$('histCloseBtn').addEventListener('click',closeHistory);
+// one delegated handler: any .phist element in any view opens that player's history
+document.addEventListener('click',e=>{
+  const el=e.target.closest('.phist');
+  if(el&&el.dataset.pid){
+    openHistory(el.dataset.pid, decodeURIComponent(el.dataset.pname||''));
+  }
+});
+$('histOverlay').addEventListener('click',e=>{ if(e.target===$('histOverlay'))closeHistory(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').hidden)closeHistory(); });
+
+/* ══ STARTUP ═══════════════════════════════════════════
+   Paint instantly from cache if we have it, then quietly try
+   for fresher data in the background. First run just waits on load().
+════════════════════════════════════════════════════════ */
+(async function boot(){
+  const cached=await cacheLoad();
+  if(cached&&cached.bootstrap){
+    bootstrap=cached.bootstrap; fixtures=cached.fixtures||[];
+    state=readState(bootstrap); fields=readFields(bootstrap);
+    uLive={n:0,map:{}}; uPrior={n:0,map:{}};
+    $('tabs').hidden=false;
+    build(); renderAll();
+    $('runBtn').textContent=t('reload');
+    addWarn(t('openedSaved')(cached.fetched_at?stamp(cached.fetched_at):''));
+    // background refresh: only replaces the view if something newer lands
+    load().catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>
