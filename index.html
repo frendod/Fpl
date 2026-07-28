@@ -352,6 +352,15 @@ textarea:focus{border-color:var(--accent)}
 .prow-click{cursor:pointer}
 .phist{cursor:pointer;-webkit-tap-highlight-color:rgba(217,164,65,.15)}
 .phist:active{opacity:.7}
+.benchstrip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:var(--panel2);border:1px dashed var(--line2);border-radius:10px;
+  padding:12px;margin:14px 0 22px}
+.bench-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);margin-right:4px}
+.benchstrip .pcard{opacity:.82}
+.xi-row td{color:var(--paper)}
+.bench-row td{color:var(--dim)}
+.bench-row td:first-child,.xi-row td:first-child{font-size:10px}
 .hist-overlay[hidden]{display:none!important}
 /* the hidden attribute must beat any display: rule below (flex/grid/etc) */
 [hidden]{display:none!important}
@@ -650,7 +659,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-27e';
+const APP_BUILD = 'app-2026-07-27f';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -751,6 +760,11 @@ const I18N={
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
     histClose:'Close', histNote:'FPL data only. Multi-season xG-by-opponent is coming once we wire up the new stats source.',
     priceMove:'price',
+    sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
+    sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
+    sqNote:'Strongest legal 15 within \u00a3100m and 3-per-club, XI maximised with a playable bench. A strong build, not a mathematical optimum.',
+    sqCantBuild:'Not enough available players to build a full squad yet — this fills in once the season\u2019s prices and squads settle.',
+    sqCap:'C',
     justNow:'just now', hAgo:h=>h+'h ago', dAgo:d=>d+'d ago', oneHAgo:'1h ago',
     F:{
       form:['Form','Points per match over the last five gameweeks'],
@@ -861,6 +875,11 @@ const I18N={
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
     histClose:'Cerrar', histNote:'Solo datos FPL. El xG por rival multitemporada llegará cuando conectemos la nueva fuente de estadísticas.',
     priceMove:'precio',
+    sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
+    sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
+    sqNote:'La mejor plantilla legal de 15 con \u00a3100m y m\u00e1x. 3 por club, XI maximizado con suplentes jugables. Una construcci\u00f3n s\u00f3lida, no un \u00f3ptimo matem\u00e1tico.',
+    sqCantBuild:'A\u00fan no hay suficientes jugadores disponibles para una plantilla completa — se completar\u00e1 cuando se asienten los precios y las plantillas.',
+    sqCap:'C',
     justNow:'ahora mismo', hAgo:h=>'hace '+h+'h', dAgo:d=>'hace '+d+'d', oneHAgo:'hace 1h',
     F:{
       form:['Forma','Puntos por partido en las últimas cinco jornadas'],
@@ -1378,14 +1397,123 @@ function renderPicks(){
    +pickCard(t('difTitle'),t('difMeta'),diff,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'));
 }
 
+/* ══ SQUAD OPTIMISER ═══════════════════════════════════
+   Builds a legal 15-man FPL squad (2 GK, 5 DEF, 5 MID, 3 FWD),
+   ≤3 per club, ≤£100m, with the starting XI maximised and a
+   cheap-but-playable bench. Greedy seed per formation → swap
+   improvement. Strong, not provably optimal.
+════════════════════════════════════════════════════════ */
+const SQUAD_REQ={GKP:2,DEF:5,MID:5,FWD:3};
+const XI_MIN={GKP:1,DEF:3,MID:3,FWD:1};
+const XI_MAX={GKP:1,DEF:5,MID:5,FWD:3};
+const CLUB_MAX=3, XI_BUDGET=100.0;
+
+function bestXI(squad){
+  const byPos={GKP:[],DEF:[],MID:[],FWD:[]};
+  squad.forEach(p=>byPos[p.pos].push(p));
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>y.score-x.score));
+  const gk=byPos.GKP.slice(0,1), gkBench=byPos.GKP.slice(1);
+  let best=null;
+  for(let d=XI_MIN.DEF; d<=Math.min(XI_MAX.DEF,byPos.DEF.length); d++)
+    for(let m=XI_MIN.MID; m<=Math.min(XI_MAX.MID,byPos.MID.length); m++)
+      for(let f=XI_MIN.FWD; f<=Math.min(XI_MAX.FWD,byPos.FWD.length); f++){
+        if(d+m+f!==10)continue;
+        const xi=byPos.DEF.slice(0,d).concat(byPos.MID.slice(0,m),byPos.FWD.slice(0,f));
+        const score=xi.reduce((s,p)=>s+p.score,0);
+        if(!best||score>best.score)best={d,m,f,xi,score};
+      }
+  if(!best)return null;
+  const xi=gk.concat(best.xi);
+  const benchOut=squad.filter(p=>p.pos!=='GKP'&&best.xi.indexOf(p)<0);
+  return {xi, bench:gkBench.concat(benchOut), formation:best.d+'-'+best.m+'-'+best.f,
+    xiScore:xi.reduce((s,p)=>s+p.score,0)};
+}
+function clubCount(list){const c={};list.forEach(p=>c[p.teamId]=(c[p.teamId]||0)+1);return c;}
+function squadCost(s){return s.reduce((a,p)=>a+p.price,0);}
+
+function buildSquad(pool, seed){
+  const byPos={GKP:[],DEF:[],MID:[],FWD:[]};
+  pool.forEach(p=>byPos[p.pos].push(p));
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>y.score-x.score));
+  const squad=[], clubs={};
+  const canAdd=p=>((clubs[p.teamId]||0)<CLUB_MAX);
+  const start={GKP:1,DEF:seed.DEF,MID:seed.MID,FWD:seed.FWD};
+  for(const pos of ['GKP','DEF','MID','FWD']){
+    let taken=0;
+    for(const p of byPos[pos]){ if(taken>=start[pos])break;
+      if(canAdd(p)){squad.push(p);clubs[p.teamId]=(clubs[p.teamId]||0)+1;taken++;} }
+  }
+  for(const pos of ['GKP','DEF','MID','FWD']){
+    const need=SQUAD_REQ[pos]-start[pos];
+    const cheap=byPos[pos].filter(p=>squad.indexOf(p)<0&&p.mins>0.35).sort((a,b)=>a.price-b.price);
+    let taken=0;
+    for(const p of cheap){ if(taken>=need)break;
+      if(canAdd(p)){squad.push(p);clubs[p.teamId]=(clubs[p.teamId]||0)+1;taken++;} }
+    if(taken<need){
+      const any=byPos[pos].filter(p=>squad.indexOf(p)<0).sort((a,b)=>a.price-b.price);
+      for(const p of any){ if(taken>=need)break;
+        if(canAdd(p)){squad.push(p);clubs[p.teamId]=(clubs[p.teamId]||0)+1;taken++;} }
+    }
+  }
+  return squad;
+}
+function improveSquad(squad,pool){
+  const inSquad=id=>squad.some(p=>p.id===id);
+  let guard=0;
+  while(squadCost(squad)>XI_BUDGET && guard++<500){
+    let bestSwap=null;
+    for(let i=0;i<squad.length;i++){
+      const cur=squad[i];
+      const cm=clubCount(squad.filter((_,j)=>j!==i));
+      const repl=pool.filter(p=>p.pos===cur.pos&&!inSquad(p.id)&&p.price<cur.price
+        &&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>b.score-a.score)[0];
+      if(!repl)continue;
+      const saved=cur.price-repl.price, lost=cur.score-repl.score;
+      const ratio=saved/Math.max(0.1,lost);
+      if(saved>0&&(!bestSwap||ratio>bestSwap.ratio))bestSwap={i,repl,ratio};
+    }
+    if(!bestSwap)break; squad[bestSwap.i]=bestSwap.repl;
+  }
+  guard=0;
+  while(guard++<300){
+    const xi=bestXI(squad); if(!xi)break;
+    const spare=XI_BUDGET-squadCost(squad);
+    let bestUp=null;
+    for(const cur of xi.xi){
+      const idx=squad.findIndex(p=>p.id===cur.id);
+      const cm=clubCount(squad.filter((_,j)=>j!==idx));
+      const up=pool.filter(p=>p.pos===cur.pos&&!inSquad(p.id)&&p.score>cur.score
+        &&(p.price-cur.price)<=spare&&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>b.score-a.score)[0];
+      if(!up)continue;
+      const gain=up.score-cur.score;
+      if(gain>0&&(!bestUp||gain>bestUp.gain))bestUp={idx,up,gain};
+    }
+    if(!bestUp)break; squad[bestUp.idx]=bestUp.up;
+  }
+  return squad;
+}
+function optimiseSquad(pool){
+  const elig=pool.filter(p=>p.status==='a');
+  const forms=[{DEF:3,MID:4,FWD:3},{DEF:3,MID:5,FWD:2},{DEF:4,MID:3,FWD:3},
+    {DEF:4,MID:4,FWD:2},{DEF:4,MID:5,FWD:1},{DEF:5,MID:3,FWD:2},{DEF:5,MID:4,FWD:1}];
+  let best=null;
+  for(const seed of forms){
+    let sq=buildSquad(elig,seed);
+    if(sq.length<15)continue;
+    sq=improveSquad(sq,elig);
+    const xi=bestXI(sq); if(!xi)continue;
+    if(!best||xi.xiScore>best.xiScore)best={squad:sq,...xi,cost:squadCost(sq)};
+  }
+  return best;
+}
+
 function renderXI(){
-  const fit=players.filter(p=>p.status==='a'&&p.mins>.3);
-  const by=t=>fit.filter(p=>p.pos===t);
-  const gk=by('GKP').slice(0,1), df=by('DEF').slice(0,4),
-        md=by('MID').slice(0,4), fw=by('FWD').slice(0,2);
-  if(!gk.length){$('xiBody').innerHTML='<div class="empty">'+t('noSide')+'</div>';return}
-  const squad=gk.concat(df,md,fw);
-  const cap=squad.slice().sort((a,b)=>b.score-a.score)[0];
+  const res=optimiseSquad(players);
+  if(!res){$('xiBody').innerHTML='<div class="empty">'+t('sqCantBuild')+'</div>';return}
+  const {squad,xi,bench,formation,xiScore,cost}=res;
+  const cap=xi.slice().sort((a,b)=>b.score-a.score)[0];
+  const inXI=id=>xi.some(p=>p.id===id);
+  const clubs=Object.keys(clubCount(squad)).length;
 
   const disc=p=>{
     const fx=fixtures.find(f=>f.event===state.nextGW&&(f.team_h===p.teamId||f.team_a===p.teamId));
@@ -1393,40 +1521,47 @@ function renderXI(){
     if(fx){const h=fx.team_h===p.teamId;
       const o=bootstrap.teams.find(t=>t.id===(h?fx.team_a:fx.team_h));
       opp=((o||{}).short_name||'?')+(h?' H':' A')}
-    return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pdisc '+p.pos+'">'+p.score.toFixed(1)
-      +(p.id===cap.id?'<span class="capmark">C</span>':'')+'</div>'
-      +'<div class="pcname">'+p.name+'</div><div class="pcsub">'+opp+'</div></div>';
+    return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
+      +'<div class="pdisc '+p.pos+'">'+p.score.toFixed(1)
+      +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
+      +'<div class="pcname">'+p.name+'</div><div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div></div>';
   };
+  const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
+        mdX=xi.filter(p=>p.pos==='MID'), fwX=xi.filter(p=>p.pos==='FWD');
 
-  const cost=squad.reduce((s,p)=>s+p.price,0);
-  const avg=squad.reduce((s,p)=>s+p.score,0)/squad.length;
+  // squad table row (marks starters vs bench)
+  const row=p=>'<tr class="phist'+(inXI(p.id)?' xi-row':' bench-row')+'" data-pid="'+p.id
+      +'" data-pname="'+encodeURIComponent(p.name)+'">'
+    +'<td>'+(inXI(p.id)?'●':'○')+'</td>'
+    +'<td>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+'</td>'
+    +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
+    +'<td class="mono">'+p.price.toFixed(1)+'</td>'
+    +'<td class="sc">'+p.score.toFixed(1)+'</td>'
+    +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
+  const order={GKP:0,DEF:1,MID:2,FWD:3};
+  const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||b.score-a.score);
 
   $('xiBody').innerHTML=
     '<div class="xistats">'
-    +'<div class="xistat"><span>'+t('shape')+'</span><b>4-4-2</b></div>'
-    +'<div class="xistat"><span>'+t('meanScore')+'</span><b>'+avg.toFixed(1)+'</b></div>'
-    +'<div class="xistat"><span>'+t('cost')+'</span><b>'+cost.toFixed(1)+'</b></div>'
-    +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:19px">'+cap.name+'</b></div>'
+    +'<div class="xistat"><span>'+t('shape')+'</span><b>'+formation+'</b></div>'
+    +'<div class="xistat"><span>'+t('sqXIScore')+'</span><b>'+xiScore.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+t('sqBudget')+'</span><b>'+cost.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+t('sqRemaining')+'</span><b>'+(XI_BUDGET-cost).toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:17px">'+cap.name+'</b></div>'
     +'</div>'
     +'<div class="pitch">'
-      +'<div class="prow-xi">'+gk.map(disc).join('')+'</div>'
-      +'<div class="prow-xi">'+df.map(disc).join('')+'</div>'
-      +'<div class="prow-xi">'+md.map(disc).join('')+'</div>'
-      +'<div class="prow-xi">'+fw.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+gkX.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+dfX.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+mdX.map(disc).join('')+'</div>'
+      +'<div class="prow-xi">'+fwX.map(disc).join('')+'</div>'
     +'</div>'
-    +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('theEleven')+'</div>'
-    +'<div class="panel-meta">'+t('elevenMeta')+'</div></div>'
-    +'<div class="tscroll"><table><thead><tr><th>'+t('thPlayer')+'</th><th>'+t('thPos')+'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th>'
-    +'<th>'+t('thMins')+'</th><th>xG/90</th><th>xA/90</th><th>DefCon</th><th>FDR</th></tr></thead><tbody>'
-    +squad.map(p=>'<tr class="phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">C</span>':'')+'</td>'
-      +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
-      +'<td class="mono">'+p.price.toFixed(1)+'</td>'
-      +'<td class="sc">'+p.score.toFixed(1)+'</td>'
-      +'<td class="mono">'+Math.round(p.mins*100)+'%</td>'
-      +'<td class="mono">'+p.xg90.toFixed(2)+'</td>'
-      +'<td class="mono">'+p.xa90.toFixed(2)+'</td>'
-      +'<td class="mono">'+(fields.defcon||fields.defconParts.length?Math.round(p.pct.defcon*100)+'%':'—')+'</td>'
-      +'<td class="mono">'+(p.fdrKnown?p.fdr.toFixed(1):'—')+'</td></tr>').join('')
+    +'<div class="benchstrip"><span class="bench-label">'+t('sqBench')+'</span>'
+      +bench.map(disc).join('')+'</div>'
+    +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
+    +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
+    +'<div class="tscroll"><table><thead><tr><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
+    +'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
+    +sorted.map(row).join('')
     +'</tbody></table></div></div>';
 }
 
