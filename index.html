@@ -419,6 +419,29 @@ textarea:focus{border-color:var(--accent)}
 .vs-filter-sm{max-width:70px}
 .hist-total-row td{border-top:1px solid var(--line2);font-weight:600;color:var(--accent)}
 .hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.fix-strip{display:flex;flex-direction:column;gap:2px}
+.fix-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
+.fix-gw{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);min-width:42px}
+.fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.fdr-easy{background:#4ade80}
+.fdr-mid{background:#9ca3af}
+.fdr-hard{background:#f87171}
+.fdr-blank{background:transparent;border:1px dashed var(--line2)}
+.fix-opp{font-size:14px;color:var(--paper);flex:1}
+.fix-opp.fix-blank{color:var(--dimmer)}
+.fix-venue{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);
+  border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
+.sum-block{margin:0 0 22px;padding:16px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
+.sum-season{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px}
+.sum-cell{display:flex;flex-direction:column;gap:2px}
+.sum-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.sum-v{font-size:16px;color:var(--paper);font-weight:600;line-height:1}
+.sum-k2{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+.sum-v2{font-size:13px;color:var(--paper2,#c9c9c9)}
+.sum-na{color:var(--dimmer);font-weight:400}
+@media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:6px;
@@ -672,7 +695,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-29a';
+const APP_BUILD = 'app-2026-07-29c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -772,6 +795,11 @@ const I18N={
     histFilterAll:'All opponents', histVsMatches:'Matches vs {opp}', histNoVs:'No matches recorded vs that club.',
     histTotal:'Total', histSeasonStats:'Per-season stats (Understat)', histLastN:'Seasons shown',
     hAll:'All', hShots:'Shots', hKP:'Key passes', hNpG:'npG', hNpxG:'npxG',
+    histUpcoming:'Upcoming fixtures', histNoFix:'No upcoming fixtures loaded.', hGW:'GW',
+    sumPrice:'Price', sumOwn:'Ownership', sumTransfers:'Transfers', sumPts:'Total pts',
+    sumPPG:'Per game', sumMin:'Minutes', sumGames:'Games', sumForm:'Form', sumBonus:'Total bonus',
+    sumGoals:'Goals', sumAssists:'Assists', sumShots:'Shots', sumOnTarget:'On target',
+    sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
     histUnderstatNote:'Multi-season xG by opponent from Understat.',
     hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
@@ -893,6 +921,11 @@ const I18N={
     histFilterAll:'Todos los rivales', histVsMatches:'Partidos vs {opp}', histNoVs:'Sin partidos registrados vs ese club.',
     histTotal:'Total', histSeasonStats:'Estadísticas por temporada (Understat)', histLastN:'Temporadas',
     hAll:'Todas', hShots:'Tiros', hKP:'Pases clave', hNpG:'GsP', hNpxG:'npxG',
+    histUpcoming:'Próximos partidos', histNoFix:'No hay próximos partidos cargados.', hGW:'J',
+    sumPrice:'Precio', sumOwn:'Propiedad', sumTransfers:'Fichajes', sumPts:'Puntos tot.',
+    sumPPG:'Por partido', sumMin:'Minutos', sumGames:'Partidos', sumForm:'Forma', sumBonus:'Bonus total',
+    sumGoals:'Goles', sumAssists:'Asist.', sumShots:'Tiros', sumOnTarget:'A puerta',
+    sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
     histUnderstatNote:'xG por rival multitemporada de Understat.',
     hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
@@ -947,6 +980,7 @@ const PROXIES=[
 ];
 // Understat labels a season by its starting year: 2026 = 2026/27, 2025 = 2025/26.
 const SEASON_LIVE=2026, SEASON_PRIOR=2025;
+const SEASON_LABEL=SEASON_LIVE+'/'+String(SEASON_LIVE+1).slice(2);
 const RAMP_GWS=8;          // gameweeks until live data carries full weight
 const PAGE=30;
 
@@ -1846,6 +1880,11 @@ async function openHistory(pid,pname){
     // also try the committed Understat store for multi-season vs-club
     let understat=null;
     try{ understat=await understatHistoryFor(pid, pname); }catch(e){ window.__uErr=String(e&&e.message||e); }
+    // attach the player's FPL teamId + element for upcoming fixtures & summary
+    const plObj=players.find(p=>String(p.id)===String(pid));
+    d.teamId=plObj?plObj.teamId:null;
+    d.el=plObj?plObj.el:null;
+    d.understat=understat;   // so the summary can pull xG/xA/shots from Understat
     renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
@@ -1959,8 +1998,137 @@ function renderSeasonStats(understat){
 }
 
 function renderHistory(d, understat){
+  // per-player upcoming fixtures strip (next 7 GWs), colour-coded by difficulty
+  function upcomingFixtures(teamId){
+    if(!teamId||!fixtures.length)return '';
+    const start=state.nextGW||1;
+    const gws=[]; for(let i=0;i<7;i++)gws.push(start+i);
+    const teams=bootstrap.teams||[];
+    const rows=[];
+    for(const gw of gws){
+      const fx=fixtures.filter(f=>f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+      if(!fx.length){ rows.push({gw,blank:true}); continue; }
+      // a team can have a double gameweek — list each fixture
+      fx.forEach(f=>{
+        const isH=f.team_h===teamId;
+        const oppId=isH?f.team_a:f.team_h;
+        const opp=(teams.find(t=>t.id===oppId)||{});
+        const diff=isH?f.team_h_difficulty:f.team_a_difficulty;
+        rows.push({gw,opp:opp.short_name||opp.name||'?',venue:isH?'H':'A',diff});
+      });
+    }
+    if(!rows.length)return '';
+    const dotClass=d=>d<=2?'fdr-easy':d===3?'fdr-mid':'fdr-hard';
+    return '<div class="hist-section"><div class="hist-section-title">'+t('histUpcoming')+'</div>'
+      +'<div class="fix-strip">'
+      +rows.map(r=>{
+        if(r.blank)return '<div class="fix-row"><span class="fix-gw">'+t('hGW')+r.gw+'</span>'
+          +'<span class="fix-dot fdr-blank"></span><span class="fix-opp fix-blank">—</span></div>';
+        return '<div class="fix-row"><span class="fix-gw">'+t('hGW')+r.gw+'</span>'
+          +'<span class="fix-dot '+dotClass(r.diff)+'"></span>'
+          +'<span class="fix-opp">'+r.opp+'</span>'
+          +'<span class="fix-venue">'+r.venue+'</span></div>';
+      }).join('')
+      +'</div></div>';
+  }
+
+  return renderHistoryInner(d, understat, upcomingFixtures);
+}
+
+// compact current/last-season stats summary shown under the player name.
+// Uses current-season FPL figures once games are played, otherwise last season.
+function playerSummary(d){
+  const el=d.el;
+  const past=d.pastSeasons||[];
+  const u=d.understat;
+  // decide season: current if any minutes this season, else most recent past
+  const curMin=el?(+el.minutes||0):0;
+  const useCurrent=curMin>0;
+  const lastPast=past.length?past[past.length-1]:null;
+
+  // helper: a greyed placeholder for unavailable fields
+  const NA='<span class="sum-na">—</span>';
+  const g=(label,val,val2,label2)=>{
+    return '<div class="sum-cell"><span class="sum-k">'+label+'</span>'
+      +'<span class="sum-v">'+(val==null?NA:val)+'</span>'
+      +(label2?'<span class="sum-k2">'+label2+'</span><span class="sum-v2">'+(val2==null?NA:val2)+'</span>':'')
+      +'</div>';
+  };
+
+  let season, pts, ppg, min, games, goals, assists, xg, xa, bonus, defcon;
+  if(useCurrent && el){
+    season=SEASON_LABEL;
+    pts=el.total_points; ppg=el.points_per_game;
+    min=el.minutes; games=el.starts!=null?el.starts:null;
+    goals=el.goals_scored; assists=el.assists;
+    xg=el.expected_goals!=null?(+el.expected_goals).toFixed(2):null;
+    xa=el.expected_assists!=null?(+el.expected_assists).toFixed(2):null;
+    bonus=el.bonus; defcon=el.defensive_contribution!=null?el.defensive_contribution:null;
+  } else if(lastPast){
+    season=lastPast.season;
+    pts=lastPast.points; ppg=(lastPast.minutes?((lastPast.points/(lastPast.minutes/90))).toFixed(1):null);
+    min=lastPast.minutes; games=lastPast.starts||null;
+    goals=lastPast.goals; assists=lastPast.assists;
+    xg=lastPast.xg!=null?lastPast.xg.toFixed(2):null;
+    xa=lastPast.xa!=null?lastPast.xa.toFixed(2):null;
+    bonus=lastPast.bonus; defcon=lastPast.defcon||null;
+  } else {
+    return '';  // nothing to show
+  }
+
+  // live-only fields (always current, from element)
+  const price=el?('£'+(el.now_cost/10).toFixed(1)+'m'):null;
+  const own=el?(el.selected_by_percent+'%'):null;
+  const tin=el?('+'+(el.transfers_in_event||0)):null;
+  const tout=el?('-'+(el.transfers_out_event||0)):null;
+  const form=el?el.form:null;
+
+  // Understat-derived shots / key passes for the shown season (if we have it)
+  let shots=null, kp=null;
+  if(u&&u.matches){
+    const seasonKey=season.split('/')[0]; // '2025/26' -> '2025'
+    const sm=u.matches.filter(m=>m.season===seasonKey);
+    if(sm.length){
+      shots=sm.reduce((a,m)=>a+(+m.shots||0),0);
+      kp=sm.reduce((a,m)=>a+(+m.keyPasses||0),0);
+      // prefer Understat xG/xA for that season if present
+      const sxg=sm.reduce((a,m)=>a+(+m.xg||0),0);
+      const sxa=sm.reduce((a,m)=>a+(+m.xa||0),0);
+      if(sxg)xg=sxg.toFixed(2); if(sxa)xa=sxa.toFixed(2);
+    }
+  }
+
+  return '<div class="sum-block">'
+    +'<div class="sum-season">'+season+' '+t('sumSeasonTag')+'</div>'
+    +'<div class="sum-grid">'
+      +g(t('sumPrice'),price)
+      +g(t('sumOwn'),own)
+      +g(t('sumTransfers'),tin,tout,'')
+      +g(t('sumPts'),pts,ppg,t('sumPPG'))
+      +g(t('sumMin'),min,games==null?NA:games,t('sumGames'))
+      +g(t('sumForm'),form,bonus,t('sumBonus'))
+      +g(t('sumGoals'),goals,xg,'xG')
+      +g(t('sumAssists'),assists,xa,'xA')
+      +g(t('sumShots'),shots,NA,t('sumOnTarget'))
+      +g(t('sumKP'),kp)
+      +g(t('sumBigCh'),null)
+      +g(t('sumDefCon'),defcon)
+    +'</div></div>';
+}
+
+function renderHistoryInner(d, understat, upcomingFixtures){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
   let html='';
+
+  // player stats summary (current or last season) under the name
+  const summary=playerSummary(d);
+  if(summary)html+=summary;
+
+  // upcoming fixtures strip (next 7 GWs) — shown first, like the reference
+  if(d.teamId){
+    const fx=upcomingFixtures(d.teamId);
+    if(fx)html+=fx;
+  }
 
   // previous seasons
   if(past.length){
@@ -2014,7 +2182,9 @@ function renderHistory(d, understat){
     html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
   }
 
-  if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length))
+  const hasFixtures=d.teamId&&fixtures.length&&fixtures.some(f=>f.event>=(state.nextGW||1)&&(f.team_h===d.teamId||f.team_a===d.teamId));
+  const hasSummary=!!(d.el||past.length);
+  if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length)&&!hasFixtures&&!hasSummary)
     html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
 }
