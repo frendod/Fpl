@@ -667,7 +667,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-28d';
+const APP_BUILD = 'app-2026-07-28e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -748,7 +748,7 @@ const I18N={
     srcLive:'live data', srcPublished:'published data', srcLiveApi:'live API', srcSaved:'saved data',
     loadedFrom:(src,age)=>'Loaded from '+src+(age?' ('+age+')':'')+'.',
     offlineStale:' Offline — this is your last saved copy, so numbers may be stale.',
-    understatFB:'. Expected goals use FPL\u2019s own figures (Understat not loaded).',
+    understatFB:'. Expected goals shown use FPL\u2019s own figures.',
     noDefWarn:'No defensive contribution field found — that input scores neutral. Check Diagnostics.',
     noSource:'No data source reachable — the function did not answer, no data.json is published, every proxy failed, and nothing is cached. Paste data once to get going; after that it is remembered.',
     pasteSaved:'Saved. Next time this opens it will load from here automatically — no need to paste again.',
@@ -867,7 +867,7 @@ const I18N={
     srcLive:'datos en vivo', srcPublished:'datos publicados', srcLiveApi:'API en vivo', srcSaved:'datos guardados',
     loadedFrom:(src,age)=>'Cargado desde '+src+(age?' ('+age+')':'')+'.',
     offlineStale:' Sin conexión — esta es tu última copia guardada, los números pueden estar desactualizados.',
-    understatFB:'. Los goles esperados usan las cifras propias de FPL (Understat no cargado).',
+    understatFB:'. Los goles esperados usan las cifras propias de FPL.',
     noDefWarn:'No se encontró el campo de contribución defensiva — esa entrada puntúa neutra. Revisa Diagnóstico.',
     noSource:'Ninguna fuente de datos accesible — la función no respondió, no hay data.json publicado, todos los proxies fallaron y no hay nada en caché. Pega datos una vez para empezar; después se recuerda.',
     pasteSaved:'Guardado. La próxima vez se cargará desde aquí automáticamente — no hará falta pegar de nuevo.',
@@ -1785,22 +1785,27 @@ async function understatHistoryFor(pid, displayName){
   let hit=null;
   for(const f of forms){ if(f && idx[f]){ hit=idx[f]; break; } }
 
-  // 2) fallback: match by surname when the store key ends with our surname
-  //    (handles "B.Fernandes" -> store "bruno fernandes")
+  // 2) fallback: FPL full names often carry middle names Understat omits
+  //    ("Bruno Miguel Borges Fernandes" vs store "Bruno Fernandes"), and
+  //    second_name is sometimes compound ("Borges Fernandes"). Match on the
+  //    LAST word of the surname, then disambiguate by first-name initial.
   if(!hit && pl){
-    const surname=normName(pl.secondName||pl.name.replace(/^.*\./,''));
+    const lastWord = s => { const w=normName(s).split(' ').filter(Boolean); return w[w.length-1]||''; };
+    const surname = lastWord(pl.secondName||pl.name.replace(/^.*\./,''));
     if(surname){
-      // prefer an entry whose norm ends in " surname" or equals surname
       const keys=Object.keys(idx);
-      const ends=keys.filter(k=>k===surname || k.endsWith(' '+surname));
+      // store entries whose last word equals our surname
+      const ends=keys.filter(k=>{ const w=k.split(' ').filter(Boolean); return w[w.length-1]===surname; });
       if(ends.length===1)hit=idx[ends[0]];
       else if(ends.length>1){
-        // disambiguate by first-name initial if the web_name had one (e.g. "B.")
-        const ini=(pl.name.match(/^([a-z])\./i)||[])[1];
-        if(ini){
-          const m=ends.find(k=>k.startsWith(ini.toLowerCase()));
-          if(m)hit=idx[m];
-        }
+        // disambiguate by first name: prefer a store entry whose FIRST word
+        // matches our first name, else whose first word starts with our initial
+        const firstFull = normName((pl.fullName||'').split(' ')[0]||'');
+        const ini = firstFull ? firstFull[0]
+                  : ((pl.name.match(/^([a-z])\./i)||[])[1]||'').toLowerCase();
+        let m = firstFull ? ends.find(k=>k.split(' ')[0]===firstFull) : null;
+        if(!m && ini) m = ends.find(k=>k.startsWith(ini));
+        if(m)hit=idx[m];
       }
     }
   }
