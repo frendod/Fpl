@@ -641,6 +641,7 @@ textarea:focus{border-color:var(--accent)}
         <table>
           <thead><tr>
             <th>#</th>
+            <th style="width:24px"></th>
             <th class="sortable" data-sort="name" data-i18n="thPlayer">Player</th>
             <th>Pos</th>
             <th class="sortable" data-sort="price" data-i18n="thPrice">Price</th>
@@ -1735,13 +1736,15 @@ function renderXI(){
   wireLockControls();
 }
 
-// wire lock stars, chips, and clear button (called after each renderXI)
+// wire lock stars, chips, and clear button (called after each renderXI and renderTable)
 function wireLockControls(){
-  $('xiBody').querySelectorAll('[data-locktoggle]').forEach(btn=>{
+  document.querySelectorAll('[data-locktoggle]').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();
       const id=+btn.dataset.locktoggle;
       if(lockedIds.has(id))lockedIds.delete(id);else lockedIds.add(id);
+      // re-render both views to keep them in sync
       renderXI();
+      renderTable();
     });
   });
   $('xiBody').querySelectorAll('[data-lock]').forEach(chip=>{
@@ -1786,6 +1789,7 @@ function renderTable(){
   $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
     const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
+    +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
     +'<td><div>'+p.name+'</div><div class="mono" style="font-size:10px;color:var(--dim)">'+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
@@ -1801,6 +1805,7 @@ function renderTable(){
   }).join(''):'<tr><td colspan="12" class="empty">'+t('noMatch')+'</td></tr>';
 
   // taps handled globally by the delegated .phist listener (covers every view)
+  wireLockControls();
 
   $('pager').innerHTML='<button class="pg" id="pgPrev"'+(page<=1?' disabled':'')+'>'+t('prev')+'</button>'
     +'<span>'+t('pageOf')(page,pages)+'</span>'
