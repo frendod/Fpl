@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
+  /* Dark Theme (default) */
   --ink:#10151c;
   --panel:#171d26;
   --panel2:#1e2530;
@@ -30,6 +31,40 @@
   --bad:#e5657a;
   --accent:#d9a441;
   --accent-soft:rgba(217,164,65,.14);
+}
+:root.grey-theme{
+  /* Grey Theme */
+  --ink:#2a2d33;
+  --panel:#3a3f47;
+  --panel2:#424855;
+  --line:rgba(232,228,220,.12);
+  --line2:rgba(232,228,220,.20);
+  --paper:#d9d5cd;
+  --dim:#9a9fa7;
+  --dimmer:#7a7f87;
+  --prior:#d9a441;
+  --live:#5cb3ff;
+  --good:#4ec9a0;
+  --bad:#e5657a;
+  --accent:#d9a441;
+  --accent-soft:rgba(217,164,65,.16);
+}
+:root.light-theme{
+  /* Light Theme */
+  --ink:#ffffff;
+  --panel:#f5f5f5;
+  --panel2:#eeeeee;
+  --line:rgba(0,0,0,.08);
+  --line2:rgba(0,0,0,.12);
+  --paper:#1a1a1a;
+  --dim:#666666;
+  --dimmer:#999999;
+  --prior:#d9a441;
+  --live:#0066cc;
+  --good:#2ecc71;
+  --bad:#e74c3c;
+  --accent:#d9a441;
+  --accent-soft:rgba(217,164,65,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -65,13 +100,14 @@ body::before{
   text-transform:uppercase;color:var(--dim);
 }
 .langtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-.langbtn{
+.themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.langbtn, .themebtn{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s;
 }
-.langbtn:hover{color:var(--paper)}
-.langbtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
-.langbtn:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
+.langbtn:hover, .themebtn:hover{color:var(--paper)}
+.langbtn[aria-pressed="true"], .themebtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.langbtn:focus-visible, .themebtn:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
 .masthead h1{
   font-family:'Instrument Serif',Georgia,serif;
   font-size:clamp(34px,7vw,58px);font-weight:400;line-height:.98;letter-spacing:-.01em;
@@ -450,6 +486,10 @@ textarea:focus{border-color:var(--accent)}
 .fdr-easy{background:#2ecc71}
 .fdr-mid{background:#e8e8e8}
 .fdr-hard{background:#e55555}
+/* Light theme versions */
+.fdr-easy.light-theme{background:#4ade80}
+.fdr-mid.light-theme{background:#ffffff}
+.fdr-hard.light-theme{background:#f87171}
 .fdr-blank{background:transparent;border:1px dashed var(--line2)}
 .fix-opp{font-size:14px;color:var(--paper);flex:1}
 .fix-opp.fix-blank{color:var(--dimmer)}
@@ -508,6 +548,12 @@ textarea:focus{border-color:var(--accent)}
 .d3{background:#e8e8e8;color:var(--dim)}
 .d4{background:rgba(229,85,85,.5);color:#f2b5c0}
 .d5{background:#e55555;color:#ffc9d2}
+/* Light theme versions */
+.d1.light-theme{background:#4ade80;color:#bff0dd}
+.d2.light-theme{background:rgba(78,201,160,.19);color:#a9e2cc}
+.d3.light-theme{background:#ffffff;color:var(--dim)}
+.d4.light-theme{background:rgba(229,101,122,.19);color:#f2b5c0}
+.d5.light-theme{background:#f87171;color:#ffc9d2}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
   color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
 .cell .dbl{display:block;font-size:8px;letter-spacing:.08em;color:var(--live);margin-top:1px}
@@ -562,9 +608,16 @@ textarea:focus{border-color:var(--accent)}
   <div class="masthead">
     <div class="masthead-row">
       <div class="eyebrow">Fantasy Premier League · 2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
-      <div class="langtoggle" role="group" aria-label="Language">
-        <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
-        <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="themtoggle" role="group" aria-label="Theme">
+          <button class="themebtn" data-theme="dark" aria-pressed="true" onclick="setTheme('dark')" title="Dark">🌙</button>
+          <button class="themebtn" data-theme="grey" aria-pressed="false" onclick="setTheme('grey')" title="Grey">◐</button>
+          <button class="themebtn" data-theme="light" aria-pressed="false" onclick="setTheme('light')" title="Light">☀️</button>
+        </div>
+        <div class="langtoggle" role="group" aria-label="Language">
+          <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+          <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
+        </div>
       </div>
     </div>
     <h1><span id="i18n-engineA">Scoring</span> <em id="i18n-engineB">Engine</em></h1>
@@ -728,7 +781,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-08f';
+const APP_BUILD = 'app-2026-08-08i';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -785,6 +838,7 @@ const I18N={
     fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
     highlight5Good:'Highlight 5+ week good runs',
     legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
+    fdrDark:'Dark', fdrLight:'Light', fdrTheme:'FDR theme',
     club:'Club',
     chipWindows:'Chip windows', chipMeta:d=>'Two sets of four · first expires at the GW'+d+' deadline',
     firstSet:'First set', secondSet:'Second set',
@@ -916,6 +970,7 @@ const I18N={
     fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
     highlight5Good:'Destacar rachas de 5+ semanas fáciles',
     legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
+    fdrDark:'Oscuro', fdrLight:'Claro', fdrTheme:'Tema FDR',
     club:'Club',
     chipWindows:'Ventanas de comodines', chipMeta:d=>'Dos juegos de cuatro · el primero caduca en el límite de la J'+d,
     firstSet:'Primer juego', secondSet:'Segundo juego',
@@ -998,6 +1053,15 @@ const I18N={
   }
 };
 let LANG=(function(){try{return localStorage.getItem('fplLang')||'en'}catch(e){return 'en'}})();
+let THEME=(function(){try{return localStorage.getItem('fplTheme')||'dark'}catch(e){return 'dark'}})();
+(function initTheme(){
+  // Remove all theme classes
+  document.documentElement.classList.remove('dark-theme','grey-theme','light-theme');
+  // Add the selected theme class (if not dark, which is default)
+  if(THEME!=='dark')document.documentElement.classList.add(THEME+'-theme');
+  document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===THEME)));
+})();
+
 function t(key){const v=(I18N[LANG]&&I18N[LANG][key]!==undefined)?I18N[LANG][key]:I18N.en[key];return v;}
 function setLang(l){
   LANG=l;
@@ -1007,6 +1071,16 @@ function setLang(l){
   document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===l)));
   if(typeof players!=='undefined'&&players.length){renderWeights();renderAll();}
   else{renderWeights();paintState();}
+}
+
+function setTheme(theme){
+  THEME=theme;
+  try{localStorage.setItem('fplTheme',theme)}catch(e){}
+  // Remove all theme classes
+  document.documentElement.classList.remove('dark-theme','grey-theme','light-theme');
+  // Add the selected theme class (if not dark, which is default)
+  if(theme!=='dark')document.documentElement.classList.add(theme+'-theme');
+  document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===theme)));
 }
 
 /* ══ CONFIG ════════════════════════════════════════════ */
@@ -1042,6 +1116,7 @@ let state={mode:'unloaded',gwPlayed:0,liveWeight:0,nextGW:1};
 let fields={defcon:null,defconParts:[],starts:false};
 let diag={};
 let highlightGood5Weeks=false;  // toggle for highlighting 5+ week good fixture runs
+let fdrTheme='dark';  // 'dark' or 'light' theme for fixture difficulty colors
 
 /* ══ FEATURE SPEC ══════════════════════════════════════
    availability:
@@ -2164,7 +2239,7 @@ function renderHistory(d, understat){
       });
     }
     if(!rows.length)return '';
-    const dotClass=d=>d<=2?'fdr-easy':d===3?'fdr-mid':'fdr-hard';
+    const dotClass=d=>(d<=2?'fdr-easy':d===3?'fdr-mid':'fdr-hard')+(fdrTheme==='light'?' light-theme':'');
     return '<div class="hist-section"><div class="hist-section-title">'+t('histUpcoming')+'</div>'
       +'<div class="fix-strip">'
       +rows.map(r=>{
@@ -2508,6 +2583,8 @@ function renderPlan(){
           if(run.gws.indexOf(g)>-1)extraCls=' good5run';
         });
       }
+      // add light-theme class if selected
+      if(fdrTheme==='light')extraCls+=' light-theme';
       return '<td class="cell '+cls+extraCls+' '+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+txt
         +(c.n>1?'<span class="dbl">DGW</span>':'')+'</td>';
     }).join('');
@@ -2541,7 +2618,9 @@ function renderPlan(){
   const gridPanel='<div class="panel"><div class="panel-head">'
     +'<div class="panel-title">'+t('fixtureRuns')+'</div>'
     +'<div class="panel-meta">'+t('runsMeta')(show[0],show[show.length-1])
-    +' · <label style="cursor:pointer;font-weight:normal"><input type="checkbox" id="highlight5Good" '+(highlightGood5Weeks?'checked':'')+'> '+t('highlight5Good')+'</label></div></div>'
+    +' · <label style="cursor:pointer;font-weight:normal"><input type="checkbox" id="highlight5Good" '+(highlightGood5Weeks?'checked':'')+'> '+t('highlight5Good')+'</label>'
+    +' · <span style="font-weight:normal">'+t('fdrTheme')+': <label style="cursor:pointer;margin:0 4px"><input type="radio" name="fdrTheme" value="dark" '+(fdrTheme==='dark'?'checked':'')+'> '+t('fdrDark')+'</label>'
+    +'<label style="cursor:pointer"><input type="radio" name="fdrTheme" value="light" '+(fdrTheme==='light'?'checked':'')+'> '+t('fdrLight')+'</label></span></div></div>'
     +'<div class="legend">'
       +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d3"></i>'+t('legEven')+'</span>'
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
@@ -2607,6 +2686,13 @@ function renderPlan(){
       renderPlan();  // re-render to show/hide highlighting
     });
   }
+  // wire up the FDR theme radio buttons
+  document.querySelectorAll('input[name="fdrTheme"]').forEach(radio=>{
+    radio.addEventListener('change',function(){
+      fdrTheme=this.value;
+      renderPlan();  // re-render to apply new theme
+    });
+  });
 }
 
 /* ══ NOTES ═════════════════════════════════════════════ */
