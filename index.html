@@ -667,7 +667,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-28c';
+const APP_BUILD = 'app-2026-07-28d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1206,6 +1206,8 @@ function build(){
     return{
       id:p.id, el:p,
       name:p.web_name,
+      fullName:((p.first_name||'')+' '+(p.second_name||'')).trim(),
+      secondName:p.second_name||'',
       club:(teams[p.team]||{}).short_name||'—',
       teamId:p.team,
       pos:POSN[p.element_type]||'—',
@@ -1761,12 +1763,48 @@ function understatVsClub(matches){
   })).sort((a,b)=>b.goals-a.goals||b.xg-a.xg);
 }
 
-// find & load a player's Understat multi-season history by their FPL name
-async function understatHistoryFor(fplName){
+// find & load a player's Understat multi-season history.
+// FPL uses abbreviated web_names ("B.Fernandes"); the store is keyed by
+// Understat full names ("Bruno Fernandes"). We match by trying, in order:
+// the FPL full name, then the surname, against the store's norm names.
+async function understatHistoryFor(pid, displayName){
   const idx=await loadUStoreIndex();
   if(!idx)return null;
-  const key=normName(fplName);
-  const hit=idx[key];
+
+  // gather candidate name forms for this player
+  const forms=[];
+  const pl=players.find(p=>String(p.id)===String(pid));
+  if(pl){
+    if(pl.fullName)forms.push(normName(pl.fullName));
+    if(pl.secondName)forms.push(normName(pl.secondName));
+    if(pl.name)forms.push(normName(pl.name));
+  }
+  if(displayName)forms.push(normName(displayName));
+
+  // 1) exact norm-name hit
+  let hit=null;
+  for(const f of forms){ if(f && idx[f]){ hit=idx[f]; break; } }
+
+  // 2) fallback: match by surname when the store key ends with our surname
+  //    (handles "B.Fernandes" -> store "bruno fernandes")
+  if(!hit && pl){
+    const surname=normName(pl.secondName||pl.name.replace(/^.*\./,''));
+    if(surname){
+      // prefer an entry whose norm ends in " surname" or equals surname
+      const keys=Object.keys(idx);
+      const ends=keys.filter(k=>k===surname || k.endsWith(' '+surname));
+      if(ends.length===1)hit=idx[ends[0]];
+      else if(ends.length>1){
+        // disambiguate by first-name initial if the web_name had one (e.g. "B.")
+        const ini=(pl.name.match(/^([a-z])\./i)||[])[1];
+        if(ini){
+          const m=ends.find(k=>k.startsWith(ini.toLowerCase()));
+          if(m)hit=idx[m];
+        }
+      }
+    }
+  }
+
   if(!hit)return null;
   try{
     const teamFile=await loadUTeamFile(hit.file);
@@ -1792,7 +1830,7 @@ async function openHistory(pid,pname){
     const d=await fetchPlayerHistory(pid);
     // also try the committed Understat store for multi-season vs-club
     let understat=null;
-    try{ understat=await understatHistoryFor(pname); }catch(e){ window.__uErr=String(e&&e.message||e); }
+    try{ understat=await understatHistoryFor(pid, pname); }catch(e){ window.__uErr=String(e&&e.message||e); }
     renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
