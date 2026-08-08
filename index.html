@@ -667,7 +667,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-28b';
+const APP_BUILD = 'app-2026-07-28c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -770,7 +770,7 @@ const I18N={
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
-    histClose:'Close', histNote:'FPL data only. Multi-season xG-by-opponent is coming once we wire up the new stats source.',
+    histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent from Understat.',
     priceMove:'price',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
     sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
@@ -889,7 +889,7 @@ const I18N={
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
-    histClose:'Cerrar', histNote:'Solo datos FPL. El xG por rival multitemporada llegará cuando conectemos la nueva fuente de estadísticas.',
+    histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada de Understat.',
     priceMove:'precio',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
     sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
@@ -1722,17 +1722,15 @@ async function loadUStoreIndex(){
   uStoreIndexTried=true;
   try{
     const r=await fetch('./history/index.json',{cache:'force-cache'});
-    if(!r.ok)throw new Error('index '+r.status);
+    if(!r.ok)throw new Error('index.json HTTP '+r.status);
     const raw=await r.json();
-    // build norm-name lookup (raw is understatId -> {name,norm,team,file})
     uStoreIndex={};
     for(const [uid,rec] of Object.entries(raw)){
       const key=rec.norm||normName(rec.name);
-      // if two players share a normalised name, keep the one with more-recent
-      // data by preferring the first; collisions are rare and flagged below
       if(!uStoreIndex[key])uStoreIndex[key]={uid,team:rec.team,file:rec.file,name:rec.name};
     }
-  }catch(e){ uStoreIndex=null; }
+    window.__uStoreCount=Object.keys(uStoreIndex).length;
+  }catch(e){ uStoreIndex=null; window.__uStoreErr=String(e&&e.message||e); }
   return uStoreIndex;
 }
 
@@ -1794,7 +1792,7 @@ async function openHistory(pid,pname){
     const d=await fetchPlayerHistory(pid);
     // also try the committed Understat store for multi-season vs-club
     let understat=null;
-    try{ understat=await understatHistoryFor(pname); }catch(e){}
+    try{ understat=await understatHistoryFor(pname); }catch(e){ window.__uErr=String(e&&e.message||e); }
     renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
