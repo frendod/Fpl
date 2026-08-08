@@ -659,7 +659,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-27f';
+const APP_BUILD = 'app-2026-07-28a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -755,6 +755,9 @@ const I18N={
     histTitle:'Player history', histLoading:'Loading history…',
     histErr:'Could not load history for this player.',
     histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
+    histVsClubAll:'By opponent (all seasons, Understat xG)',
+    histUnderstatNote:'Multi-season xG by opponent from Understat.',
+    hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
@@ -870,6 +873,9 @@ const I18N={
     histTitle:'Historial del jugador', histLoading:'Cargando historial…',
     histErr:'No se pudo cargar el historial de este jugador.',
     histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
+    histVsClubAll:'Por rival (todas las temporadas, xG de Understat)',
+    histUnderstatNote:'xG por rival multitemporada de Understat.',
+    hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
@@ -1683,6 +1689,86 @@ function shapeFromRaw(raw){
   return {pastSeasons:past,thisSeason:ts,vsClubThis:vs};
 }
 
+/* ══ UNDERSTAT HISTORY STORE ═══════════════════════════
+   The committed history/ folder holds each player's multi-season match
+   history (from the one-time backfill). index.json maps understat id ->
+   {name, norm, team, file}. We match an FPL player to their Understat
+   history by normalised name, load that one team file, and aggregate
+   the matches into a multi-season vs-club view. Current club comes from
+   FPL (authoritative), history from Understat.
+════════════════════════════════════════════════════════ */
+let uStoreIndex=null;      // norm-name -> {id, team, file}
+let uStoreIndexTried=false;
+const uTeamCache={};       // file -> parsed team json
+
+function normName(s){
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z\s'-]/g,'').replace(/\s+/g,' ').trim();
+}
+
+async function loadUStoreIndex(){
+  if(uStoreIndexTried)return uStoreIndex;
+  uStoreIndexTried=true;
+  try{
+    const r=await fetch('./history/index.json',{cache:'force-cache'});
+    if(!r.ok)throw new Error('index '+r.status);
+    const raw=await r.json();
+    // build norm-name lookup (raw is understatId -> {name,norm,team,file})
+    uStoreIndex={};
+    for(const [uid,rec] of Object.entries(raw)){
+      const key=rec.norm||normName(rec.name);
+      // if two players share a normalised name, keep the one with more-recent
+      // data by preferring the first; collisions are rare and flagged below
+      if(!uStoreIndex[key])uStoreIndex[key]={uid,team:rec.team,file:rec.file,name:rec.name};
+    }
+  }catch(e){ uStoreIndex=null; }
+  return uStoreIndex;
+}
+
+async function loadUTeamFile(file){
+  if(uTeamCache[file])return uTeamCache[file];
+  const r=await fetch('./history/'+file,{cache:'force-cache'});
+  if(!r.ok)throw new Error(file+' '+r.status);
+  const data=await r.json();
+  uTeamCache[file]=data;
+  return data;
+}
+
+// aggregate a player's Understat matches into multi-season vs-club rows
+function understatVsClub(matches){
+  const by={};
+  matches.forEach(m=>{
+    const k=m.opponent; if(!k)return;
+    if(!by[k])by[k]={opponent:k,games:0,goals:0,assists:0,xg:0,xa:0,min:0,seasons:new Set()};
+    const b=by[k];
+    b.games++; b.goals+=m.goals; b.assists+=m.assists;
+    b.xg+=m.xg; b.xa+=m.xa; b.min+=m.min;
+    if(m.season)b.seasons.add(m.season);
+  });
+  return Object.values(by).map(b=>({
+    opponent:b.opponent, games:b.games, goals:b.goals, assists:b.assists,
+    xg:Math.round(b.xg*100)/100, xa:Math.round(b.xa*100)/100, min:b.min,
+    seasons:[...b.seasons].sort(),
+  })).sort((a,b)=>b.goals-a.goals||b.xg-a.xg);
+}
+
+// find & load a player's Understat multi-season history by their FPL name
+async function understatHistoryFor(fplName){
+  const idx=await loadUStoreIndex();
+  if(!idx)return null;
+  const key=normName(fplName);
+  const hit=idx[key];
+  if(!hit)return null;
+  try{
+    const teamFile=await loadUTeamFile(hit.file);
+    const rec=teamFile[hit.uid];
+    if(!rec||!rec.matches)return null;
+    return {matches:rec.matches, vsClub:understatVsClub(rec.matches),
+            understatTeam:rec.team, seasons:[...new Set(rec.matches.map(m=>m.season))].sort()};
+  }catch(e){ return null; }
+}
+
 async function openHistory(pid,pname){
   const ov=$('histOverlay');
   $('histName').textContent=pname;
@@ -1695,7 +1781,10 @@ async function openHistory(pid,pname){
   document.body.style.overflow='hidden';
   try{
     const d=await fetchPlayerHistory(pid);
-    renderHistory(d);
+    // also try the committed Understat store for multi-season vs-club
+    let understat=null;
+    try{ understat=await understatHistoryFor(pname); }catch(e){}
+    renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
       +'<div style="margin-top:12px;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--dimmer);word-break:break-all;text-align:left">'
@@ -1710,7 +1799,7 @@ function closeHistory(){
   document.body.style.overflow='';
 }
 
-function renderHistory(d){
+function renderHistory(d, understat){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
   let html='';
 
@@ -1730,7 +1819,23 @@ function renderHistory(d){
       }).join('')+'</tbody></table></div>';
   }
 
-  // this season, per-opponent
+  // MULTI-SEASON vs-club from Understat (the headline feature)
+  if(understat&&understat.vsClub&&understat.vsClub.length){
+    const vc=understat.vsClub;
+    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClubAll')+'</div>'
+      +'<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
+      +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
+      +vc.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
+        +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
+        +'<td style="color:var(--dim);font-size:10px">'+c.seasons.length+'</td></tr>').join('')
+      +'</tbody></table>'
+      +'<div style="padding:8px 2px 0;font-size:10px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>'
+      +'</div>';
+  }
+
+  // this season, per-opponent (FPL)
   if(vs.length){
     html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClub')+'</div>'
       +'<table class="hist-table"><thead><tr>'
@@ -1753,11 +1858,12 @@ function renderHistory(d){
         +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
         +'<td>'+g.bonus+'</td></tr>').join('')
       +'</tbody></table></div>';
-  } else {
+  } else if(!(understat&&understat.vsClub&&understat.vsClub.length)){
     html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
   }
 
-  if(!past.length&&!vs.length)html='<div class="hist-empty">'+t('histErr')+'</div>';
+  if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length))
+    html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
 }
 
