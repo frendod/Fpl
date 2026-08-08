@@ -505,7 +505,7 @@ textarea:focus{border-color:var(--accent)}
   font-size:9.5px;text-align:center;line-height:1.25}
 .d1{background:rgba(78,201,160,.34);color:#bff0dd}
 .d2{background:rgba(78,201,160,.19);color:#a9e2cc}
-.d3{background:rgba(232,228,220,.09);color:var(--dim)}
+.d3{background:#ffffff;color:var(--dim)}
 .d4{background:rgba(229,101,122,.19);color:#f2b5c0}
 .d5{background:rgba(229,101,122,.34);color:#ffc9d2}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
@@ -728,7 +728,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-08c';
+const APP_BUILD = 'app-2026-08-08e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1664,7 +1664,8 @@ function renderXI(){
   const lockedPlayers=players.filter(p=>lockedIds.has(p.id));
   const lockBar='<div class="lockbar">'
     +'<div class="lockbar-head"><span class="lockbar-title">'+t('sqLocked')+'</span>'
-    +(lockedPlayers.length?'<button class="lockbar-clear" id="clearLocks">'+t('sqClearLocks')+'</button>':'')
+    +(lockedPlayers.length?'<button class="lockbar-clear" id="clearLocks">'+t('sqClearLocks')+'</button>':''
+      +'<a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none;font-size:10px">'+t('selectPlayer')+' ▹</a>')
     +'</div>'
     +(lockedPlayers.length
       ? '<div class="lockchips">'+lockedPlayers.map(p=>'<span class="lockchip" data-lock="'+p.id+'">★ '
@@ -1734,7 +1735,7 @@ function renderXI(){
     +'<div class="benchstrip"><span class="bench-label">'+t('sqBench')+'</span>'
       +bench.map(disc).join('')+'</div>'
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
-    +'<div class="panel-meta"><a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none">▸ '+t('selectPlayer')+'</a> · '+t('sqNote')+'</div></div>'
+    +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
     +'<div class="tscroll"><table><thead><tr><th></th><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
     +'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
     +sorted.map(row).join('')
@@ -2261,7 +2262,7 @@ function playerSummary(d){
     // For GK and DEF, show Clean Sheets instead of shots/KP
     gridHtml+=g('CS',cs);
     gridHtml+=g(t('sumGoals'),goals,xg,'xG');
-    if(pos==='DEF') gridHtml+=g(t('sumAssists'),assists,xa,'xA');
+    gridHtml+=g(t('sumAssists'),assists,xa,'xA');
   } else {
     // For MID and FWD
     gridHtml+=g(t('sumGoals'),goals,xg,'xG');
@@ -2271,7 +2272,11 @@ function playerSummary(d){
   
   // Defcon and defensive contributions for DEF, MID, FWD
   if(pos==='DEF' || pos==='MID' || pos==='FWD'){
-    gridHtml+=g(t('sumDefCon'),defcon);
+    let defconPg=null;
+    if(defcon!=null&&games!=null&&games>0){
+      defconPg=(defcon/games).toFixed(1);
+    }
+    gridHtml+=g(t('sumDefCon'),defcon,defconPg,'per game');
   }
   
   return '<div class="sum-block">'
