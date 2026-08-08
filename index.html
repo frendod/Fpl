@@ -34,35 +34,35 @@
 }
 :root.grey-theme{
   /* Grey Theme */
-  --ink:#2a2d33;
-  --panel:#3a3f47;
-  --panel2:#424855;
-  --line:rgba(232,228,220,.12);
-  --line2:rgba(232,228,220,.20);
-  --paper:#d9d5cd;
-  --dim:#9a9fa7;
-  --dimmer:#7a7f87;
+  --ink:#d0d0d0;
+  --panel:#808080;
+  --panel2:#8f8f8f;
+  --line:rgba(0,0,0,.15);
+  --line2:rgba(0,0,0,.22);
+  --paper:#1a1a1a;
+  --dim:#2a2a2a;
+  --dimmer:#0a0a0a;
   --prior:#d9a441;
-  --live:#5cb3ff;
+  --live:#3b82f6;
   --good:#4ec9a0;
   --bad:#e5657a;
   --accent:#d9a441;
-  --accent-soft:rgba(217,164,65,.16);
+  --accent-soft:rgba(217,164,65,.14);
 }
 :root.light-theme{
   /* Light Theme */
   --ink:#ffffff;
   --panel:#f5f5f5;
   --panel2:#eeeeee;
-  --line:rgba(0,0,0,.08);
-  --line2:rgba(0,0,0,.12);
-  --paper:#1a1a1a;
-  --dim:#666666;
-  --dimmer:#999999;
+  --line:rgba(0,0,0,.12);
+  --line2:rgba(0,0,0,.18);
+  --paper:#000000;
+  --dim:#2d3748;
+  --dimmer:#1a202c;
   --prior:#d9a441;
-  --live:#0066cc;
-  --good:#2ecc71;
-  --bad:#e74c3c;
+  --live:#0052a3;
+  --good:#1d7c5c;
+  --bad:#c92f2f;
   --accent:#d9a441;
   --accent-soft:rgba(217,164,65,.12);
 }
@@ -112,30 +112,30 @@ body::before{
   font-family:'Instrument Serif',Georgia,serif;
   font-size:clamp(34px,7vw,58px);font-weight:400;line-height:.98;letter-spacing:-.01em;
 }
-.masthead h1 em{font-style:italic;color:var(--accent);transition:color .6s ease}
+.masthead h1 em{color:var(--accent);transition:color .6s ease}
 .masthead p{
   color:var(--dim);font-size:13px;max-width:52ch;margin-top:12px;
 }
 
 /* ─── SIGNATURE: EVIDENCE BLEND ────────────────────────── */
 .evidence{
-  margin:28px 0 32px;padding:22px 24px;
+  margin:14px 0 16px;padding:12px 16px;
   background:var(--panel);border:1px solid var(--line);border-radius:3px;
 }
 .evidence-top{
   display:flex;justify-content:space-between;align-items:baseline;
-  gap:16px;flex-wrap:wrap;margin-bottom:16px;
+  gap:12px;flex-wrap:wrap;margin-bottom:10px;
 }
 .evidence-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);
 }
 .evidence-state{
-  font-family:'Instrument Serif',serif;font-size:24px;font-style:italic;color:var(--accent);
+  font-family:'Instrument Serif',serif;font-size:18px;color:var(--accent);
   transition:color .6s ease;
 }
 .blend-track{
-  position:relative;height:34px;border-radius:2px;overflow:hidden;
+  position:relative;height:24px;border-radius:2px;overflow:hidden;
   background:var(--panel2);border:1px solid var(--line);
 }
 .blend-prior,.blend-live{
@@ -146,7 +146,7 @@ body::before{
   transition:width .8s cubic-bezier(.4,0,.2,1);
 }
 .blend-prior{left:0;background:linear-gradient(90deg,rgba(217,164,65,.30),rgba(217,164,65,.16));
-  color:var(--prior);padding-left:12px;border-right:1px solid var(--line2)}
+  color:#000000;padding-left:12px;border-right:1px solid var(--line2)}
 .blend-live{right:0;background:linear-gradient(270deg,rgba(77,163,255,.28),rgba(77,163,255,.13));
   color:var(--live);padding-right:12px;justify-content:flex-end}
 .blend-legend{
@@ -620,7 +620,7 @@ textarea:focus{border-color:var(--accent)}
         </div>
       </div>
     </div>
-    <h1><span id="i18n-engineA">Scoring</span> <em id="i18n-engineB">Engine</em></h1>
+    <h1><span id="i18n-engineA">Scoring</span> <span id="i18n-engineB">Engine</span></h1>
     <p id="i18n-tagline">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
   </div>
 
@@ -781,7 +781,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-08i';
+const APP_BUILD = 'app-2026-08-08j';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
