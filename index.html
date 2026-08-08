@@ -93,7 +93,8 @@ body::before{
 .masthead{padding-top:calc(38px + env(safe-area-inset-top))}
 
 /* ─── MASTHEAD ─────────────────────────────────────────── */
-.masthead{padding:38px 0 22px;border-bottom:1px solid var(--line2)}
+.masthead{padding:38px 0 0px;border-bottom:1px solid var(--line2)}
+.masthead-bottom{display:flex;gap:20px;align-items:flex-start;margin-top:12px}
 .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;
@@ -114,34 +115,34 @@ body::before{
 }
 .masthead h1 em{color:var(--accent);transition:color .6s ease}
 .masthead p{
-  color:var(--dim);font-size:13px;max-width:52ch;margin-top:12px;
+  color:var(--dim);font-size:13px;margin-top:0;flex:1;min-width:0;
 }
 
 /* ─── SIGNATURE: EVIDENCE BLEND ────────────────────────── */
 .evidence{
-  margin:14px 0 16px;padding:12px 16px;
+  margin:0;padding:8px 12px;flex:1;min-width:0;
   background:var(--panel);border:1px solid var(--line);border-radius:3px;
 }
 .evidence-top{
   display:flex;justify-content:space-between;align-items:baseline;
-  gap:12px;flex-wrap:wrap;margin-bottom:10px;
+  gap:8px;flex-wrap:wrap;margin-bottom:6px;
 }
 .evidence-label{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);
 }
 .evidence-state{
-  font-family:'Instrument Serif',serif;font-size:18px;color:var(--accent);
+  font-family:'Instrument Serif',serif;font-size:14px;color:var(--accent);
   transition:color .6s ease;
 }
 .blend-track{
-  position:relative;height:24px;border-radius:2px;overflow:hidden;
+  position:relative;height:18px;border-radius:2px;overflow:hidden;
   background:var(--panel2);border:1px solid var(--line);
 }
 .blend-prior,.blend-live{
   position:absolute;top:0;bottom:0;
   display:flex;align-items:center;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;
   text-transform:uppercase;white-space:nowrap;overflow:hidden;
   transition:width .8s cubic-bezier(.4,0,.2,1);
 }
@@ -150,12 +151,12 @@ body::before{
 .blend-live{right:0;background:linear-gradient(270deg,rgba(77,163,255,.28),rgba(77,163,255,.13));
   color:var(--live);padding-right:12px;justify-content:flex-end}
 .blend-legend{
-  display:flex;justify-content:space-between;margin-top:9px;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dimmer);letter-spacing:.06em;
+  display:flex;justify-content:space-between;margin-top:5px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dimmer);letter-spacing:.06em;
 }
 .evidence-note{
-  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
-  font-size:12.5px;color:var(--dim);line-height:1.6;
+  margin-top:6px;padding-top:6px;border-top:1px solid var(--line);
+  font-size:11px;color:var(--dim);line-height:1.4;
 }
 
 /* ─── CONTROLS ─────────────────────────────────────────── */
@@ -176,14 +177,14 @@ body::before{
 /* ─── PANELS ───────────────────────────────────────────── */
 .panel{
   background:var(--panel);border:1px solid var(--line);border-radius:3px;
-  margin-bottom:22px;overflow:hidden;
+  margin-bottom:14px;overflow:hidden;
 }
 .panel-head{
-  padding:15px 20px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
 }
 .panel-title{
-  font-family:'Instrument Serif',serif;font-size:21px;letter-spacing:.005em;
+  font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:.005em;
 }
 .panel-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.08em}
 
@@ -621,25 +622,26 @@ textarea:focus{border-color:var(--accent)}
       </div>
     </div>
     <h1><span id="i18n-engineA">Scoring</span> <span id="i18n-engineB">Engine</span></h1>
-    <p id="i18n-tagline">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
-  </div>
-
-  <!-- SIGNATURE: evidence blend -->
-  <div class="evidence">
-    <div class="evidence-top">
-      <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
-      <div class="evidence-state" id="stateLabel">Not loaded</div>
-    </div>
-    <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
-      <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
-      <div class="blend-live" id="blendLive" style="width:0%">This season</div>
-    </div>
-    <div class="blend-legend">
-      <span id="legendPrior">prior 100%</span>
-      <span id="legendLive">live 0%</span>
-    </div>
-    <div class="evidence-note" id="evidenceNote">
-      Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+    <div class="masthead-bottom">
+      <p id="i18n-tagline">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
+      <!-- SIGNATURE: evidence blend -->
+      <div class="evidence">
+        <div class="evidence-top">
+          <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
+          <div class="evidence-state" id="stateLabel">Not loaded</div>
+        </div>
+        <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
+          <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
+          <div class="blend-live" id="blendLive" style="width:0%">This season</div>
+        </div>
+        <div class="blend-legend">
+          <span id="legendPrior">prior 100%</span>
+          <span id="legendLive">live 0%</span>
+        </div>
+        <div class="evidence-note" id="evidenceNote">
+          Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -781,7 +783,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-08j';
+const APP_BUILD = 'app-2026-08-08m';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
