@@ -448,7 +448,7 @@ textarea:focus{border-color:var(--accent)}
 .fix-gw{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 .fdr-easy{background:#4ade80}
-.fdr-mid{background:#9ca3af}
+.fdr-mid{background:#ffffff}
 .fdr-hard{background:#f87171}
 .fdr-blank{background:transparent;border:1px dashed var(--line2)}
 .fix-opp{font-size:14px;color:var(--paper);flex:1}
@@ -511,6 +511,7 @@ textarea:focus{border-color:var(--accent)}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
   color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
 .cell .dbl{display:block;font-size:8px;letter-spacing:.08em;color:var(--live);margin-top:1px}
+.cell.good5run{border-top:3px solid var(--accent)!important;border-bottom:3px solid var(--accent)!important}
 .halfmark{border-left:2px solid var(--accent)!important}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);align-items:center}
@@ -727,7 +728,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-08a';
+const APP_BUILD = 'app-2026-08-08c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -782,6 +783,7 @@ const I18N={
     // planner
     noPlan:'No fixture data loaded, so there is nothing to plan against. Load with the network on, or paste the fixtures response too.',
     fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
+    highlight5Good:'Highlight 5+ week good runs',
     legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
     club:'Club',
     chipWindows:'Chip windows', chipMeta:d=>'Two sets of four · first expires at the GW'+d+' deadline',
@@ -845,6 +847,7 @@ const I18N={
     sqCantBuild:'Not enough available players to build a full squad yet — this fills in once the season\u2019s prices and squads settle.',
     sqCap:'C', sqLocked:'Locked in', sqLockHint:'Tap ★ on any player to lock them into the squad.',
     sqInfeasible:'Can\u2019t build a squad with these locks:', sqClearLocks:'Clear locks', sqLockedNone:'None locked',
+    selectPlayer:'Select Player',
     justNow:'just now', hAgo:h=>h+'h ago', dAgo:d=>d+'d ago', oneHAgo:'1h ago',
     F:{
       form:['Form','Points per match over the last five gameweeks'],
@@ -911,6 +914,7 @@ const I18N={
     prev:'Anterior', next:'Siguiente', pageOf:(a,b)=>'Página '+a+' de '+b,
     noPlan:'No hay datos de calendario cargados, así que no hay nada que planificar. Carga con la red activa, o pega también la respuesta de fixtures.',
     fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
+    highlight5Good:'Destacar rachas de 5+ semanas fáciles',
     legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
     club:'Club',
     chipWindows:'Ventanas de comodines', chipMeta:d=>'Dos juegos de cuatro · el primero caduca en el límite de la J'+d,
@@ -972,6 +976,7 @@ const I18N={
     sqCantBuild:'A\u00fan no hay suficientes jugadores disponibles para una plantilla completa — se completar\u00e1 cuando se asienten los precios y las plantillas.',
     sqCap:'C', sqLocked:'Fijados', sqLockHint:'Toca ★ en cualquier jugador para fijarlo en la plantilla.',
     sqInfeasible:'No se puede crear una plantilla con estos fijados:', sqClearLocks:'Quitar fijados', sqLockedNone:'Ninguno fijado',
+    selectPlayer:'Seleccionar Jugador',
     justNow:'ahora mismo', hAgo:h=>'hace '+h+'h', dAgo:d=>'hace '+d+'d', oneHAgo:'hace 1h',
     F:{
       form:['Forma','Puntos por partido en las últimas cinco jornadas'],
@@ -1036,6 +1041,7 @@ let players=[], filtered=[], page=1, sortKey='score', sortAsc=false;
 let state={mode:'unloaded',gwPlayed:0,liveWeight:0,nextGW:1};
 let fields={defcon:null,defconParts:[],starts:false};
 let diag={};
+let highlightGood5Weeks=false;  // toggle for highlighting 5+ week good fixture runs
 
 /* ══ FEATURE SPEC ══════════════════════════════════════
    availability:
@@ -1728,7 +1734,7 @@ function renderXI(){
     +'<div class="benchstrip"><span class="bench-label">'+t('sqBench')+'</span>'
       +bench.map(disc).join('')+'</div>'
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
-    +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
+    +'<div class="panel-meta"><a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none">▸ '+t('selectPlayer')+'</a> · '+t('sqNote')+'</div></div>'
     +'<div class="tscroll"><table><thead><tr><th></th><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
     +'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
     +sorted.map(row).join('')
@@ -1752,6 +1758,14 @@ function wireLockControls(){
   });
   const clr=$('clearLocks');
   if(clr)clr.addEventListener('click',()=>{ lockedIds.clear(); renderXI(); });
+  // wire up Select Player link to switch to All Players tab
+  const selectLink=$('selectPlayerLink');
+  if(selectLink)selectLink.addEventListener('click',e=>{e.preventDefault();
+    document.querySelectorAll('.tab').forEach(o=>o.setAttribute('aria-selected','false'));
+    document.querySelector('[data-view="table"]').setAttribute('aria-selected','true');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    $('view-table').classList.add('on');
+  });
 }
 
 function applyFilters(){
@@ -2014,6 +2028,7 @@ async function openHistory(pid,pname){
     const plObj=players.find(p=>String(p.id)===String(pid));
     d.teamId=plObj?plObj.teamId:null;
     d.el=plObj?plObj.el:null;
+    d.pos=plObj?plObj.pos:null;
     d.understat=understat;   // so the summary can pull xG/xA/shots from Understat
     renderHistory(d, understat);
   }catch(e){
@@ -2167,10 +2182,12 @@ function renderHistory(d, understat){
 
 // compact current/last-season stats summary shown under the player name.
 // Uses current-season FPL figures once games are played, otherwise last season.
+// Position-specific: GKP/DEF show CS, DEF/MID/FWD show defcon and defensive contributions
 function playerSummary(d){
   const el=d.el;
   const past=d.pastSeasons||[];
   const u=d.understat;
+  const pos=d.pos;
   // decide season: current if any minutes this season, else most recent past
   const curMin=el?(+el.minutes||0):0;
   const useCurrent=curMin>0;
@@ -2185,7 +2202,7 @@ function playerSummary(d){
       +'</div>';
   };
 
-  let season, pts, ppg, min, games, goals, assists, xg, xa, bonus, defcon;
+  let season, pts, ppg, min, games, goals, assists, xg, xa, bonus, defcon, cs;
   if(useCurrent && el){
     season=SEASON_LABEL;
     pts=el.total_points; ppg=el.points_per_game;
@@ -2194,6 +2211,7 @@ function playerSummary(d){
     xg=el.expected_goals!=null?(+el.expected_goals).toFixed(2):null;
     xa=el.expected_assists!=null?(+el.expected_assists).toFixed(2):null;
     bonus=el.bonus; defcon=el.defensive_contribution!=null?el.defensive_contribution:null;
+    cs=el.clean_sheets!=null?el.clean_sheets:null;
   } else if(lastPast){
     season=lastPast.season;
     pts=lastPast.points; ppg=(lastPast.minutes?((lastPast.points/(lastPast.minutes/90))).toFixed(1):null);
@@ -2202,6 +2220,7 @@ function playerSummary(d){
     xg=lastPast.xg!=null?lastPast.xg.toFixed(2):null;
     xa=lastPast.xa!=null?lastPast.xa.toFixed(2):null;
     bonus=lastPast.bonus; defcon=lastPast.defcon||null;
+    cs=lastPast.clean_sheets||null;
   } else {
     return '';  // nothing to show
   }
@@ -2228,22 +2247,36 @@ function playerSummary(d){
     }
   }
 
+  // Build position-specific summary grid
+  let gridHtml='';
+  gridHtml+=g(t('sumPrice'),price);
+  gridHtml+=g(t('sumOwn'),own);
+  gridHtml+=g(t('sumTransfers'),tin,tout,'');
+  gridHtml+=g(t('sumPts'),pts,ppg,t('sumPPG'));
+  gridHtml+=g(t('sumMin'),min,games==null?NA:games,t('sumGames'));
+  gridHtml+=g(t('sumForm'),form,bonus,t('sumBonus'));
+  
+  // Position-specific rows
+  if(pos==='GKP' || pos==='DEF'){
+    // For GK and DEF, show Clean Sheets instead of shots/KP
+    gridHtml+=g('CS',cs);
+    gridHtml+=g(t('sumGoals'),goals,xg,'xG');
+    if(pos==='DEF') gridHtml+=g(t('sumAssists'),assists,xa,'xA');
+  } else {
+    // For MID and FWD
+    gridHtml+=g(t('sumGoals'),goals,xg,'xG');
+    gridHtml+=g(t('sumAssists'),assists,xa,'xA');
+    gridHtml+=g(t('sumShots'),shots,NA,t('sumOnTarget'));
+  }
+  
+  // Defcon and defensive contributions for DEF, MID, FWD
+  if(pos==='DEF' || pos==='MID' || pos==='FWD'){
+    gridHtml+=g(t('sumDefCon'),defcon);
+  }
+  
   return '<div class="sum-block">'
     +'<div class="sum-season">'+season+' '+t('sumSeasonTag')+'</div>'
-    +'<div class="sum-grid">'
-      +g(t('sumPrice'),price)
-      +g(t('sumOwn'),own)
-      +g(t('sumTransfers'),tin,tout,'')
-      +g(t('sumPts'),pts,ppg,t('sumPPG'))
-      +g(t('sumMin'),min,games==null?NA:games,t('sumGames'))
-      +g(t('sumForm'),form,bonus,t('sumBonus'))
-      +g(t('sumGoals'),goals,xg,'xG')
-      +g(t('sumAssists'),assists,xa,'xA')
-      +g(t('sumShots'),shots,NA,t('sumOnTarget'))
-      +g(t('sumKP'),kp)
-      +g(t('sumBigCh'),null)
-      +g(t('sumDefCon'),defcon)
-    +'</div></div>';
+    +'<div class="sum-grid">'+gridHtml+'</div></div>';
 }
 
 function renderHistoryInner(d, understat, upcomingFixtures){
@@ -2463,15 +2496,47 @@ function renderPlan(){
       const c=plan.grid[r.t.id][g];
       const cls=c.n===0?'d0':'d'+Math.max(1,Math.min(5,Math.round(c.diff)));
       const txt=c.n===0?'—':c.opps.join(' ');
-      return '<td class="cell '+cls+' '+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+txt
+      // check if this GW is part of a good 5+ run and highlighting is enabled
+      let extraCls='';
+      if(highlightGood5Weeks&&goodRuns[r.t.id]){
+        goodRuns[r.t.id].forEach(function(run){
+          if(run.gws.indexOf(g)>-1)extraCls=' good5run';
+        });
+      }
+      return '<td class="cell '+cls+extraCls+' '+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+txt
         +(c.n>1?'<span class="dbl">DGW</span>':'')+'</td>';
     }).join('');
     return '<tr><td class="club">'+r.t.short_name+'</td>'+cells+'</tr>';
   }).join('');
 
+  // detect 5+ week good runs (difficulty 1-2) for highlighting
+  const goodRuns={};
+  ranked.forEach(function(r){
+    const runStart=null;
+    let currentRun=[];
+    show.forEach(function(g){
+      const c=plan.grid[r.t.id][g];
+      const difficulty=c.n===0?null:Math.max(1,Math.min(5,Math.round(c.diff)));
+      if(difficulty!==null&&difficulty<=2){
+        currentRun.push(g);
+      }else{
+        if(currentRun.length>=5){
+          if(!goodRuns[r.t.id])goodRuns[r.t.id]=[];
+          goodRuns[r.t.id].push({start:currentRun[0],end:currentRun[currentRun.length-1],gws:currentRun});
+        }
+        currentRun=[];
+      }
+    });
+    if(currentRun.length>=5){
+      if(!goodRuns[r.t.id])goodRuns[r.t.id]=[];
+      goodRuns[r.t.id].push({start:currentRun[0],end:currentRun[currentRun.length-1],gws:currentRun});
+    }
+  });
+
   const gridPanel='<div class="panel"><div class="panel-head">'
     +'<div class="panel-title">'+t('fixtureRuns')+'</div>'
-    +'<div class="panel-meta">'+t('runsMeta')(show[0],show[show.length-1])+'</div></div>'
+    +'<div class="panel-meta">'+t('runsMeta')(show[0],show[show.length-1])
+    +' · <label style="cursor:pointer;font-weight:normal"><input type="checkbox" id="highlight5Good" '+(highlightGood5Weeks?'checked':'')+'> '+t('highlight5Good')+'</label></div></div>'
     +'<div class="legend">'
       +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d3"></i>'+t('legEven')+'</span>'
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
@@ -2529,6 +2594,14 @@ function renderPlan(){
     }).join('')+'</div>';
 
   $('planBody').innerHTML=caveat+chipPanel+gridPanel+swing;
+  // wire up the 5+ week good runs highlighting checkbox
+  const h5=document.getElementById('highlight5Good');
+  if(h5){
+    h5.addEventListener('change',function(){
+      highlightGood5Weeks=this.checked;
+      renderPlan();  // re-render to show/hide highlighting
+    });
+  }
 }
 
 /* ══ NOTES ═════════════════════════════════════════════ */
