@@ -412,6 +412,14 @@ textarea:focus{border-color:var(--accent)}
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin-bottom:12px;
 }
+.vs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.vs-head .hist-section-title{margin-bottom:0}
+.vs-filter{
+  background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:6px;
+  max-width:60%;cursor:pointer;
+}
+.vs-filter:focus{outline:1px solid var(--accent);outline-offset:-1px}
 .hist-table{width:100%;border-collapse:collapse}
 .hist-table th{
   font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
@@ -659,7 +667,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-07-28a';
+const APP_BUILD = 'app-2026-07-28b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -756,6 +764,7 @@ const I18N={
     histErr:'Could not load history for this player.',
     histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
     histVsClubAll:'By opponent (all seasons, Understat xG)',
+    histFilterAll:'All opponents', histVsMatches:'Matches vs {opp}', histNoVs:'No matches recorded vs that club.',
     histUnderstatNote:'Multi-season xG by opponent from Understat.',
     hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
@@ -874,6 +883,7 @@ const I18N={
     histErr:'No se pudo cargar el historial de este jugador.',
     histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
     histVsClubAll:'Por rival (todas las temporadas, xG de Understat)',
+    histFilterAll:'Todos los rivales', histVsMatches:'Partidos vs {opp}', histNoVs:'Sin partidos registrados vs ese club.',
     histUnderstatNote:'xG por rival multitemporada de Understat.',
     hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
@@ -1770,6 +1780,7 @@ async function understatHistoryFor(fplName){
 }
 
 async function openHistory(pid,pname){
+  histOppFilter='';                // reset the opponent filter for each new player
   const ov=$('histOverlay');
   $('histName').textContent=pname;
   $('histEyebrow').textContent=t('histTitle');
@@ -1799,6 +1810,53 @@ function closeHistory(){
   document.body.style.overflow='';
 }
 
+/* multi-season vs-club section with an opponent filter.
+   filter='' → summary table (one row per club).
+   filter=club → that club's summary row + every match against them. */
+let curUnderstat=null;      // current player's understat data, for the filter
+let histOppFilter='';       // selected opponent ('' = all)
+
+function renderVsClub(understat, filter){
+  const vc=understat.vsClub;
+  const opts=vc.map(c=>c.opponent).sort();
+  const sel='<select id="vsOppFilter" class="vs-filter">'
+    +'<option value="">'+t('histFilterAll')+'</option>'
+    +opts.map(o=>'<option value="'+o.replace(/"/g,'&quot;')+'"'+(o===filter?' selected':'')+'>'+o+'</option>').join('')
+    +'</select>';
+
+  let body;
+  if(!filter){
+    // summary: one row per opponent
+    body='<table class="hist-table"><thead><tr>'
+      +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
+      +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+      +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
+      +vc.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
+        +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
+        +'<td style="color:var(--dim);font-size:10px">'+c.seasons.length+'</td></tr>').join('')
+      +'</tbody></table>';
+  } else {
+    // one club: summary row + every match against them
+    const games=(understat.matches||[]).filter(m=>m.opponent===filter)
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if(!games.length){
+      body='<div class="hist-empty">'+t('histNoVs')+'</div>';
+    } else {
+      body='<table class="hist-table"><thead><tr>'
+        +'<th>'+t('hSeason')+'</th><th>'+t('hVenue')+'</th><th>'+t('hMin')+'</th>'
+        +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th></tr></thead><tbody>'
+        +games.map(m=>'<tr><td>'+m.season+'</td>'
+          +'<td><span class="hist-venue">'+m.venue+'</span></td><td>'+m.min+'</td>'
+          +'<td>'+m.goals+'</td><td>'+m.assists+'</td><td>'+(+m.xg).toFixed(2)+'</td><td>'+(+m.xa).toFixed(2)+'</td></tr>').join('')
+        +'</tbody></table>';
+    }
+  }
+
+  return '<div class="vs-head"><div class="hist-section-title">'+t('histVsClubAll')+'</div>'+sel+'</div>'
+    +body
+    +'<div style="padding:8px 2px 0;font-size:10px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
+}
+
 function renderHistory(d, understat){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
   let html='';
@@ -1819,19 +1877,11 @@ function renderHistory(d, understat){
       }).join('')+'</tbody></table></div>';
   }
 
-  // MULTI-SEASON vs-club from Understat (the headline feature)
+  // MULTI-SEASON vs-club from Understat (the headline feature) — with opponent filter
   if(understat&&understat.vsClub&&understat.vsClub.length){
-    const vc=understat.vsClub;
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClubAll')+'</div>'
-      +'<table class="hist-table"><thead><tr>'
-      +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
-      +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
-      +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
-      +vc.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
-        +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
-        +'<td style="color:var(--dim);font-size:10px">'+c.seasons.length+'</td></tr>').join('')
-      +'</tbody></table>'
-      +'<div style="padding:8px 2px 0;font-size:10px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>'
+    curUnderstat=understat;                 // stash for the filter handler
+    html+='<div class="hist-section" id="vsClubSection">'
+      +renderVsClub(understat, histOppFilter)
       +'</div>';
   }
 
@@ -2362,6 +2412,14 @@ paintState();
 // history modal close wiring
 // history modal close wiring
 $('histCloseBtn').addEventListener('click',closeHistory);
+// opponent filter inside the history modal — re-render just the vs-club section
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='vsOppFilter'&&curUnderstat){
+    histOppFilter=e.target.value;
+    const sec=$('vsClubSection');
+    if(sec)sec.innerHTML=renderVsClub(curUnderstat, histOppFilter);
+  }
+});
 // one delegated handler: any .phist element in any view opens that player's history
 document.addEventListener('click',e=>{
   const el=e.target.closest('.phist');
