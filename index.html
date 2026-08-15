@@ -141,6 +141,27 @@ body::before{
   font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
   transition:color .6s ease;
 }
+/* Data status section - aligned with evidence */
+.data-status{cursor:pointer;padding:8px 0;user-select:none}
+.data-status-top{
+  display:flex;justify-content:flex-start;align-items:center;
+  gap:8px;flex-wrap:nowrap;margin-bottom:0;
+}
+.data-status-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);
+}
+.data-status-icon{
+  font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
+  transition:all .2s ease;
+  width:20px;display:flex;align-items:center;
+}
+.data-status-message{
+  display:none;font-size:11px;line-height:1.4;color:var(--paper2);
+  margin-top:8px;padding:8px 0;border-top:1px solid var(--line);
+}
+.data-status-message.open{display:block}
+.data-status:hover .data-status-icon{opacity:.7}
 .blend-track{
   display:none;position:relative;height:18px;border-radius:2px;overflow:hidden;
   background:var(--panel2);border:1px solid var(--line);
@@ -684,6 +705,14 @@ textarea:focus{border-color:var(--accent)}
           Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
         </div>
       </div>
+      <!-- DATA STATUS: collapsed by default -->
+      <div class="data-status" id="dataStatusToggle" title="Click to expand">
+        <div class="data-status-top">
+          <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
+          <div class="data-status-icon" id="dataStatusIcon">✓</div>
+        </div>
+        <div class="data-status-message" id="dataStatusMessage"></div>
+      </div>
     </div>
   </div>
 
@@ -825,7 +854,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15t';
+const APP_BUILD = 'app-2026-08-15v';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -836,6 +865,7 @@ const I18N={
     tagline:'Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.',
     engineA:'FPL', engineB:'Model',
     evidenceBlend:'Evidence blend',
+    dataStatus:'Data loaded',
     notLoaded:'Not loaded', coldStart:'Cold start', warmingUp:'Warming up', liveData:'Live data',
     lastSeason:'Last season', thisSeason:'This season', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'prior '+p+'%', livePct:p=>'live '+p+'%',
@@ -907,7 +937,7 @@ const I18N={
     dYes:'yes', dNo:'no', dNone:'none — pasted data',
     // load messages
     srcLive:'live data', srcPublished:'published data', srcLiveApi:'live API', srcSaved:'saved data',
-    loadedFrom:(src,age)=>'Loaded from '+src+(age?' ('+age+')':'')+'.',
+    loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
     offlineStale:' Offline — this is your last saved copy, so numbers may be stale.',
     understatFB:'. Expected goals shown use FPL\u2019s own figures.',
     noDefWarn:'No defensive contribution field found — that input scores neutral. Check Diagnostics.',
@@ -933,7 +963,7 @@ const I18N={
     sumPPG:'Per game', sumMin:'Minutes', sumGames:'Games', sumForm:'Form', sumBonus:'Total bonus',
     sumGoals:'Goals', sumAssists:'Assists', sumShots:'Shots', sumOnTarget:'On target',
     sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
-    histUnderstatNote:'Multi-season xG by opponent from Understat.',
+    histUnderstatNote:'Multi-season xG by opponent.',
     hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
@@ -970,6 +1000,7 @@ const I18N={
     tagline:'Clasifica a cada jugador según evidencia ponderada y luego ajusta por su probabilidad de jugar. Cuánta de esa evidencia procede de esta temporada depende de cuánta temporada se ha disputado.',
     engineA:'Motor de', engineB:'Puntuación',
     evidenceBlend:'Mezcla de evidencia',
+    dataStatus:'Datos cargados',
     notLoaded:'Sin cargar', coldStart:'Arranque frío', warmingUp:'Calentando', liveData:'Datos actuales',
     lastSeason:'Temp. pasada', thisSeason:'Esta temp.', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'previa '+p+'%', livePct:p=>'actual '+p+'%',
@@ -1038,7 +1069,7 @@ const I18N={
     dNotFound:'no encontrado', dSummed:parts=>'sumado de '+parts, dUnavail:'no disponible', dPlayers:' jugadores',
     dYes:'sí', dNo:'no', dNone:'ninguno — datos pegados',
     srcLive:'datos en vivo', srcPublished:'datos publicados', srcLiveApi:'API en vivo', srcSaved:'datos guardados',
-    loadedFrom:(src,age)=>'Cargado desde '+src+(age?' ('+age+')':'')+'.',
+    loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
     offlineStale:' Sin conexión — esta es tu última copia guardada, los números pueden estar desactualizados.',
     understatFB:'. Los goles esperados usan las cifras propias de FPL.',
     noDefWarn:'No se encontró el campo de contribución defensiva — esa entrada puntúa neutra. Revisa Diagnóstico.',
@@ -1064,7 +1095,7 @@ const I18N={
     sumPPG:'Por partido', sumMin:'Minutos', sumGames:'Partidos', sumForm:'Forma', sumBonus:'Bonus total',
     sumGoals:'Goles', sumAssists:'Asist.', sumShots:'Tiros', sumOnTarget:'A puerta',
     sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
-    histUnderstatNote:'xG por rival multitemporada de Understat.',
+    histUnderstatNote:'xG por rival multitemporada.',
     hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
@@ -2867,6 +2898,11 @@ function warn(m){const w=$('warnNote');w.textContent=m;w.hidden=false}
 function clearNotes(){$('errNote').hidden=true;$('warnNote').hidden=true;$('errNote').textContent='';$('warnNote').textContent=''}
 function addWarn(m){const w=$('warnNote');w.textContent=(w.textContent?w.textContent+' ':'')+m;w.hidden=false}
 
+function setDataStatus(m){
+  const msg=$('dataStatusMessage');
+  msg.textContent=m;
+}
+
 /* ══ LOAD ══════════════════════════════════════════════ */
 /* ══ LOCAL CACHE (IndexedDB) ═══════════════════════════
    Stores the last good bundle so the app opens instantly and
@@ -3027,11 +3063,11 @@ async function load(){
 
   const age=stamp(bundle.fetched_at);
   const src={api:t('srcLive'),repo:t('srcPublished'),proxy:t('srcLiveApi'),cache:t('srcSaved')}[source];
-  addWarn(t('loadedFrom')(src,age)
+  const msg=t('loadedFrom')(src,age)
     +(source==='cache'?t('offlineStale'):'')
-    +((!uLive.n&&!uPrior.n)?t('understatFB'):''));
-  if(!fields.defcon&&!fields.defconParts.length)
-    addWarn(t('noDefWarn'));
+    +((!uLive.n&&!uPrior.n)?t('understatFB'):'');
+  setDataStatus(msg);
+  addWarn(t('noDefWarn'));
 
   btn.textContent=t('reload'); btn.disabled=false;
   const hint=$('dataSourceHint'); if(hint)hint.textContent=src+' · '+age;
@@ -3089,6 +3125,12 @@ $('evidenceToggle').addEventListener('click',e=>{
   $('evidenceNote').classList.toggle('open');
 });
 
+/* Data status toggle */
+$('dataStatusToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  $('dataStatusMessage').classList.toggle('open');
+});
+
 ['fSearch','fPos','fPrice','fAvail'].forEach(id=>{
   const el=$(id);
   el.addEventListener(id==='fSearch'?'input':'change',applyFilters);
@@ -3118,6 +3160,7 @@ function applyStaticI18n(){
   set('i18n-engineB','engineB');
   set('i18n-tagline','tagline');
   set('i18n-evidenceBlend','evidenceBlend');
+  set('i18n-dataStatus','dataStatus');
   set('i18n-pasteData','pasteData');
   // data-i18n attributes
   document.querySelectorAll('[data-i18n]').forEach(el=>{
