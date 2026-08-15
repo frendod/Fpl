@@ -126,7 +126,7 @@ body::before{
 /* ─── SIGNATURE: EVIDENCE BLEND ────────────────────────── */
 .evidence{
   margin:0;padding:6px 10px;flex:1;min-width:0;
-  background:transparent;border:none;border-radius:0;cursor:pointer;transition:opacity .3s
+  background:transparent;border:none;border-radius:0;cursor:pointer;transition:opacity .3s;position:relative;
 }
 .evidence:hover{opacity:.8}
 .evidence-top{
@@ -397,7 +397,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
   clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
-  flex-shrink:0;position:relative;margin-left:2px;
+  flex-shrink:0;position:relative;margin-left:2px;line-height:1;
 }
 .pbadge.avail{background:rgba(78,201,160,.9)}
 .pbadge.doubt{background:rgba(217,164,65,.9)}
@@ -683,15 +683,9 @@ textarea:focus{border-color:var(--accent)}
         </div>
       </div>
     </div>
-    <h1>⚽ FPL Model</h1>
-    <div class="masthead-bottom">
-      <div class="masthead-content">
-        <span class="masthead-toggle" id="taglineToggle" title="Click to expand">ℹ</span>
-        <div class="tagline-box" id="taglineBox">
-          <p id="i18n-tagline" style="margin:0;font-size:13px">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
-        </div>
-      </div>
-      <!-- SIGNATURE: evidence blend + data status side by side -->
+    <!-- H1 + Evidence Blend + Data Status on same row, right-aligned -->
+    <div style="display:flex;gap:24px;align-items:flex-start;justify-content:space-between;margin-top:12px">
+      <h1 style="margin:0">⚽ FPL Model</h1>
       <div style="display:flex;gap:24px;align-items:flex-start">
         <div class="evidence" id="evidenceToggle" title="Click to expand">
           <div class="evidence-top">
@@ -710,13 +704,20 @@ textarea:focus{border-color:var(--accent)}
             Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
           </div>
         </div>
-        <!-- DATA STATUS: collapsed by default, shows only if clicked -->
         <div class="data-status" id="dataStatusToggle" title="Click to expand">
           <div class="data-status-top">
             <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
             <div class="data-status-icon" id="dataStatusIcon">✓</div>
           </div>
           <div class="data-status-message" id="dataStatusMessage"></div>
+        </div>
+      </div>
+    </div>
+    <div class="masthead-bottom">
+      <div class="masthead-content">
+        <span class="masthead-toggle" id="taglineToggle" title="Click to expand">ℹ</span>
+        <div class="tagline-box" id="taglineBox">
+          <p id="i18n-tagline" style="margin:0;font-size:13px">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
         </div>
       </div>
     </div>
@@ -860,7 +861,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15w';
+const APP_BUILD = 'app-2026-08-15y';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2028,7 +2029,9 @@ function renderTable(){
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
     +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
-    +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name+(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
+    +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name
+    +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')
+    +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
     +'<td class="'+cls+'">'+p.score.toFixed(1)+'</td>'
