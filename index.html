@@ -861,7 +861,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15z';
+const APP_BUILD = 'app-2026-08-16a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1880,7 +1880,8 @@ function renderXI(){
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
       +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name
-      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'">'+pctNum+'</span>')+'</div>'
+      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'')
+      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div>'
       +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div></div>';
   };
   const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
@@ -2238,7 +2239,19 @@ async function openHistory(pid,pname){
   histOppFilter='';                // reset the opponent filter for each new player
   histSeasonN=0;                   // reset the season-range filter
   const ov=$('histOverlay');
-  $('histName').textContent=pname;
+  
+  // Get player data for injury status
+  const player=bootstrap.elements.find(p=>p.id===pid);
+  const statusText=player?.status==='d'?'Doubt':player?.status==='i'?'Injured':player?.status==='s'?'Suspended':player?.status==='u'?'Unavailable':'';
+  const statusClass=player?.status==='d'?'doubt':player?.status==='i'?'inj':player?.status==='s'?'inj':player?.status==='u'?'unav':'';
+  
+  // Display player name with injury badge if applicable
+  let nameHtml=pname;
+  if(statusText){
+    nameHtml+=' <span class="pbadge '+statusClass+'" style="margin-left:8px;cursor:help" title="'+statusText+'">!</span>';
+  }
+  $('histName').innerHTML=nameHtml;
+  
   $('histEyebrow').textContent=t('histTitle');
   $('histFoot').textContent=t('histNote');
   $('histBody').innerHTML='<div class="hist-loading"><div class="spin"></div>'
