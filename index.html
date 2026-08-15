@@ -141,24 +141,28 @@ body::before{
   font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
   transition:color .6s ease;
 }
-/* Data status section - aligned with evidence */
-.data-status{cursor:pointer;padding:8px 0;user-select:none}
+/* Data status section - minimal, collapsed by default */
+.data-status{cursor:pointer;user-select:none;padding:0}
 .data-status-top{
   display:flex;justify-content:flex-start;align-items:center;
-  gap:8px;flex-wrap:nowrap;margin-bottom:0;
+  gap:6px;flex-wrap:nowrap;margin-bottom:0;
 }
 .data-status-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);
 }
 .data-status-icon{
-  font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
+  font-family:'Instrument Serif',serif;font-size:14px;
   transition:all .2s ease;
-  width:20px;display:flex;align-items:center;
+  width:16px;display:flex;align-items:center;justify-content:center;
 }
+.data-status-icon.ok{color:#4fc771}
+.data-status-icon.warn{color:#e8a040}
+.data-status-icon.error{color:#e5657a}
 .data-status-message{
-  display:none;font-size:11px;line-height:1.4;color:var(--paper2);
-  margin-top:8px;padding:8px 0;border-top:1px solid var(--line);
+  display:none;font-size:11px;line-height:1.5;color:var(--paper2);
+  margin-top:12px;padding:8px 0;border-top:1px solid var(--line);
+  max-width:320px;
 }
 .data-status-message.open{display:block}
 .data-status:hover .data-status-icon{opacity:.7}
@@ -687,31 +691,33 @@ textarea:focus{border-color:var(--accent)}
           <p id="i18n-tagline" style="margin:0;font-size:13px">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
         </div>
       </div>
-      <!-- SIGNATURE: evidence blend -->
-      <div class="evidence" id="evidenceToggle" title="Click to expand">
-        <div class="evidence-top">
-          <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
-          <div class="evidence-state" id="stateLabel">Not loaded</div>
+      <!-- SIGNATURE: evidence blend + data status side by side -->
+      <div style="display:flex;gap:24px;align-items:flex-start">
+        <div class="evidence" id="evidenceToggle" title="Click to expand">
+          <div class="evidence-top">
+            <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
+            <div class="evidence-state" id="stateLabel">Not loaded</div>
+          </div>
+          <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
+            <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
+            <div class="blend-live" id="blendLive" style="width:0%">This season</div>
+          </div>
+          <div class="blend-legend" id="blendLegend">
+            <span id="legendPrior">prior 100%</span>
+            <span id="legendLive">live 0%</span>
+          </div>
+          <div class="evidence-note" id="evidenceNote">
+            Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+          </div>
         </div>
-        <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
-          <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
-          <div class="blend-live" id="blendLive" style="width:0%">This season</div>
+        <!-- DATA STATUS: collapsed by default, shows only if clicked -->
+        <div class="data-status" id="dataStatusToggle" title="Click to expand">
+          <div class="data-status-top">
+            <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
+            <div class="data-status-icon" id="dataStatusIcon">✓</div>
+          </div>
+          <div class="data-status-message" id="dataStatusMessage"></div>
         </div>
-        <div class="blend-legend" id="blendLegend">
-          <span id="legendPrior">prior 100%</span>
-          <span id="legendLive">live 0%</span>
-        </div>
-        <div class="evidence-note" id="evidenceNote">
-          Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
-        </div>
-      </div>
-      <!-- DATA STATUS: collapsed by default -->
-      <div class="data-status" id="dataStatusToggle" title="Click to expand">
-        <div class="data-status-top">
-          <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
-          <div class="data-status-icon" id="dataStatusIcon">✓</div>
-        </div>
-        <div class="data-status-message" id="dataStatusMessage"></div>
       </div>
     </div>
   </div>
@@ -854,7 +860,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15v';
+const APP_BUILD = 'app-2026-08-15w';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2898,9 +2904,25 @@ function warn(m){const w=$('warnNote');w.textContent=m;w.hidden=false}
 function clearNotes(){$('errNote').hidden=true;$('warnNote').hidden=true;$('errNote').textContent='';$('warnNote').textContent=''}
 function addWarn(m){const w=$('warnNote');w.textContent=(w.textContent?w.textContent+' ':'')+m;w.hidden=false}
 
-function setDataStatus(m){
+function setDataStatus(m,status='ok'){
   const msg=$('dataStatusMessage');
+  const icon=$('dataStatusIcon');
   msg.textContent=m;
+  
+  // Clear all status classes
+  icon.classList.remove('ok','warn','error');
+  
+  // Set status-specific icon and class
+  if(status==='error'){
+    icon.textContent='✕';
+    icon.classList.add('error');
+  }else if(status==='warn'){
+    icon.textContent='●';
+    icon.classList.add('warn');
+  }else{
+    icon.textContent='✓';
+    icon.classList.add('ok');
+  }
 }
 
 /* ══ LOAD ══════════════════════════════════════════════ */
@@ -3066,8 +3088,12 @@ async function load(){
   const msg=t('loadedFrom')(src,age)
     +(source==='cache'?t('offlineStale'):'')
     +((!uLive.n&&!uPrior.n)?t('understatFB'):'');
-  setDataStatus(msg);
-  addWarn(t('noDefWarn'));
+  
+  // Determine status: warn if offline or missing understat, ok otherwise
+  const hasWarnings=source==='cache'||(!uLive.n&&!uPrior.n);
+  setDataStatus(msg,hasWarnings?'warn':'ok');
+  if(!fields.defcon&&!fields.defconParts.length)
+    addWarn(t('noDefWarn'));
 
   btn.textContent=t('reload'); btn.disabled=false;
   const hint=$('dataSourceHint'); if(hint)hint.textContent=src+' · '+age;
