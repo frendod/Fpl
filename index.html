@@ -534,6 +534,16 @@ textarea:focus{border-color:var(--accent)}
 .sum-v2{font-size:14px;color:var(--paper2,#c9c9c9)}
 .sum-na{color:var(--dimmer);font-weight:400}
 @media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
+.sum-options{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sum-option-btn{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;
+  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
+}
+.sum-option-btn:hover{color:var(--paper);border-color:var(--paper)}
+.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.hist-upcoming{display:none}
+.hist-upcoming.shown{display:block}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;
@@ -815,7 +825,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15n';
+const APP_BUILD = 'app-2026-08-15o';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2346,8 +2356,8 @@ function renderHistory(d, understat){
     }
     if(!rows.length)return '';
     const dotClass=d=>(d<=2?'fdr-easy':d===3?'fdr-mid':'fdr-hard')+(fdrTheme==='light'?' light-theme':'');
-    return '<div class="hist-section"><div class="hist-section-title">'+t('histUpcoming')+'</div>'
-      +'<div class="fix-strip">'
+    // Return just the fix-strip content (section wrapper is handled in renderHistoryInner)
+    return '<div class="fix-strip">'
       +rows.map(r=>{
         if(r.blank)return '<div class="fix-row"><span class="fix-gw">'+t('hGW')+r.gw+'</span>'
           +'<span class="fix-dot fdr-blank"></span><span class="fix-opp fix-blank">—</span></div>';
@@ -2356,7 +2366,7 @@ function renderHistory(d, understat){
           +'<span class="fix-opp">'+r.opp+'</span>'
           +'<span class="fix-venue">'+r.venue+'</span></div>';
       }).join('')
-      +'</div></div>';
+      +'</div>';
   }
 
   return renderHistoryInner(d, understat, upcomingFixtures);
@@ -2471,12 +2481,24 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 
   // player stats summary (current or last season) under the name
   const summary=playerSummary(d);
-  if(summary)html+=summary;
+  if(summary){
+    html+=summary;
+    // Add option tabs under player summary
+    html+='<div class="sum-options">'
+      +'<button class="sum-option-btn active" data-option="summary">'+t('sumSeasonTag')+'</button>';
+    if(d.teamId) html+='<button class="sum-option-btn" data-option="upcoming">'+t('histUpcoming')+'</button>';
+    html+='</div>';
+  }
 
-  // upcoming fixtures strip (next 7 GWs) — shown first, like the reference
+  // upcoming fixtures strip (next 7 GWs) — collapsible, hidden by default
   if(d.teamId){
     const fx=upcomingFixtures(d.teamId);
-    if(fx)html+=fx;
+    if(fx){
+      html+='<div class="hist-upcoming" id="upcomingFixtures">'
+        +'<div style="padding:16px 20px;border-bottom:1px solid var(--line)">'
+        +fx
+        +'</div></div>';
+    }
   }
 
   // previous seasons (collapsed by default)
@@ -2563,7 +2585,26 @@ function renderHistoryInner(d, understat, upcomingFixtures){
       section.classList.toggle('expanded');
     });
   });
-}
+  
+  // Wire up option tab buttons
+  document.querySelectorAll('.sum-option-btn').forEach(btn=>{
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      const option=this.getAttribute('data-option');
+      const upcoming=$('upcomingFixtures');
+      
+      // Update active button state
+      document.querySelectorAll('.sum-option-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Show/hide upcoming fixtures
+      if(option==='upcoming'&&upcoming){
+        upcoming.classList.add('shown');
+      } else if(upcoming){
+        upcoming.classList.remove('shown');
+      }
+    });
+  });
 
 function renderDiag(){
   const row=(k,v,cls)=>'<div class="drow"><span class="dk">'+k+'</span><span class="dv '+(cls||'')+'">'+v+'</span></div>';
