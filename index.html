@@ -523,7 +523,7 @@ textarea:focus{border-color:var(--accent)}
 .fix-opp.fix-blank{color:var(--dimmer)}
 .fix-venue{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
   border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
-.sum-block{margin:0 0 22px;padding:16px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
+.sum-block{margin:0 0 8px;padding:16px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
 .sum-season{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin-bottom:12px}
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px}
@@ -534,16 +534,16 @@ textarea:focus{border-color:var(--accent)}
 .sum-v2{font-size:14px;color:var(--paper2,#c9c9c9)}
 .sum-na{color:var(--dimmer);font-weight:400}
 @media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
-.sum-options{display:flex;gap:4px;margin:12px 0 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:0}
+.sum-options{display:flex;gap:4px;margin:8px 0 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:0}
 .sum-option-btn{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
-  text-transform:uppercase;padding:8px 14px;border-radius:0;cursor:pointer;
+  text-transform:uppercase;padding:6px 12px;border-radius:0;cursor:pointer;
   border:none;background:transparent;color:var(--dim);transition:all .15s;
   border-bottom:2px solid transparent;margin-bottom:-1px;
 }
 .sum-option-btn:hover{color:var(--paper)}
 .sum-option-btn.active{background:transparent;border-bottom-color:var(--accent);color:var(--accent)}
-.hist-tab-content{display:none;padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-tab-content{display:none;padding:12px 20px;border-bottom:1px solid var(--line)}
 .hist-tab-content.shown{display:block}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
@@ -826,7 +826,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15p';
+const APP_BUILD = 'app-2026-08-15q';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -3176,12 +3176,12 @@ document.addEventListener('change',e=>{
   if(!e.target||!curUnderstat)return;
   if(e.target.id==='vsOppFilter'){
     histOppFilter=e.target.value;
-    const sec=$('vsClubSection');
-    if(sec)sec.innerHTML=renderVsClub(curUnderstat, histOppFilter);
+    const tab=document.querySelector('[data-tab="vsall"]');
+    if(tab)tab.innerHTML=renderVsClub(curUnderstat, histOppFilter);
   }else if(e.target.id==='vsSeasonFilter'){
     histSeasonN=parseInt(e.target.value,10)||0;
-    const sec=$('vsClubSection');
-    if(sec)sec.innerHTML=renderVsClub(curUnderstat, histOppFilter);
+    const tab=document.querySelector('[data-tab="vsall"]');
+    if(tab)tab.innerHTML=renderVsClub(curUnderstat, histOppFilter);
   }
 });
 // one delegated handler: any .phist element in any view opens that player's history
