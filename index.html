@@ -39,11 +39,11 @@
   --panel2:#8f8f8f;
   --line:rgba(0,0,0,.15);
   --line2:rgba(0,0,0,.22);
-  --paper:#1a1a1a;
-  --dim:#2a2a2a;
-  --dimmer:#0a0a0a;
+  --paper:#ffffff;
+  --dim:#ffffff;
+  --dimmer:#ffffff;
   --prior:#d9a441;
-  --live:#3b82f6;
+  --live:#ffffff;
   --good:#4ec9a0;
   --bad:#e5657a;
   --accent:#d9a441;
@@ -202,10 +202,10 @@ body::before{
 .preset{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer;
-  border:1px solid #ffffff;background:transparent;color:#ffffff;transition:all .15s;
+  border:1px solid var(--paper);background:transparent;color:var(--paper);transition:all .15s;
 }
-.preset:hover{color:#ffffff;border-color:#ffffff}
-.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:#ffffff}
+.preset:hover{color:var(--paper);border-color:var(--paper)}
+.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:var(--ink)}
 .preset:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 .wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
@@ -221,7 +221,7 @@ body::before{
 .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
 .wrow{display:flex;flex-direction:column;gap:6px}
 .wrow-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.wname{font-size:14px;color:#ffffff}
+.wname{font-size:14px;color:var(--paper)}
 .wval{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);min-width:34px;text-align:right;transition:color .6s ease}
 input[type=range]{
   -webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:1px;
@@ -241,7 +241,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   text-transform:uppercase;padding:1px 6px;border-radius:2px;
 }
-.wtag.live{background:rgba(255,255,255,.14);color:#ffffff}
+.wtag.live{background:rgba(255,255,255,.14);color:var(--live)}
 .wtag.cold{background:rgba(217,164,65,.14);color:var(--prior)}
 .wtag.pos{background:rgba(78,201,160,.13);color:var(--good)}
 .wrow.muted{opacity:.85}
@@ -393,7 +393,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .dv.off{color:var(--bad)}
 
 /* ─── STATES ───────────────────────────────────────────── */
-.note{padding:13px 17px;border-radius:2px;font-size:12.5px;line-height:1.6;margin-bottom:18px}
+.note{padding:6px 10px;border-radius:2px;font-size:11px;line-height:1.4;margin-bottom:8px}
 .note.err{background:rgba(229,101,122,.09);border:1px solid rgba(229,101,122,.3);color:#f0a3b0}
 .note.warn{background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);color:#e8c584}
 .loading{display:flex;flex-direction:column;align-items:center;gap:13px;padding:54px 20px;color:var(--dim)}
@@ -567,13 +567,13 @@ textarea:focus{border-color:var(--accent)}
   font-size:9.5px;text-align:center;line-height:1.25}
 .d1{background:#2ecc71;color:#bff0dd}
 .d2{background:rgba(46,204,113,.5);color:#a9e2cc}
-.d3{background:#e8e8e8;color:var(--dim)}
+.d3{background:#e8e8e8;color:#2d3748}
 .d4{background:rgba(229,85,85,.5);color:#f2b5c0}
 .d5{background:#e55555;color:#ffc9d2}
 /* Light theme versions */
 .d1.light-theme{background:#4ade80;color:#bff0dd}
 .d2.light-theme{background:rgba(78,201,160,.19);color:#a9e2cc}
-.d3.light-theme{background:#ffffff;color:var(--dim)}
+.d3.light-theme{background:#ffffff;color:#2d3748}
 .d4.light-theme{background:rgba(229,101,122,.19);color:#f2b5c0}
 .d5.light-theme{background:#f87171;color:#ffc9d2}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
@@ -809,7 +809,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15i';
+const APP_BUILD = 'app-2026-08-15m';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -866,6 +866,7 @@ const I18N={
     fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
     highlight5Good:'Highlight 5+ week good runs',
     legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
+    leg2:'easier', leg4:'harder',
     fdrDark:'Dark', fdrLight:'Light', fdrTheme:'FDR theme',
     club:'Club',
     chipWindows:'Chip windows', chipMeta:d=>'Two sets of four · first expires at the GW'+d+' deadline',
@@ -998,6 +999,7 @@ const I18N={
     fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
     highlight5Good:'Destacar rachas de 5+ semanas fáciles',
     legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
+    leg2:'más fácil', leg4:'más difícil',
     fdrDark:'Oscuro', fdrLight:'Claro', fdrTheme:'Tema FDR',
     club:'Club',
     chipWindows:'Ventanas de comodines', chipMeta:d=>'Dos juegos de cuatro · el primero caduca en el límite de la J'+d,
@@ -2715,7 +2717,8 @@ function renderPlan(){
     +' · <span style="font-weight:normal">'+t('fdrTheme')+': <label style="cursor:pointer;margin:0 4px"><input type="radio" name="fdrTheme" value="dark" '+(fdrTheme==='dark'?'checked':'')+'> '+t('fdrDark')+'</label>'
     +'<label style="cursor:pointer"><input type="radio" name="fdrTheme" value="light" '+(fdrTheme==='light'?'checked':'')+'> '+t('fdrLight')+'</label></span></div></div>'
     +'<div class="legend">'
-      +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d3"></i>'+t('legEven')+'</span>'
+      +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d2"></i>'+t('leg2')+'</span>'
+      +'<span><i class="d3"></i>'+t('legEven')+'</span><span><i class="d4"></i>'+t('leg4')+'</span>'
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
       +'<span style="color:var(--dimmer)">* '+t('legAway')+'</span>'
