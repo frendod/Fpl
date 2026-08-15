@@ -131,25 +131,25 @@ body::before{
 .evidence:hover{opacity:.8}
 .evidence-top{
   display:flex;justify-content:flex-start;align-items:center;
-  gap:8px;flex-wrap:nowrap;margin-bottom:0;
+  gap:8px;flex-wrap:nowrap;margin-bottom:0;height:20px;
 }
 .evidence-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--dim);
+  text-transform:uppercase;color:var(--dim);line-height:1;
 }
 .evidence-state{
   font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
-  transition:color .6s ease;
+  transition:color .6s ease;line-height:1;
 }
 /* Data status section - minimal, collapsed by default */
 .data-status{cursor:pointer;user-select:none;padding:0}
 .data-status-top{
   display:flex;justify-content:flex-start;align-items:center;
-  gap:6px;flex-wrap:nowrap;margin-bottom:0;
+  gap:6px;flex-wrap:nowrap;margin-bottom:0;height:20px;
 }
 .data-status-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--dim);
+  text-transform:uppercase;color:var(--dim);line-height:1;
 }
 .data-status-icon{
   font-family:'Instrument Serif',serif;font-size:14px;
@@ -861,7 +861,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15y';
+const APP_BUILD = 'app-2026-08-15z';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2526,9 +2526,9 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   // Build tab bar with all available sections (no Summary tab - always shown above)
   const tabs=[];
   if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
-  if(past.length) tabs.push({id:'past', label:t('histPast')});
+  // Combined seasons tab (past + per-season stats)
+  if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
-  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'byseas', label:t('histSeasonStats')});
   if(vs.length) tabs.push({id:'vsthis', label:t('histVsClub')});
   if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
   
@@ -2551,21 +2551,35 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     }
   }
 
-  // TAB CONTENT: Previous Seasons
-  if(past.length){
-    html+='<div class="hist-tab-content" data-tab="past">'
-      +'<table class="hist-table"><thead><tr>'
-      +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
-      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
-      +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
-      +past.map(s=>{
-        const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
-        return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
-          +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
-          +'<td>'+(s.defcon||'—')+'</td>'
-          +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
-      }).join('')+'</tbody></table>'
-      +'</div>';
+  // TAB CONTENT: Combined Seasons (Previous Seasons + Per-Season Stats)
+  if(past.length||(understat&&understat.vsClub&&understat.vsClub.length)){
+    html+='<div class="hist-tab-content" data-tab="seasons">';
+    
+    // Previous Seasons Table
+    if(past.length){
+      html+='<div style="margin-bottom:20px"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:0 0 12px">'+t('histPast')+'</h4>'
+        +'<table class="hist-table"><thead><tr>'
+        +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
+        +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+        +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
+        +past.map(s=>{
+          const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
+          return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
+            +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
+            +'<td>'+(s.defcon||'—')+'</td>'
+            +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
+        }).join('')+'</tbody></table>'
+        +'</div>';
+    }
+    
+    // Per-Season Stats
+    if(understat&&understat.vsClub&&understat.vsClub.length){
+      html+='<div><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:0 0 12px">'+t('histSeasonStats')+'</h4>'
+        +renderSeasonStats(understat)
+        +'</div>';
+    }
+    
+    html+='</div>';
   }
 
   // TAB CONTENT: By Opponent (All Seasons xG)
@@ -2573,13 +2587,6 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     curUnderstat=understat;
     html+='<div class="hist-tab-content" data-tab="vsall">'
       +renderVsClub(understat, histOppFilter)
-      +'</div>';
-  }
-
-  // TAB CONTENT: Per-Season Stats
-  if(understat&&understat.vsClub&&understat.vsClub.length){
-    html+='<div class="hist-tab-content" data-tab="byseas">'
-      +renderSeasonStats(understat)
       +'</div>';
   }
 
