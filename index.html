@@ -534,16 +534,15 @@ textarea:focus{border-color:var(--accent)}
 .sum-v2{font-size:12px;color:var(--paper2,#c9c9c9)}
 .sum-na{color:var(--dimmer);font-weight:400}
 @media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
-.sum-options{display:flex;gap:0;margin:2px 0 0 0;flex-wrap:nowrap;border-bottom:1px solid var(--line);padding:0;overflow-x:auto}
+.sum-options{display:flex;gap:6px;margin:6px 0 0 0;flex-wrap:wrap;border-bottom:none;padding:0}
 .sum-option-btn{
-  font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.05em;
-  text-transform:uppercase;padding:3px 7px;border-radius:0;cursor:pointer;
-  border:none;background:transparent;color:var(--dim);transition:all .15s;
-  border-bottom:2px solid transparent;margin-bottom:-1px;flex-shrink:0;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:7px 14px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
 }
-.sum-option-btn:hover{color:var(--paper)}
-.sum-option-btn.active{background:transparent;border-bottom-color:var(--accent);color:var(--accent)}
-.hist-tab-content{display:none;padding:8px 18px;border-bottom:1px solid var(--line)}
+.sum-option-btn:hover{color:var(--paper);border-color:var(--paper)}
+.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.hist-tab-content{display:none;padding:8px 18px;border-bottom:none}
 .hist-tab-content.shown{display:block}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
@@ -826,7 +825,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15s';
+const APP_BUILD = 'app-2026-08-15t';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2484,9 +2483,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   const summary=playerSummary(d);
   if(summary)html+=summary;
 
-  // Build tab bar with all available sections
+  // Build tab bar with all available sections (no Summary tab - always shown above)
   const tabs=[];
-  tabs.push({id:'summary', label:t('sumSeasonTag')});
   if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
   if(past.length) tabs.push({id:'past', label:t('histPast')});
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
@@ -2495,14 +2493,13 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
   
   // Tab buttons
-  html+='<div class="sum-options">';
-  tabs.forEach((tab,i)=>{
-    html+='<button class="sum-option-btn '+(i===0?'active':'')+'" data-tab="'+tab.id+'">'+tab.label+'</button>';
-  });
-  html+='</div>';
-
-  // TAB CONTENT: Summary/Stats (default active)
-  html+='<div class="hist-tab-content shown" data-tab="summary"></div>';
+  if(tabs.length>0){
+    html+='<div class="sum-options">';
+    tabs.forEach((tab,i)=>{
+      html+='<button class="sum-option-btn '+(i===0?'active':'')+'" data-tab="'+tab.id+'">'+tab.label+'</button>';
+    });
+    html+='</div>';
+  }
 
   // TAB CONTENT: Upcoming Fixtures
   if(d.teamId){
