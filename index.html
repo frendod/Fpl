@@ -534,16 +534,17 @@ textarea:focus{border-color:var(--accent)}
 .sum-v2{font-size:14px;color:var(--paper2,#c9c9c9)}
 .sum-na{color:var(--dimmer);font-weight:400}
 @media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
-.sum-options{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sum-options{display:flex;gap:4px;margin:12px 0 0 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:0}
 .sum-option-btn{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
-  text-transform:uppercase;padding:5px 12px;border-radius:2px;cursor:pointer;
-  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
+  text-transform:uppercase;padding:8px 14px;border-radius:0;cursor:pointer;
+  border:none;background:transparent;color:var(--dim);transition:all .15s;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
 }
-.sum-option-btn:hover{color:var(--paper);border-color:var(--paper)}
-.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
-.hist-upcoming{display:none}
-.hist-upcoming.shown{display:block}
+.sum-option-btn:hover{color:var(--paper)}
+.sum-option-btn.active{background:transparent;border-bottom-color:var(--accent);color:var(--accent)}
+.hist-tab-content{display:none;padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-tab-content.shown{display:block}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;
@@ -825,7 +826,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15o';
+const APP_BUILD = 'app-2026-08-15p';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -924,9 +925,9 @@ const I18N={
     histTitle:'Player history', histLoading:'Loading history…',
     histErr:'Could not load history for this player.',
     histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
-    histVsClubAll:'By opponent (all seasons, Understat xG)',
+    histVsClubAll:'By opponent (all seasons xG)',
     histFilterAll:'All opponents', histVsMatches:'Matches vs {opp}', histNoVs:'No matches recorded vs that club.',
-    histTotal:'Total', histSeasonStats:'Per-season stats (Understat)', histLastN:'Seasons shown',
+    histTotal:'Total', histSeasonStats:'Per-season stats', histLastN:'Seasons shown',
     hAll:'All', hShots:'Shots', hKP:'Key passes', hNpG:'npG', hNpxG:'npxG',
     histUpcoming:'Upcoming fixtures', histNoFix:'No upcoming fixtures loaded.', hGW:'GW',
     sumPrice:'Price', sumOwn:'Ownership', sumTransfers:'Transfers', sumPts:'Total pts',
@@ -938,7 +939,7 @@ const I18N={
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
-    histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent from Understat.',
+    histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent',
     priceMove:'price',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
     sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
@@ -1055,9 +1056,9 @@ const I18N={
     histTitle:'Historial del jugador', histLoading:'Cargando historial…',
     histErr:'No se pudo cargar el historial de este jugador.',
     histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
-    histVsClubAll:'Por rival (todas las temporadas, xG de Understat)',
+    histVsClubAll:'Por rival (todas las temporadas xG)',
     histFilterAll:'Todos los rivales', histVsMatches:'Partidos vs {opp}', histNoVs:'Sin partidos registrados vs ese club.',
-    histTotal:'Total', histSeasonStats:'Estadísticas por temporada (Understat)', histLastN:'Temporadas',
+    histTotal:'Total', histSeasonStats:'Estadísticas por temporada', histLastN:'Temporadas',
     hAll:'Todas', hShots:'Tiros', hKP:'Pases clave', hNpG:'GsP', hNpxG:'npxG',
     histUpcoming:'Próximos partidos', histNoFix:'No hay próximos partidos cargados.', hGW:'J',
     sumPrice:'Precio', sumOwn:'Propiedad', sumTransfers:'Fichajes', sumPts:'Puntos tot.',
@@ -1069,7 +1070,7 @@ const I18N={
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
-    histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada de Understat.',
+    histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada',
     priceMove:'precio',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
     sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
@@ -2481,31 +2482,41 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 
   // player stats summary (current or last season) under the name
   const summary=playerSummary(d);
-  if(summary){
-    html+=summary;
-    // Add option tabs under player summary
-    html+='<div class="sum-options">'
-      +'<button class="sum-option-btn active" data-option="summary">'+t('sumSeasonTag')+'</button>';
-    if(d.teamId) html+='<button class="sum-option-btn" data-option="upcoming">'+t('histUpcoming')+'</button>';
-    html+='</div>';
-  }
+  if(summary)html+=summary;
 
-  // upcoming fixtures strip (next 7 GWs) — collapsible, hidden by default
+  // Build tab bar with all available sections
+  const tabs=[];
+  tabs.push({id:'summary', label:t('sumSeasonTag')});
+  if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
+  if(past.length) tabs.push({id:'past', label:t('histPast')});
+  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
+  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'byseas', label:t('histSeasonStats')});
+  if(vs.length) tabs.push({id:'vsthis', label:t('histVsClub')});
+  if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
+  
+  // Tab buttons
+  html+='<div class="sum-options">';
+  tabs.forEach((tab,i)=>{
+    html+='<button class="sum-option-btn '+(i===0?'active':'')+'" data-tab="'+tab.id+'">'+tab.label+'</button>';
+  });
+  html+='</div>';
+
+  // TAB CONTENT: Summary/Stats (default active)
+  html+='<div class="hist-tab-content shown" data-tab="summary"></div>';
+
+  // TAB CONTENT: Upcoming Fixtures
   if(d.teamId){
     const fx=upcomingFixtures(d.teamId);
     if(fx){
-      html+='<div class="hist-upcoming" id="upcomingFixtures">'
-        +'<div style="padding:16px 20px;border-bottom:1px solid var(--line)">'
-        +fx
-        +'</div></div>';
+      html+='<div class="hist-tab-content" data-tab="upcoming">'
+        +'<div class="fix-strip">'+fx+'</div>'
+        +'</div>';
     }
   }
 
-  // previous seasons (collapsed by default)
+  // TAB CONTENT: Previous Seasons
   if(past.length){
-    html+='<div class="hist-section collapsed" data-section="past">'
-      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histPast')+'</div></div>'
-      +'<div class="hist-section-body">'
+    html+='<div class="hist-tab-content" data-tab="past">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
       +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
@@ -2517,31 +2528,27 @@ function renderHistoryInner(d, understat, upcomingFixtures){
           +'<td>'+(s.defcon||'—')+'</td>'
           +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
       }).join('')+'</tbody></table>'
-      +'</div></div>';
+      +'</div>';
   }
 
-  // MULTI-SEASON vs-club from Understat (the headline feature) — with opponent filter (expanded by default)
+  // TAB CONTENT: By Opponent (All Seasons xG)
   if(understat&&understat.vsClub&&understat.vsClub.length){
-    curUnderstat=understat;                 // stash for the filter handler
-    html+='<div class="hist-section expanded" data-section="vsclub" id="vsClubSection">'
-      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histVsClubAll')+'</div></div>'
-      +'<div class="hist-section-body">'
+    curUnderstat=understat;
+    html+='<div class="hist-tab-content" data-tab="vsall">'
       +renderVsClub(understat, histOppFilter)
-      +'</div>'
-      +'</div>';
-    html+='<div class="hist-section collapsed" data-section="bySeason">'
-      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histSeasonStats')+'</div></div>'
-      +'<div class="hist-section-body">'
-      +renderSeasonStats(understat)
-      +'</div>'
       +'</div>';
   }
 
-  // this season, per-opponent (FPL) (collapsed by default)
+  // TAB CONTENT: Per-Season Stats
+  if(understat&&understat.vsClub&&understat.vsClub.length){
+    html+='<div class="hist-tab-content" data-tab="byseas">'
+      +renderSeasonStats(understat)
+      +'</div>';
+  }
+
+  // TAB CONTENT: This Season vs Club
   if(vs.length){
-    html+='<div class="hist-section collapsed" data-section="vsClubThis">'
-      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histVsClub')+'</div></div>'
-      +'<div class="hist-section-body">'
+    html+='<div class="hist-tab-content" data-tab="vsthis">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hRound')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
@@ -2550,12 +2557,12 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'<td>'+c.goals+'</td><td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
         +'<td>'+c.home+'/'+c.away+'</td></tr>').join('')
       +'</tbody></table>'
-      +'</div></div>';
+      +'</div>';
+  }
 
-    // this season, game by game (expanded by default)
-    html+='<div class="hist-section expanded" data-section="gameByGame">'
-      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histThis')+'</div></div>'
-      +'<div class="hist-section-body">'
+  // TAB CONTENT: Game by Game (This Season)
+  if(ts.length){
+    html+='<div class="hist-tab-content" data-tab="gbg">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
@@ -2565,9 +2572,7 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
         +'<td>'+g.bonus+'</td></tr>').join('')
       +'</tbody></table>'
-      +'</div></div>';
-  } else if(!(understat&&understat.vsClub&&understat.vsClub.length)){
-    html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
+      +'</div>';
   }
 
   const hasFixtures=d.teamId&&fixtures.length&&fixtures.some(f=>f.event>=(state.nextGW||1)&&(f.team_h===d.teamId||f.team_a===d.teamId));
@@ -2576,33 +2581,21 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
   
-  // Wire up collapsible section toggles
-  document.querySelectorAll('.hist-section-header').forEach(header=>{
-    header.addEventListener('click',function(e){
-      e.preventDefault();
-      const section=this.closest('.hist-section');
-      section.classList.toggle('collapsed');
-      section.classList.toggle('expanded');
-    });
-  });
-  
-  // Wire up option tab buttons
+  // Wire up tab buttons
   document.querySelectorAll('.sum-option-btn').forEach(btn=>{
     btn.addEventListener('click',function(e){
       e.preventDefault();
-      const option=this.getAttribute('data-option');
-      const upcoming=$('upcomingFixtures');
+      const tabId=this.getAttribute('data-tab');
       
-      // Update active button state
+      // Hide all tabs
+      document.querySelectorAll('.hist-tab-content').forEach(t=>t.classList.remove('shown'));
+      // Deactivate all buttons
       document.querySelectorAll('.sum-option-btn').forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
       
-      // Show/hide upcoming fixtures
-      if(option==='upcoming'&&upcoming){
-        upcoming.classList.add('shown');
-      } else if(upcoming){
-        upcoming.classList.remove('shown');
-      }
+      // Show selected tab
+      const tab=document.querySelector('[data-tab="'+tabId+'"].hist-tab-content');
+      if(tab) tab.classList.add('shown');
+      this.classList.add('active');
     });
   });
 }
