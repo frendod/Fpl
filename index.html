@@ -488,12 +488,18 @@ textarea:focus{border-color:var(--accent)}
   padding:11px 20px;border-top:1px solid var(--line);flex-shrink:0;
   font-size:12px;color:var(--dimmer);line-height:1.5;
 }
-.hist-section{padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-section{padding:0;border-bottom:1px solid var(--line)}
 .hist-section:last-child{border-bottom:none}
+.hist-section-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;transition:opacity .2s}
+.hist-section-header:hover{opacity:.8}
+.hist-section-toggle{display:inline-block;font-size:12px;transition:transform .2s;color:var(--dim)}
+.hist-section.collapsed .hist-section-toggle{transform:rotate(-90deg)}
 .hist-section-title{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);margin-bottom:12px;
+  text-transform:uppercase;color:var(--accent);margin:0;flex:1;
 }
+.hist-section-body{padding:0 20px 16px 20px;display:none}
+.hist-section.expanded .hist-section-body{display:block}
 .vs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .vs-head .hist-section-title{margin-bottom:0}
 .vs-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -809,7 +815,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-15m';
+const APP_BUILD = 'app-2026-08-15n';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2235,8 +2241,13 @@ function renderVsClub(understat, filter){
   const scope=seasonsInScope(allMatches, histSeasonN);
   const matches=allMatches.filter(m=>scope.has(m.season));
   const vc=understatVsClub(matches);          // recompute vs-club within scope
-  const opts=vc.map(c=>c.opponent).sort();
-
+  
+  // Filter opponents to only current Premier League teams
+  const currentTeams=new Set((bootstrap.teams||[]).map(t=>t.name));
+  const vcFiltered=vc.filter(c=>currentTeams.has(c.opponent));
+  
+  const opts=vcFiltered.map(c=>c.opponent).sort();
+  
   // season-range dropdown: All, then last 1..5 (only offer counts we have)
   const seasonCount=new Set(allMatches.map(m=>m.season)).size;
   let seasonOpts='<option value="0"'+(histSeasonN===0?' selected':'')+'>'+t('hAll')+'</option>';
@@ -2252,13 +2263,13 @@ function renderVsClub(understat, filter){
   let body;
   if(!filter){
     // summary: one row per opponent + TOTAL row
-    const tot=vc.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
+    const tot=vcFiltered.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
       {g:0,go:0,as:0,xg:0,xa:0});
     body='<table class="hist-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
       +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
       +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
-      +vc.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
+      +vcFiltered.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
         +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
         +'<td style="color:var(--dim);font-size:11px">'+c.seasons.length+'</td></tr>').join('')
       +'<tr class="hist-total-row"><td>'+t('histTotal')+'</td><td>'+tot.g+'</td><td>'+tot.go+'</td>'
@@ -2284,8 +2295,8 @@ function renderVsClub(understat, filter){
     }
   }
 
-  return '<div class="vs-head"><div class="hist-section-title">'+t('histVsClubAll')+'</div>'
-    +'<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div></div>'
+  // Return controls + body (section wrapper is handled in renderHistoryInner)
+  return '<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div>'
     +body
     +'<div style="padding:8px 2px 0;font-size:11px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
 }
@@ -2302,15 +2313,15 @@ function renderSeasonStats(understat){
   });
   const rows=Object.values(bySeason).sort((a,b)=>b.season.localeCompare(a.season));
   if(!rows.length)return '';
-  return '<div class="hist-section"><div class="hist-section-title">'+t('histSeasonStats')+'</div>'
-    +'<div class="tscroll"><table class="hist-table"><thead><tr>'
+  // Return just the table content (no section wrapper, since renderHistoryInner wraps it)
+  return '<div class="tscroll"><table class="hist-table"><thead><tr>'
     +'<th>'+t('hSeason')+'</th><th>'+t('hApps')+'</th><th>'+t('hMin')+'</th>'
     +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
     +'<th>'+t('hNpG')+'</th><th>'+t('hNpxG')+'</th><th>'+t('hShots')+'</th><th>'+t('hKP')+'</th></tr></thead><tbody>'
     +rows.map(r=>'<tr><td>'+r.season+'</td><td>'+r.apps+'</td><td>'+r.min+'</td>'
       +'<td>'+r.goals+'</td><td>'+r.assists+'</td><td>'+r.xg.toFixed(1)+'</td><td>'+r.xa.toFixed(1)+'</td>'
       +'<td>'+r.npg+'</td><td>'+r.npxg.toFixed(1)+'</td><td>'+r.shots+'</td><td>'+r.kp+'</td></tr>').join('')
-    +'</tbody></table></div></div>';
+    +'</tbody></table></div>';
 }
 
 function renderHistory(d, understat){
@@ -2468,9 +2479,11 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     if(fx)html+=fx;
   }
 
-  // previous seasons
+  // previous seasons (collapsed by default)
   if(past.length){
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histPast')+'</div>'
+    html+='<div class="hist-section collapsed" data-section="past">'
+      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histPast')+'</div></div>'
+      +'<div class="hist-section-body">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
       +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
@@ -2481,21 +2494,32 @@ function renderHistoryInner(d, understat, upcomingFixtures){
           +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
           +'<td>'+(s.defcon||'—')+'</td>'
           +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
-      }).join('')+'</tbody></table></div>';
+      }).join('')+'</tbody></table>'
+      +'</div></div>';
   }
 
-  // MULTI-SEASON vs-club from Understat (the headline feature) — with opponent filter
+  // MULTI-SEASON vs-club from Understat (the headline feature) — with opponent filter (expanded by default)
   if(understat&&understat.vsClub&&understat.vsClub.length){
     curUnderstat=understat;                 // stash for the filter handler
-    html+='<div class="hist-section" id="vsClubSection">'
+    html+='<div class="hist-section expanded" data-section="vsclub" id="vsClubSection">'
+      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histVsClubAll')+'</div></div>'
+      +'<div class="hist-section-body">'
       +renderVsClub(understat, histOppFilter)
+      +'</div>'
       +'</div>';
-    html+=renderSeasonStats(understat);
+    html+='<div class="hist-section collapsed" data-section="bySeason">'
+      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histSeasonStats')+'</div></div>'
+      +'<div class="hist-section-body">'
+      +renderSeasonStats(understat)
+      +'</div>'
+      +'</div>';
   }
 
-  // this season, per-opponent (FPL)
+  // this season, per-opponent (FPL) (collapsed by default)
   if(vs.length){
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClub')+'</div>'
+    html+='<div class="hist-section collapsed" data-section="vsClubThis">'
+      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histVsClub')+'</div></div>'
+      +'<div class="hist-section-body">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hRound')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
@@ -2503,10 +2527,13 @@ function renderHistoryInner(d, understat, upcomingFixtures){
       +vs.map(c=>'<tr><td>'+clubName(c.opponent)+'</td><td>'+c.games+'</td><td>'+c.points+'</td>'
         +'<td>'+c.goals+'</td><td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
         +'<td>'+c.home+'/'+c.away+'</td></tr>').join('')
-      +'</tbody></table></div>';
+      +'</tbody></table>'
+      +'</div></div>';
 
-    // this season, game by game
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histThis')+'</div>'
+    // this season, game by game (expanded by default)
+    html+='<div class="hist-section expanded" data-section="gameByGame">'
+      +'<div class="hist-section-header"><span class="hist-section-toggle">▶</span><div class="hist-section-title">'+t('histThis')+'</div></div>'
+      +'<div class="hist-section-body">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
@@ -2515,7 +2542,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'<td><span class="hist-venue">'+(g.home?'H':'A')+'</span></td><td>'+g.points+'</td>'
         +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
         +'<td>'+g.bonus+'</td></tr>').join('')
-      +'</tbody></table></div>';
+      +'</tbody></table>'
+      +'</div></div>';
   } else if(!(understat&&understat.vsClub&&understat.vsClub.length)){
     html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
   }
@@ -2525,6 +2553,16 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length)&&!hasFixtures&&!hasSummary)
     html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
+  
+  // Wire up collapsible section toggles
+  document.querySelectorAll('.hist-section-header').forEach(header=>{
+    header.addEventListener('click',function(e){
+      e.preventDefault();
+      const section=this.closest('.hist-section');
+      section.classList.toggle('collapsed');
+      section.classList.toggle('expanded');
+    });
+  });
 }
 
 function renderDiag(){
