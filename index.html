@@ -824,17 +824,17 @@ textarea:focus{border-color:var(--accent)}
       <div class="team-input-section" id="teamInput">
         <div style="padding:18px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input type="number" id="fplId" placeholder="Enter FPL ID" aria-label="FPL ID" style="flex:1;min-width:150px">
-          <button class="btn" id="loadTeamBtn">Load Team</button>
-          <button class="btn" id="clearFplBtn" style="background:rgba(255,100,100,.2);border-color:var(--fire);color:var(--fire);">Clear</button>
+          <button class="btn" id="loadTeamBtn" data-i18n="mtLoadTeam">Load team</button>
+          <button class="btn" id="clearFplBtn" style="background:rgba(255,100,100,.2);border-color:var(--fire);color:var(--fire);" data-i18n="mtClear">Clear</button>
           <span id="teamLoadStatus" style="font-size:12px;color:var(--dim);flex-basis:100%;word-break:break-word"></span>
         </div>
       </div>
       <div id="teamDisplay" hidden>
         <div class="team-controls" style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center">
-          <label style="font-size:12px;color:var(--dim)">Gameweek:</label>
+          <label style="font-size:12px;color:var(--dim)" data-i18n="mtGameweek">Gameweek:</label>
           <input type="number" id="gwSelect" min="1" max="38" value="1" aria-label="Select gameweek" style="width:60px">
-          <button class="btn-small" id="gwPrev">← Prev</button>
-          <button class="btn-small" id="gwNext">Next →</button>
+          <button class="btn-small" id="gwPrev" data-i18n="mtPrev">← Prev</button>
+          <button class="btn-small" id="gwNext" data-i18n="mtNext">Next →</button>
           <span id="gwStatus" style="font-size:12px;color:var(--dim);margin-left:auto"></span>
         </div>
         <div id="teamBody"></div>
@@ -969,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22v';
+const APP_BUILD = 'app-2026-08-22x';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1006,6 +1006,7 @@ const I18N={
     gContext:'Context', gContextD:'Fixtures, minutes, market',
     pBalanced:'Balanced', pForm:'Form', pFixtures:'Fixtures', pThreat:'Threat', pDefensive:'Defensive', pDifferential:'Differential',
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
+    tabMyTeam:'My Team', myTeam:'My Team',
     tabPicks:'Picks', tabXI:'Best XI', tabTable:'All players', tabPlan:'Season plan', tabDiag:'Diagnostics',
     allPlayers:'All players', searchPh:'Player or club', searchAria:'Search players',
     allPos:'All positions', posGK:'Goalkeeper', posDF:'Defender', posMD:'Midfielder', posFW:'Forward',
@@ -1085,6 +1086,16 @@ const I18N={
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
     histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent',
     priceMove:'price',
+    mtEnterId:'Enter FPL ID', mtLoadTeam:'Load team', mtClear:'Clear', mtIdCleared:'ID cleared',
+    mtNeedId:'\u2717 Please enter an FPL ID', mtLoading:'Loading\u2026', mtGameweek:'Gameweek:',
+    mtPrev:'\u2190 Prev', mtNext:'Next \u2192', mtSelectGw:'Select gameweek',
+    mtLoadingGw:gw=>'Loading GW '+gw+'\u2026', mtGwUnavail:gw=>'GW '+gw+' unavailable',
+    mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Projected: '+n+' xP',
+    mtAutosub:'autosub', mtSubIn:'\u2713 sub',
+    mtXpNext:"xP = expected points, FPL's own estimate for this gameweek.",
+    mtXpLater:gw=>'xP = expected points. Beyond next gameweek FPL publishes no figure, so this is a '
+      +'guesstimate: its GW '+gw+' estimate nudged \u00b115% by fixture difficulty. Treat as indicative.',
+    mtSquadNote:' Squad shown is your current one.',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
     sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
     sqNote:'Strongest legal 15 within \u00a3100m and 3-per-club, XI maximised with a playable bench. A strong build, not a mathematical optimum.',
@@ -1141,6 +1152,7 @@ const I18N={
     gContext:'Contexto', gContextD:'Calendario, minutos, mercado',
     pBalanced:'Equilibrado', pForm:'Forma', pFixtures:'Calendario', pThreat:'Amenaza', pDefensive:'Defensivo', pDifferential:'Diferencial',
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
+    tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabPicks:'Selecciones', tabXI:'Mejor XI', tabTable:'Jugadores', tabPlan:'Plan de temporada', tabDiag:'Diagnóstico',
     allPlayers:'Todos los jugadores', searchPh:'Jugador o club', searchAria:'Buscar jugadores',
     allPos:'Todas las posiciones', posGK:'Portero', posDF:'Defensa', posMD:'Centrocampista', posFW:'Delantero',
@@ -1217,6 +1229,17 @@ const I18N={
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
     histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada',
     priceMove:'precio',
+    mtEnterId:'Introduce tu ID de FPL', mtLoadTeam:'Cargar equipo', mtClear:'Borrar', mtIdCleared:'ID borrado',
+    mtNeedId:'\u2717 Introduce un ID de FPL', mtLoading:'Cargando\u2026', mtGameweek:'Jornada:',
+    mtPrev:'\u2190 Anterior', mtNext:'Siguiente \u2192', mtSelectGw:'Elegir jornada',
+    mtLoadingGw:gw=>'Cargando J'+gw+'\u2026', mtGwUnavail:gw=>'J'+gw+' no disponible',
+    mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Previsi\u00f3n: '+n+' xP',
+    mtAutosub:'suplencia', mtSubIn:'\u2713 entra',
+    mtXpNext:'xP = puntos esperados, la estimaci\u00f3n de la propia FPL para esta jornada.',
+    mtXpLater:gw=>'xP = puntos esperados. M\u00e1s all\u00e1 de la pr\u00f3xima jornada la FPL no publica cifras, '
+      +'as\u00ed que esto es una estimaci\u00f3n aproximada: su c\u00e1lculo de la J'+gw
+      +' ajustado \u00b115% seg\u00fan la dificultad del calendario. T\u00f3malo como orientativo.',
+    mtSquadNote:' La plantilla mostrada es la actual.',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
     sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
     sqNote:'La mejor plantilla legal de 15 con \u00a3100m y m\u00e1x. 3 por club, XI maximizado con suplentes jugables. Una construcci\u00f3n s\u00f3lida, no un \u00f3ptimo matem\u00e1tico.',
@@ -1869,12 +1892,12 @@ let userTeam={picks:null,gw:1};
 async function loadUserTeam(fplId){
   const status=$('teamLoadStatus');
   if(!fplId||fplId.trim()===''){
-    status.textContent='✗ Please enter an FPL ID';
+    status.textContent=t('mtNeedId');
     status.style.color='var(--fire)';
     return;
   }
   try{
-    status.textContent='Loading...';
+    status.textContent=t('mtLoading');
     status.style.color='var(--dim)';
     console.log('FPL ID:',fplId);
     
@@ -2043,7 +2066,7 @@ async function changeGameweek(gw){
   }
 
   try{
-    if(status)status.textContent='Loading GW '+gw+'…';
+    if(status)status.textContent=t('mtLoadingGw')(gw);
     const url='/api/fpl-proxy?path='+encodeURIComponent('entry/'+userTeam.entryId+'/event/'+gw+'/picks/');
     const res=await fetch(url);
     if(!res.ok)throw new Error('status '+res.status);
@@ -2054,7 +2077,7 @@ async function changeGameweek(gw){
     renderUserTeam();
   }catch(err){
     console.log('GW '+gw+' picks unavailable:',err.message);
-    if(status)status.textContent='GW '+gw+' unavailable';
+    if(status)status.textContent=t('mtGwUnavail')(gw);
     // leave the previous squad on screen rather than blanking the view
     userTeam.picks=userTeam.basePicks||userTeam.picks;
     userTeam.isFuture=true;
@@ -2072,7 +2095,7 @@ function renderUserTeam(){
     bootstrap.teams.forEach(t=>{teamsMap[t.id]=t.short_name||t.name});
   }
 
-  $('gwStatus').textContent=`GW ${userTeam.gw} / ${userTeam.currentEvent||38}`;
+  $('gwStatus').textContent=t('hGW')+userTeam.gw+' / '+(userTeam.currentEvent||38);
 
   const totalPoints=calculateGWTotal();
 
@@ -2149,7 +2172,7 @@ function renderUserTeam(){
 
   let html='';
   const fut=userTeam.isFuture;
-  const totalLabel=fut?'Projected: '+totalPoints+' xP':'Total: '+totalPoints+' pts';
+  const totalLabel=fut?t('mtProjected')(totalPoints):t('mtTotal')(totalPoints);
   html+='<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;'
     +'justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'
     +'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--dim);'
@@ -2160,12 +2183,8 @@ function renderUserTeam(){
   if(fut){
     const oneAhead=userTeam.gw<=(userTeam.currentEvent||0)+1;
     html+='<div class="xp-note">'
-      +(oneAhead
-        ? "xP = expected points, FPL's own estimate for this gameweek."
-        : 'xP = expected points. Beyond next gameweek FPL publishes no figure, '
-          +'so this is a guesstimate: its GW '+((userTeam.currentEvent||0)+1)
-          +' estimate nudged \u00b115% by fixture difficulty. Treat as indicative.')
-      +' Squad shown is your current one.'
+      +(oneAhead?t('mtXpNext'):t('mtXpLater')((userTeam.currentEvent||0)+1))
+      +t('mtSquadNote')
       +'</div>';
   }
 
@@ -2409,7 +2428,7 @@ function updateGWTotal(){
   const totalDiv=document.querySelector('[data-team-total]');
   if(totalDiv){
     const total=calculateGWTotal();
-    totalDiv.textContent=`Total: ${total} pts`;
+    totalDiv.textContent=userTeam.isFuture?t('mtProjected')(total):t('mtTotal')(total);
   }
   
   // Mark autosub players visually
@@ -2437,14 +2456,14 @@ function markAutosubs(){
     if(starterCard){
       starterCard.classList.add('autosub-out');
       const n=starterCard.querySelector('[data-note]');
-      if(n)n.textContent='autosub';
+      if(n)n.textContent=t('mtAutosub');
     }
 
     const subCard=document.querySelector('#teamBody .pcard[data-pid="'+subId+'"]');
     if(subCard){
       subCard.classList.add('autosub-in');
       const n=subCard.querySelector('[data-note]');
-      if(n)n.textContent='✓ sub';
+      if(n)n.textContent=t('mtSubIn');
     }
   });
 }
@@ -4023,6 +4042,10 @@ function applyStaticI18n(){
   // inputs with translatable placeholders / aria
   const fs=$('fSearch');
   if(fs){fs.placeholder=t('searchPh');fs.setAttribute('aria-label',t('searchAria'))}
+  const fid=$('fplId');
+  if(fid){fid.placeholder=t('mtEnterId');fid.setAttribute('aria-label',t('mtEnterId'))}
+  const gsel=$('gwSelect');
+  if(gsel)gsel.setAttribute('aria-label',t('mtSelectGw'));
   const pbs=$('pasteBs'),pfx=$('pasteFx');
   if(pbs)pbs.placeholder=t('pasteHere');
   if(pfx)pfx.placeholder=t('pasteHere');
@@ -4102,7 +4125,7 @@ document.addEventListener('click',e=>{
     localStorage.removeItem('fplRockId');
     $('teamInput').hidden=false;
     $('teamDisplay').hidden=true;
-    $('teamLoadStatus').textContent='ID cleared';
+    $('teamLoadStatus').textContent=t('mtIdCleared');
     setTimeout(()=>{$('teamLoadStatus').textContent=''},2000);
   }
   if(e.target===$('gwPrev')){
