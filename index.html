@@ -926,7 +926,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22u';
+const APP_BUILD = 'app-2026-08-22w';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1956,7 +1956,7 @@ function renderUserTeam(){
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
         <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
     }
@@ -2000,7 +2000,7 @@ function renderUserTeam(){
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
         <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
     }
@@ -2017,22 +2017,50 @@ function renderUserTeam(){
 async function populateGWScores(picks){
   if(!userTeam.gwScores)userTeam.gwScores={};
   
+  console.log('Starting GW score population for',picks.length,'players, GW',userTeam.gw);
+  
   const promises=picks.map(p=>
     fetchPlayerHistory(p.element)
       .then(hist=>{
-        if(hist&&hist.thisSeason){
-          const gwData=hist.thisSeason.find(g=>g.round===userTeam.gw);
+        console.log('Player',p.element,'history fetched:',hist);
+        if(hist){
+          // Check various possible structures
+          let gwData=null;
+          
+          // Try thisSeason array
+          if(hist.thisSeason&&Array.isArray(hist.thisSeason)){
+            gwData=hist.thisSeason.find(g=>g.round===userTeam.gw);
+            console.log('Found thisSeason data for player',p.element,'GW',userTeam.gw,':',gwData);
+          }
+          // Try history array
+          else if(hist.history&&Array.isArray(hist.history)){
+            gwData=hist.history.find(g=>g.round===userTeam.gw);
+            console.log('Found history data for player',p.element,'GW',userTeam.gw,':',gwData);
+          }
+          
           if(gwData&&gwData.points!==undefined){
             userTeam.gwScores[p.element]=gwData.points;
+            console.log('Updated GW score for player',p.element,':',gwData.points);
+            // Update the card in DOM directly
+            const cards=document.querySelectorAll(`[data-pid="${p.element}"]`);
+            console.log('Found',cards.length,'cards for player',p.element);
+            cards.forEach(card=>{
+              const gwDiv=card.querySelector('[data-gw-score]');
+              if(gwDiv){
+                gwDiv.textContent=`GW: ${gwData.points} pts`;
+                console.log('Updated card for player',p.element);
+              }
+            });
           }
         }
       })
-      .catch(e=>console.log('Score fetch for player',p.element,'failed'))
+      .catch(e=>{
+        console.log('Score fetch for player',p.element,'failed:',e.message);
+      })
   );
   
   await Promise.all(promises);
-  // Re-render to show populated scores
-  renderUserTeam();
+  console.log('GW score population complete. Scores:',userTeam.gwScores);
 }
 
 function renderPicks(){
