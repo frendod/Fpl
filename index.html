@@ -400,15 +400,18 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 }
 .pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
   background:var(--line);transform:translateX(-50%)}
-/* Fluid pitch sizing. A 5-across row must satisfy 5w + 4g <= rowWidth,
-   where rowWidth = 100vw - 40px (wrap) - 24px (pitch). With g=4px that
-   gives w <= 20vw - 16px; the clamp caps at the original 62px on desktop
-   and floors at 46px on very small phones. */
-.pitch{--pcw:clamp(46px,calc(20vw - 16px),62px)}
-.benchstrip{--pcw:clamp(46px,calc(20vw - 16px),62px)}
-.prow-xi{display:flex;justify-content:center;gap:4px;margin-bottom:17px;flex-wrap:wrap;position:relative}
+/* Pitch sizing is percentage-of-row, not viewport-derived. A row never
+   holds more than 5 cards, so 5 x 19.2% + 4 x 1% gap = 100% exactly.
+   Percentages resolve against .prow-xi, so the same rule fits any
+   container — no need to know the surrounding padding. max-width holds
+   the original 62px on desktop. */
+.prow-xi{display:flex;justify-content:center;gap:1%;margin-bottom:17px;flex-wrap:wrap;position:relative}
 .prow-xi:last-child{margin-bottom:0}
-.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;width:var(--pcw,62px)}
+.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;
+  flex:0 1 19.2%;max-width:62px;min-width:0;container-type:inline-size}
+/* Bench: 4 cards at 20% + 3 gaps at 2% = 86%, leaving room for the label. */
+.benchstrip{gap:2%}
+.benchstrip .pcard{flex:0 1 20%}
 .club-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex:0 0 auto}
 .datasource{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
 .datasource-summary{cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:12px;
@@ -419,11 +422,12 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .datasource-hint{margin-left:auto;color:var(--dimmer);letter-spacing:.04em;text-transform:none;font-size:12px}
 .datasource-body{padding:0 18px 18px}
 .pdisc{
-  width:calc(var(--pcw,62px)*.68);height:calc(var(--pcw,62px)*.68);
+  width:68%;aspect-ratio:1/1;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:'IBM Plex Mono',monospace;font-size:clamp(10.5px,2.9vw,13px);
+  font-family:'IBM Plex Mono',monospace;font-size:13px;
   font-weight:600;position:relative;border:1px solid;flex:0 0 auto;
 }
+.pdisc{font-size:clamp(9px,21cqw,13px)}
 .pdisc.GKP{background:rgba(217,164,65,.16);border-color:rgba(217,164,65,.5);color:var(--prior)}
 .pdisc.DEF{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5);color:var(--live)}
 .pdisc.MID{background:rgba(78,201,160,.16);border-color:rgba(78,201,160,.5);color:var(--good)}
@@ -431,10 +435,12 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
-.pcname{font-size:clamp(8px,2.4vw,9.5px);text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;max-width:var(--pcw,62px);color:var(--paper);display:flex;align-items:center;justify-content:center;gap:3px}
-.pcsub{font-family:'IBM Plex Mono',monospace;font-size:clamp(7px,2.1vw,8.5px);color:var(--dimmer);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:var(--pcw,62px)}
+.pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:100%;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:3px}
+.pcname{font-size:clamp(7.5px,15cqw,9.5px)}
+.pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pcsub{font-size:clamp(6.5px,13.5cqw,8.5px)}
 .pbadge{
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
@@ -578,15 +584,26 @@ textarea:focus{border-color:var(--accent)}
 .fix-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
 .fix-gw{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+/* MY TEAM pitch extras */
+.pcnote{font-family:'IBM Plex Mono',monospace;font-size:8px;
+  letter-spacing:.06em;color:var(--dim);line-height:1;min-height:8px;text-align:center}
+.pcnote{font-size:clamp(6px,12.5cqw,8px)}
+.pcard.autosub-out{opacity:.5}
+.pcard.autosub-out .pdisc{border-color:var(--dim)!important;filter:grayscale(.7)}
+.pcard.autosub-in .pdisc{box-shadow:0 0 0 2px var(--live)}
+.pcard.autosub-in .pcnote{color:var(--live)}
+.capmark.capmark-vc{background:var(--dim);color:var(--ink)}
+
 /* Next-3-fixtures strip. Boxes divide the parent card evenly, so they
    inherit whatever width the card has — pitch card or MY TEAM card. */
 .fixrow{display:flex;gap:2px;margin-top:5px;width:100%}
 .fixbox{
   flex:1 1 0;min-width:0;padding:3px 1px;text-align:center;border-radius:2px;
   font-family:'IBM Plex Mono',monospace;font-weight:600;line-height:1.25;
-  font-size:clamp(6px,1.8vw,9px);color:#0d1117;
+  font-size:9px;color:#0d1117;
   overflow:hidden;white-space:nowrap;
 }
+.fixbox{font-size:clamp(6px,14cqw,9px)}
 .fixbox.fdr-blank{color:var(--dimmer)}
 .fdr-easy{background:#2ecc71}
 .fdr-easier{background:#27ae60}
@@ -948,7 +965,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22p';
+const APP_BUILD = 'app-2026-08-22r';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1864,7 +1881,7 @@ async function loadUserTeam(fplId){
     const entryRes=await fetch(entryUrl);
     if(!entryRes.ok) throw new Error('Could not load entry (status '+entryRes.status+')');
     const entry=await entryRes.json();
-    console.log('Entry player name:',entry.player_first_name);
+    console.log('Entry team name:',entry.name,'| manager:',entry.player_first_name);
     
     // Fetch history (current GW and past seasons)
     console.log('\n--- Fetching History ---');
@@ -1892,6 +1909,7 @@ async function loadUserTeam(fplId){
       picks:picksData.picks,
       gw:current.event,
       username:entry.player_first_name,
+      teamName:entry.name||'',
       currentEvent:current.event,
       chips:picksData.chips||[]
     };
@@ -1899,7 +1917,8 @@ async function loadUserTeam(fplId){
     $('gwSelect').max=current.event;
     $('teamInput').hidden=true;
     $('teamDisplay').hidden=false;
-    $('teamMeta').textContent=`${entry.player_first_name} · ID ${fplId}`;
+    // entry.name is the FPL squad name; fall back to the manager if it is blank
+    $('teamMeta').textContent=`${entry.name||entry.player_first_name||'Team'} · ID ${fplId}`;
     renderUserTeam();
     
     // Save FPL ID to localStorage
@@ -1967,172 +1986,102 @@ function getFDRClass(difficulty){
 function renderUserTeam(){
   if(!userTeam.picks)return;
   const picks=userTeam.picks;
-  
-  // Map team IDs to full team names from bootstrap
+
+  // short_name lookup, used for both the club label and the club colour
   const teamsMap={};
   if(bootstrap&&bootstrap.teams){
-    bootstrap.teams.forEach(t=>{
-      teamsMap[t.id]=t.short_name||t.name;
-    });
+    bootstrap.teams.forEach(t=>{teamsMap[t.id]=t.short_name||t.name});
   }
-  
+
   $('gwStatus').textContent=`GW ${userTeam.gw} / ${userTeam.currentEvent||38}`;
-  
-  // Calculate total points for the week
-  let totalPoints=calculateGWTotal();
-  
-  // Check for active chips
+
+  const totalPoints=calculateGWTotal();
+
   let chipText='';
   if(userTeam.chips&&userTeam.chips.length){
-    const activeChip=userTeam.chips[userTeam.chips.length-1]; // Last chip is current
+    const activeChip=userTeam.chips[userTeam.chips.length-1];
     if(activeChip&&activeChip.chip_name){
-      const chipMap={
-        'wildcard':'WILDCARD',
-        'free_hit':'FREE HIT',
-        'bench_boost':'BENCH BOOST',
-        '3xc':'3x CAPTAIN'
-      };
-      chipText=' · '+chipMap[activeChip.chip_name.toLowerCase()]||activeChip.chip_name;
+      const chipMap={'wildcard':'WILDCARD','free_hit':'FREE HIT','bench_boost':'BENCH BOOST','3xc':'3x CAPTAIN'};
+      chipText=' · '+(chipMap[activeChip.chip_name.toLowerCase()]||activeChip.chip_name);
     }
   }
-  
+
+  const xi=picks.filter(p=>p.position<12);
+  const subs=picks.filter(p=>p.position>=12).sort((a,b)=>a.position-b.position);
+
+  // One card renderer for pitch and bench alike, mirroring the Best XI disc.
+  const card=p=>{
+    const player=players.find(pl=>pl.id===p.element);
+    if(!player)return '';
+
+    const short=teamsMap[player.teamId]||player.club;
+    const col=clubColor(short);
+
+    // opponent for the gameweek being viewed
+    let opp='—';
+    if(fixtures&&fixtures.length){
+      const fx=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
+      if(fx){
+        const isH=fx.team_h===player.teamId;
+        opp=(teamsMap[isH?fx.team_a:fx.team_h]||'?')+(isH?' H':' A');
+      }
+    }
+
+    const gwScore=(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined)?userTeam.gwScores[p.element]:'–';
+
+    const capMark=p.is_captain?'<span class="capmark">'+t('sqCap')+'</span>'
+                 :p.is_vice_captain?'<span class="capmark capmark-vc">V</span>':'';
+
+    const badgeClass=player.status==='a'?'avail':player.status==='d'?'doubt'
+      :player.status==='i'||player.status==='s'?'inj':player.status==='u'?'unav':'new';
+    const injBadge=player.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'';
+
+    const next3=getNext3Fixtures(player.teamId);
+    let fixBoxes='<div class="fixrow">';
+    next3.forEach(f=>{
+      fixBoxes+=f.opp==='—'
+        ? '<div class="fixbox fdr-blank">—</div>'
+        : '<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+'</div>';
+    });
+    fixBoxes+='</div>';
+
+    return '<div class="pcard phist" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
+      +'<div class="pdisc '+player.pos+'" style="border-bottom:3px solid '+col+'">'
+        +'<span data-gw-score>'+gwScore+'</span>'+capMark+'</div>'
+      +'<div class="pcnote" data-note></div>'
+      +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+player.name+injBadge+'</div>'
+      +'<div class="pcsub">£'+player.price.toFixed(1)+' · '+opp+'</div>'
+      +fixBoxes
+      +'</div>';
+  };
+
+  const byPos=pos=>xi.filter(p=>{
+    const pl=players.find(x=>x.id===p.element);
+    return pl&&pl.pos===pos;
+  });
+
   let html='';
-  let xi=picks.filter(p=>p.position<12);
-  let subs=picks.filter(p=>p.position>=12);
-  
-  // Header with total points and chip info
-  html+=`<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-    <div>
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Starting XI${chipText}</span>
-    </div>
-    <div style="font-size:14px;font-weight:bold;color:var(--accent);" data-team-total>
-      Total: ${totalPoints} pts
-    </div>
-  </div>`;
-  
-  html+='<div class="team-grid">';
-  xi.forEach(p=>{
-    const player=players.find(pl=>pl.id===p.element);
-    if(player){
-      const isCap=p.is_captain?' ⭐':'';
-      const isVC=p.is_vice_captain?' 🔶':'';
-      const badge=isCap||isVC?isCap+isVC:'';
-      
-      // Injury status badge
-      const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
-      
-      // Get team name
-      const teamName=teamsMap[player.teamId]||player.club;
-      
-      // Find fixture for current GW
-      let fixtureText='—';
-      if(fixtures&&fixtures.length){
-        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
-        if(fix){
-          const oppId=fix.team_h===player.teamId?fix.team_a:fix.team_h;
-          const oppName=teamsMap[oppId]||'OPP';
-          const isHome=fix.team_h===player.teamId;
-          fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
-        }
-      }
-      
-      // This week's score (will be populated by populateGWScores)
-      let gwScore='-';
-      if(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined){
-        gwScore=userTeam.gwScores[p.element];
-      }
-      
-      // Get next 3 fixtures for this player's team
-      const next3=getNext3Fixtures(player.teamId);
-      let fixturesBoxes='';
-      if(next3 && next3.length){
-        fixturesBoxes='<div class="fixrow">';
-        next3.forEach(fx=>{
-          if(fx.opp==='—'){
-            fixturesBoxes+='<div class="fixbox fdr-blank">—</div>';
-          }else{
-            fixturesBoxes+='<div class="fixbox '+getFDRClass(fx.difficulty)+'">'+fx.opp+'</div>';
-          }
-        });
-        fixturesBoxes+='</div>';
-      }
-      
-      html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
-        <div class="team-card-pos">${player.pos}${badge}</div>
-        <div class="team-card-name">${player.name}${injBadge}</div>
-        <div class="team-card-club">${teamName}</div>
-        <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
-        <div class="team-card-price">£${player.price.toFixed(1)}m</div>
-        ${fixturesBoxes}
-      </div>`;
-    }
-  });
-  html+='</div>';
-  
-  html+='<div class="team-section-head">Substitutes</div><div class="team-grid">';
-  subs.forEach(p=>{
-    const player=players.find(pl=>pl.id===p.element);
-    if(player){
-      const isCap=p.is_captain?' ⭐':'';
-      const isVC=p.is_vice_captain?' 🔶':'';
-      const badge=isCap||isVC?isCap+isVC:'';
-      
-      // Injury status badge
-      const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
-      
-      // Get team name
-      const teamName=teamsMap[player.teamId]||player.club;
-      
-      // Find fixture for current GW
-      let fixtureText='—';
-      if(fixtures&&fixtures.length){
-        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
-        if(fix){
-          const oppId=fix.team_h===player.teamId?fix.team_a:fix.team_h;
-          const oppName=teamsMap[oppId]||'OPP';
-          const isHome=fix.team_h===player.teamId;
-          fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
-        }
-      }
-      
-      // This week's score (will be populated by populateGWScores)
-      let gwScore='-';
-      if(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined){
-        gwScore=userTeam.gwScores[p.element];
-      }
-      
-      // Get next 3 fixtures for this player's team
-      const next3=getNext3Fixtures(player.teamId);
-      let fixturesBoxes='';
-      if(next3 && next3.length){
-        fixturesBoxes='<div class="fixrow">';
-        next3.forEach(fx=>{
-          if(fx.opp==='—'){
-            fixturesBoxes+='<div class="fixbox fdr-blank">—</div>';
-          }else{
-            fixturesBoxes+='<div class="fixbox '+getFDRClass(fx.difficulty)+'">'+fx.opp+'</div>';
-          }
-        });
-        fixturesBoxes+='</div>';
-      }
-      
-      html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
-        <div class="team-card-pos">${player.pos}${badge}</div>
-        <div class="team-card-name">${player.name}${injBadge}</div>
-        <div class="team-card-club">${teamName}</div>
-        <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
-        <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
-        <div class="team-card-price">£${player.price.toFixed(1)}m</div>
-        ${fixturesBoxes}
-      </div>`;
-    }
-  });
-  html+='</div>';
-  
+  html+='<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;'
+    +'justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'
+    +'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--dim);'
+    +'text-transform:uppercase;letter-spacing:.1em;">'+t('sqStarting')+chipText+'</span>'
+    +'<div style="font-size:14px;font-weight:bold;color:var(--accent);" data-team-total>'
+    +'Total: '+totalPoints+' pts</div>'
+    +'</div>';
+
+  html+='<div style="padding:0 10px 4px">'
+    +'<div class="pitch">'
+      +'<div class="prow-xi">'+byPos('GKP').map(card).join('')+'</div>'
+      +'<div class="prow-xi">'+byPos('DEF').map(card).join('')+'</div>'
+      +'<div class="prow-xi">'+byPos('MID').map(card).join('')+'</div>'
+      +'<div class="prow-xi">'+byPos('FWD').map(card).join('')+'</div>'
+    +'</div>'
+    +'<div class="benchstrip"><span class="bench-label">'+t('sqBench')+'</span>'
+      +subs.map(card).join('')+'</div>'
+    +'</div>';
+
   $('teamBody').innerHTML=html;
-  
-  // Fetch player histories to populate GW scores
+
   populateGWScores(picks);
 }
 
@@ -2173,7 +2122,7 @@ async function populateGWScores(picks){
             cards.forEach(card=>{
               const gwDiv=card.querySelector('[data-gw-score]');
               if(gwDiv){
-                gwDiv.textContent=`GW: ${gwData.points} pts`;
+                gwDiv.textContent=gwData.points;
                 console.log('Updated card for player',p.element);
               }
             });
@@ -2354,36 +2303,33 @@ function updateGWTotal(){
 
 // Visually mark players who were auto-subbed in
 function markAutosubs(){
+  // clear any previous pass first, so re-renders and GW changes don't stack labels
+  document.querySelectorAll('#teamBody .pcard').forEach(c=>{
+    c.classList.remove('autosub-out','autosub-in');
+    const n=c.querySelector('[data-note]');
+    if(n)n.textContent='';
+  });
+
   if(!userTeam.autosubs||!userTeam.picks)return;
-  
+
   const starters=userTeam.picks.filter(p=>p.position<12);
-  
+
   starters.forEach(starter=>{
-    if(userTeam.autosubs[starter.element]){
-      // This starter was replaced by an autosub
-      // Find the starter card and update it
-      const starterCard=document.querySelector(`[data-pid="${starter.element}"]`);
-      if(starterCard){
-        // Add a subtle indicator that this was auto-subbed
-        starterCard.style.opacity='0.65';
-        starterCard.style.border='2px solid var(--dim)';
-        
-        // Add a note
-        const posDiv=starterCard.querySelector('.team-card-pos');
-        if(posDiv){
-          posDiv.innerHTML+='<div style="font-size:8px;color:var(--dim);margin-top:2px;">autosub</div>';
-        }
-      }
-      
-      // Highlight the sub that came in
-      const subCard=document.querySelector(`[data-pid="${userTeam.autosubs[starter.element]}"]`);
-      if(subCard){
-        subCard.style.border='2px solid var(--live)';
-        const posDiv=subCard.querySelector('.team-card-pos');
-        if(posDiv){
-          posDiv.innerHTML+='<div style="font-size:8px;color:var(--live);margin-top:2px;">✓sub</div>';
-        }
-      }
+    const subId=userTeam.autosubs[starter.element];
+    if(!subId)return;
+
+    const starterCard=document.querySelector('#teamBody .pcard[data-pid="'+starter.element+'"]');
+    if(starterCard){
+      starterCard.classList.add('autosub-out');
+      const n=starterCard.querySelector('[data-note]');
+      if(n)n.textContent='autosub';
+    }
+
+    const subCard=document.querySelector('#teamBody .pcard[data-pid="'+subId+'"]');
+    if(subCard){
+      subCard.classList.add('autosub-in');
+      const n=subCard.querySelector('[data-note]');
+      if(n)n.textContent='✓ sub';
     }
   });
 }
