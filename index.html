@@ -2038,8 +2038,9 @@ function renderUserTeam(){
       
       // Get next 3 fixtures for this player's team
       const next3=getNext3Fixtures(player.team);
+      console.log(`Player ${player.name} (team ${player.team}): fixtures=`, next3);
       let fixturesBoxes='';
-      if(next3&&next3.length===3){
+      if(next3 && next3.length){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
         next3.forEach(fx=>{
           if(fx.opp==='—'){
