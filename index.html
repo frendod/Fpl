@@ -930,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22g';
+const APP_BUILD = 'app-2026-08-22h';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1909,44 +1909,40 @@ function loadSavedFplId(){
 // Get next 3 fixtures for a team with FDR difficulty colors
 function getNext3Fixtures(teamId){
   // Guard against missing data
-  if(!teamId || !fixtures || !fixtures.length || !userTeam || userTeam.gw === null || userTeam.gw === undefined) {
+  if(!teamId || !fixtures || !fixtures.length) {
+    console.warn('getNext3Fixtures: missing data', {teamId, fixturesAvailable: !!fixtures, fixturesLength: fixtures?.length});
     return [];
   }
   
+  // For MY TEAM, use userTeam.gw; for Best XI (state), use state.nextGW
+  const startGW = (userTeam && userTeam.gw) ? userTeam.gw : (state && state.nextGW) ? state.nextGW : 1;
+  
   const upcomingGWs=[];
-  const startGW = userTeam.gw || 1;
-  for(let gw=startGW; gw<startGW+4; gw++){
+  for(let gw=startGW; gw<startGW+3; gw++){
     upcomingGWs.push(gw);
   }
   
   const teams=bootstrap.teams||[];
   const fixturesList=[];
   
-  console.log('getNext3Fixtures DEBUG:', {teamId, startGW, upcomingGWs, fixturesTotal: fixtures.length, teamsTotal: teams.length});
-  
   for(const gw of upcomingGWs){
-    const fx=fixtures.filter(f=>f&&f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
-    console.log(`  GW ${gw}: found ${fx.length} fixtures for team ${teamId}`);
-    if(fx.length){
-      fx.forEach(f=>{
-        const isH=f.team_h===teamId;
-        const oppId=isH?f.team_a:f.team_h;
-        const opp=(teams.find(t=>t.id===oppId)||{});
-        const diff=isH?f.team_h_difficulty:f.team_a_difficulty;
-        fixturesList.push({
-          gw,
-          opp:opp.short_name||'?',
-          difficulty:diff,
-          venue:isH?'H':'A'
-        });
+    const fx=fixtures.find(f=>f&&f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+    if(fx){
+      const isH=fx.team_h===teamId;
+      const oppId=isH?fx.team_a:fx.team_h;
+      const opp=(teams.find(t=>t.id===oppId)||{});
+      const diff=isH?fx.team_h_difficulty:fx.team_a_difficulty;
+      fixturesList.push({
+        gw,
+        opp:opp.short_name||'?',
+        difficulty:diff||3
       });
+    }else{
+      fixturesList.push({gw, opp:'—', difficulty:null});
     }
-    if(fixturesList.length>=3)break;
   }
   
-  console.log('getNext3Fixtures result:', fixturesList);
-  
-  return fixturesList.slice(0,3);
+  return fixturesList;
 }
 
 // Get CSS class for FDR color (matches fixture run colors with 5 levels)
@@ -2044,10 +2040,15 @@ function renderUserTeam(){
       // Get next 3 fixtures for this player's team
       const next3=getNext3Fixtures(player.team);
       let fixturesBoxes='';
-      if(next3.length>0){
+      if(next3&&next3.length===3){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
         next3.forEach(fx=>{
-          fixturesBoxes+=`<div class="${getFDRClass(fx.difficulty)}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+          if(fx.opp==='—'){
+            fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
+          }else{
+            const fdrClass=getFDRClass(fx.difficulty);
+            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+          }
         });
         fixturesBoxes+='</div>';
       }
@@ -2100,10 +2101,15 @@ function renderUserTeam(){
       // Get next 3 fixtures for this player's team
       const next3=getNext3Fixtures(player.team);
       let fixturesBoxes='';
-      if(next3.length>0){
+      if(next3&&next3.length===3){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
         next3.forEach(fx=>{
-          fixturesBoxes+=`<div class="${getFDRClass(fx.difficulty)}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+          if(fx.opp==='—'){
+            fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
+          }else{
+            const fdrClass=getFDRClass(fx.difficulty);
+            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+          }
         });
         fixturesBoxes+='</div>';
       }
