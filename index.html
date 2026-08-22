@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22g';
+const APP_BUILD = 'app-2026-08-22h';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1755,119 +1755,48 @@ async function loadUserTeam(fplId){
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
-    const apiBase='https://fantasy.premierleague.com/api/entry/';
     console.log('Starting FPL load for ID:',fplId);
     
-    // Try direct fetch first
-    let hist=null;
-    console.log('Attempting direct fetch...');
-    try{
-      let histRes=await fetch(apiBase+fplId+'/history/');
-      console.log('Direct fetch response status:',histRes.status);
-      if(histRes.ok){
-        hist=await histRes.json();
-        console.log('Direct fetch succeeded');
-      } else {
-        console.log('Direct fetch failed with status:',histRes.status);
-      }
-    }catch(e){
-      console.log('Direct fetch error (expected due to CORS):',e.message);
+    // Use Netlify function proxy
+    const proxyBase='/api/fpl-proxy?path=';
+    
+    // Fetch history via Netlify proxy
+    console.log('Fetching history via Netlify proxy...');
+    const histRes=await fetch(proxyBase+encodeURIComponent('entry/'+fplId+'/history/'));
+    
+    if(!histRes.ok){
+      throw new Error('Failed to load history (status: '+histRes.status+')');
     }
     
-    // If direct fetch failed, try proxies
-    if(!hist){
-      console.log('Trying CORS proxies...');
-      const proxies=[
-        {name:'corsproxy.io',url:'https://corsproxy.io/?'},
-        {name:'cors-anywhere',url:'https://cors-anywhere.herokuapp.com/'},
-        {name:'thingproxy',url:'https://thingproxy.freeboard.io/fetch/'}
-      ];
-      
-      for(let proxy of proxies){
-        try{
-          console.log('Trying proxy:',proxy.name);
-          const url=proxy.url+(proxy.url.includes('?')?'':'')+encodeURIComponent(apiBase+fplId+'/history/');
-          let histRes=await fetch(url);
-          console.log(proxy.name+' response status:',histRes.status);
-          if(histRes.ok){
-            const text=await histRes.text();
-            console.log(proxy.name+' response length:',text.length);
-            try{
-              hist=JSON.parse(text);
-              console.log('Successfully parsed response from',proxy.name);
-              break;
-            }catch(je){
-              console.log('Failed to parse JSON from',proxy.name,'error:',je.message);
-              continue;
-            }
-          }
-        }catch(e){
-          console.log('Proxy '+proxy.name+' error:',e.message);
-          continue;
-        }
-      }
+    let hist=await histRes.json();
+    if(hist.error){
+      throw new Error(hist.error);
     }
-    
-    if(!hist)throw new Error('Could not fetch data (all methods failed - check console)');
+    console.log('History loaded successfully');
     
     const current=hist.current?hist.current[0]:null;
-    if(!current)throw new Error('No active season for this ID');
+    if(!current){
+      throw new Error('No active season for this ID');
+    }
     console.log('Current gameweek:',current.event);
     
-    // Fetch picks for current gameweek
-    const picksUrl=apiBase+fplId+'/event/'+current.event+'/picks/';
-    let picksData=null;
-    console.log('Attempting to fetch picks from GW '+current.event);
+    // Fetch picks via Netlify proxy
+    console.log('Fetching picks for GW '+current.event+'...');
+    const picksRes=await fetch(proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+current.event+'/picks/'));
     
-    try{
-      let picksRes=await fetch(picksUrl);
-      console.log('Direct picks fetch status:',picksRes.status);
-      if(picksRes.ok){
-        picksData=await picksRes.json();
-        console.log('Direct picks fetch succeeded');
-      }
-    }catch(e){
-      console.log('Direct picks fetch error (expected due to CORS):',e.message);
+    if(!picksRes.ok){
+      throw new Error('Failed to load picks (status: '+picksRes.status+')');
     }
     
-    // If direct picks fetch failed, try proxies
-    if(!picksData){
-      console.log('Trying proxies for picks...');
-      const proxies=[
-        {name:'corsproxy.io',url:'https://corsproxy.io/?'},
-        {name:'cors-anywhere',url:'https://cors-anywhere.herokuapp.com/'},
-        {name:'thingproxy',url:'https://thingproxy.freeboard.io/fetch/'}
-      ];
-      
-      for(let proxy of proxies){
-        try{
-          console.log('Trying picks proxy:',proxy.name);
-          const url=proxy.url+(proxy.url.includes('?')?'':'')+encodeURIComponent(picksUrl);
-          let picksRes=await fetch(url);
-          console.log(proxy.name+' picks response status:',picksRes.status);
-          if(picksRes.ok){
-            const text=await picksRes.text();
-            console.log(proxy.name+' picks response length:',text.length);
-            try{
-              picksData=JSON.parse(text);
-              console.log('Successfully parsed picks from',proxy.name);
-              break;
-            }catch(je){
-              console.log('Failed to parse picks JSON from',proxy.name,'error:',je.message);
-              continue;
-            }
-          }
-        }catch(e){
-          console.log('Picks proxy '+proxy.name+' error:',e.message);
-          continue;
-        }
-      }
+    let picksData=await picksRes.json();
+    if(picksData.error){
+      throw new Error(picksData.error);
     }
+    if(!picksData.picks){
+      throw new Error('No picks in response');
+    }
+    console.log('Picks loaded successfully');
     
-    if(!picksData)throw new Error('Could not fetch picks (all methods failed - check console)');
-    if(!picksData.picks)throw new Error('No picks array in response');
-    
-    console.log('All data fetched successfully. Building team...');
     userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
     $('teamInput').hidden=true;
@@ -1883,7 +1812,6 @@ async function loadUserTeam(fplId){
     status.style.color='var(--fire)';
     console.error('FPL load failed:',e.message);
     console.log('Full error:',e);
-    console.log('Check console for detailed proxy logs above');
   }
 }
 
