@@ -930,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22k';
+const APP_BUILD = 'app-2026-08-22m';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1906,9 +1906,9 @@ function loadSavedFplId(){
   }
 }
 
-// Get next 3 fixtures for a team using player fixture data
+// Get next 3 fixtures for a team using player fixture data from bootstrap
 function getNext3Fixtures(teamId){
-  if(!teamId || !players || !players.length) {
+  if(!teamId || !players || !players.length || !bootstrap || !bootstrap.teams) {
     return [
       {gw: 1, opp: '—', difficulty: null},
       {gw: 2, opp: '—', difficulty: null},
@@ -1916,27 +1916,40 @@ function getNext3Fixtures(teamId){
     ];
   }
   
-  // Find all fixtures by looking at all players from this team
+  // Find all fixtures by looking at players from this team
   const teamPlayers = players.filter(p => p.teamId === teamId);
+  if(!teamPlayers.length) return [
+    {gw: 1, opp: '—', difficulty: null},
+    {gw: 2, opp: '—', difficulty: null},
+    {gw: 3, opp: '—', difficulty: null}
+  ];
+  
   const foundFixtures = {};
   
-  // Each player has a fixture field with their next GW
+  // Each player has fixture (gameweek number) from FPL bootstrap
   teamPlayers.forEach(p => {
     if(p.fixture && !foundFixtures[p.fixture]) {
-      // Try to get opponent from fixtures array first
+      // p.fixture is the gameweek number, not an ID
+      // Find the corresponding fixture in the fixtures array by matching gameweek + team
+      let oppId = null;
+      let diff = p.fixture_difficulty || null;
+      
       if(fixtures && fixtures.length) {
         const fx = fixtures.find(f => f.event === p.fixture && (f.team_h === teamId || f.team_a === teamId));
         if(fx) {
           const isH = fx.team_h === teamId;
-          const oppId = isH ? fx.team_a : fx.team_h;
-          const opp = bootstrap?.teams?.find(t => t.id === oppId);
-          foundFixtures[p.fixture] = {
-            gw: p.fixture,
-            opp: opp?.short_name || '?',
-            difficulty: isH ? fx.team_h_difficulty : fx.team_a_difficulty
-          };
+          oppId = isH ? fx.team_a : fx.team_h;
+          diff = isH ? fx.team_h_difficulty : fx.team_a_difficulty;
         }
       }
+      
+      const opp = oppId ? bootstrap.teams.find(t => t.id === oppId)?.short_name : '?';
+      
+      foundFixtures[p.fixture] = {
+        gw: p.fixture,
+        opp: opp || '?',
+        difficulty: diff
+      };
     }
   });
   
