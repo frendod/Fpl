@@ -930,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22n';
+const APP_BUILD = 'app-2026-08-22o';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1906,64 +1906,30 @@ function loadSavedFplId(){
   }
 }
 
-// Get next 3 fixtures for a team using player.fixture_difficulty
+// Get next 3 fixtures for a team — same approach as the player history modal
 function getNext3Fixtures(teamId){
-  if(!teamId || !players || !players.length) {
-    return [
-      {gw: 0, opp: '—', difficulty: null},
-      {gw: 0, opp: '—', difficulty: null},
-      {gw: 0, opp: '—', difficulty: null}
-    ];
+  const blanks=[{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null}];
+  if(!teamId||!fixtures||!fixtures.length)return blanks;
+
+  const start=state.nextGW||1;
+  const teams=(bootstrap&&bootstrap.teams)||[];
+  const out=[];
+
+  for(let gw=start; gw<start+10 && out.length<3; gw++){
+    const fx=fixtures.find(f=>f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+    if(!fx)continue;
+    const isH=fx.team_h===teamId;
+    const oppId=isH?fx.team_a:fx.team_h;
+    const opp=teams.find(t=>t.id===oppId);
+    out.push({
+      gw,
+      opp:(opp&&opp.short_name)||'?',
+      difficulty:isH?fx.team_h_difficulty:fx.team_a_difficulty
+    });
   }
-  
-  // Find all players from this team
-  const teamPlayers = players.filter(p => p.teamId === teamId);
-  if(!teamPlayers.length) return [
-    {gw: 0, opp: '—', difficulty: null},
-    {gw: 0, opp: '—', difficulty: null},
-    {gw: 0, opp: '—', difficulty: null}
-  ];
-  
-  // Collect unique fixtures by looking at each player's next fixture
-  const foundFixtures = {};
-  
-  teamPlayers.forEach(p => {
-    // Each player has fixture (next fixture ID) and fixture_difficulty (1-5)
-    if(p.fixture && !foundFixtures[p.fixture]) {
-      // Use fixture_difficulty from player data directly
-      const diff = p.fixture_difficulty || null;
-      
-      // Try to get opponent name from fixtures array if available
-      let oppName = '?';
-      if(fixtures && fixtures.length && bootstrap?.teams) {
-        // p.fixture is fixture ID, match by ID
-        const fx = fixtures.find(f => f.id === p.fixture);
-        if(fx) {
-          const isH = fx.team_h === teamId;
-          const oppId = isH ? fx.team_a : fx.team_h;
-          const oppTeam = bootstrap.teams.find(t => t.id === oppId);
-          oppName = oppTeam?.short_name || '?';
-        }
-      }
-      
-      foundFixtures[p.fixture] = {
-        gw: p.fixture,
-        opp: oppName,
-        difficulty: diff
-      };
-    }
-  });
-  
-  // Return up to 3 fixtures, or blanks if none found
-  if(Object.keys(foundFixtures).length) {
-    return Object.values(foundFixtures).slice(0, 3);
-  }
-  
-  return [
-    {gw: 0, opp: '—', difficulty: null},
-    {gw: 0, opp: '—', difficulty: null},
-    {gw: 0, opp: '—', difficulty: null}
-  ];
+
+  while(out.length<3)out.push({gw:0,opp:'—',difficulty:null});
+  return out;
 }
 
 // Get CSS class for FDR color (matches fixture run colors with 5 levels)
@@ -2038,16 +2004,16 @@ function renderUserTeam(){
       const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
       
       // Get team name
-      const teamName=teamsMap[player.team]||player.club;
+      const teamName=teamsMap[player.teamId]||player.club;
       
       // Find fixture for current GW
       let fixtureText='—';
       if(fixtures&&fixtures.length){
-        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.team||f.team_a===player.team));
+        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
         if(fix){
-          const oppId=fix.team_h===player.team?fix.team_a:fix.team_h;
+          const oppId=fix.team_h===player.teamId?fix.team_a:fix.team_h;
           const oppName=teamsMap[oppId]||'OPP';
-          const isHome=fix.team_h===player.team;
+          const isHome=fix.team_h===player.teamId;
           fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
         }
       }
@@ -2059,8 +2025,7 @@ function renderUserTeam(){
       }
       
       // Get next 3 fixtures for this player's team
-      const next3=getNext3Fixtures(player.team);
-      console.log(`Player ${player.name} (team ${player.team}): fixtures=`, next3);
+      const next3=getNext3Fixtures(player.teamId);
       let fixturesBoxes='';
       if(next3 && next3.length){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
@@ -2069,7 +2034,7 @@ function renderUserTeam(){
             fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
           }else{
             const fdrClass=getFDRClass(fx.difficulty);
-            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117;">${fx.opp}</div>`;
           }
         });
         fixturesBoxes+='</div>';
@@ -2100,16 +2065,16 @@ function renderUserTeam(){
       const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
       
       // Get team name
-      const teamName=teamsMap[player.team]||player.club;
+      const teamName=teamsMap[player.teamId]||player.club;
       
       // Find fixture for current GW
       let fixtureText='—';
       if(fixtures&&fixtures.length){
-        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.team||f.team_a===player.team));
+        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
         if(fix){
-          const oppId=fix.team_h===player.team?fix.team_a:fix.team_h;
+          const oppId=fix.team_h===player.teamId?fix.team_a:fix.team_h;
           const oppName=teamsMap[oppId]||'OPP';
-          const isHome=fix.team_h===player.team;
+          const isHome=fix.team_h===player.teamId;
           fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
         }
       }
@@ -2121,8 +2086,7 @@ function renderUserTeam(){
       }
       
       // Get next 3 fixtures for this player's team
-      const next3=getNext3Fixtures(player.team);
-      console.log(`Sub ${player.name} (team ${player.team}): fixtures=`, next3);
+      const next3=getNext3Fixtures(player.teamId);
       let fixturesBoxes='';
       if(next3 && next3.length){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
@@ -2131,7 +2095,7 @@ function renderUserTeam(){
             fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
           }else{
             const fdrClass=getFDRClass(fx.difficulty);
-            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117;">${fx.opp}</div>`;
           }
         });
         fixturesBoxes+='</div>';
@@ -2606,14 +2570,26 @@ function renderXI(){
     const playingPct=getPlayingPercentage(p);
     const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
-    
+
+    const next3=getNext3Fixtures(p.teamId);
+    let fixBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+    next3.forEach(f=>{
+      if(f.opp==='—'){
+        fixBoxes+='<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:var(--dim)">—</div>';
+      }else{
+        fixBoxes+='<div class="'+getFDRClass(f.difficulty)+'" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117">'+f.opp+'</div>';
+      }
+    });
+    fixBoxes+='</div>';
+
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
       +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'')
       +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div>'
-      +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div></div>';
+      +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div>'
+      +fixBoxes+'</div>';
   };
   const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
         mdX=xi.filter(p=>p.pos==='MID'), fwX=xi.filter(p=>p.pos==='FWD');
