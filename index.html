@@ -412,7 +412,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 /* Bench: 4 cards at 20% + 3 gaps at 2% = 86%, leaving room for the label. */
 /* Bench: title on its own line, then GK, a small gap, then 3 outfield.
    4 cards x 22% + separator 4% + 4 gaps x 1% = 96% of the row. */
-.bench-row{display:flex;justify-content:center;align-items:flex-start;gap:1%;width:100%}
+.bench-cards{display:flex;justify-content:center;align-items:flex-start;gap:1%;width:100%}
 .benchstrip .pcard{flex:0 1 22%}
 .bench-sep{flex:0 0 4%;align-self:stretch}
 .club-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex:0 0 auto}
@@ -969,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22u';
+const APP_BUILD = 'app-2026-08-22v';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2178,7 +2178,7 @@ function renderUserTeam(){
     +'</div>'
     +'<div class="benchstrip">'
       +'<span class="bench-label">'+t('sqBench')+'</span>'
-      +'<div class="bench-row">'
+      +'<div class="bench-cards">'
         +benchGK.map(card).join('')
         +(benchGK.length?'<div class="bench-sep"></div>':'')
         +benchOut.map(card).join('')
@@ -2708,7 +2708,7 @@ function renderXI(){
     +'</div>'
     +'<div class="benchstrip">'
       +'<span class="bench-label">'+t('sqBench')+'</span>'
-      +'<div class="bench-row">'
+      +'<div class="bench-cards">'
         +bench.filter(b=>b.pos==='GKP').map(disc).join('')
         +(bench.some(b=>b.pos==='GKP')?'<div class="bench-sep"></div>':'')
         +bench.filter(b=>b.pos!=='GKP').map(disc).join('')
