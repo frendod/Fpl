@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22p';
+const APP_BUILD = 'app-2026-08-22r';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1894,6 +1894,14 @@ function renderUserTeam(){
   if(!userTeam.picks)return;
   const picks=userTeam.picks;
   
+  // Map team IDs to full team names from bootstrap
+  const teamsMap={};
+  if(bootstrap&&bootstrap.teams){
+    bootstrap.teams.forEach(t=>{
+      teamsMap[t.id]=t.name;
+    });
+  }
+  
   $('gwStatus').textContent=`GW ${userTeam.gw} / ${userTeam.currentEvent||38}`;
   
   let html='';
@@ -1904,10 +1912,29 @@ function renderUserTeam(){
   xi.forEach(p=>{
     const player=players.find(pl=>pl.id===p.element);
     if(player){
+      const isCap=p.is_captain?' ⭐':'';
+      const isVC=p.is_vice_captain?' 🔶':'';
+      const badge=isCap||isVC?isCap+isVC:'';
+      
+      // Injury status badge
+      const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
+      
+      // Get team name
+      const teamName=teamsMap[player.team]||player.club;
+      
+      // This week's score
+      let gwScore='-';
+      const fixtures=player.fixtures||[];
+      const thisGwFix=fixtures.find(f=>f.event===userTeam.gw);
+      if(thisGwFix){
+        gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
+      }
+      
       html+=`<div class="team-card">
-        <div class="team-card-pos">${player.pos}</div>
-        <div class="team-card-name">${player.name}</div>
-        <div class="team-card-club">${player.club}</div>
+        <div class="team-card-pos">${player.pos}${badge}</div>
+        <div class="team-card-name">${player.name}${injBadge}</div>
+        <div class="team-card-club">${teamName}</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
     }
@@ -1918,10 +1945,29 @@ function renderUserTeam(){
   subs.forEach(p=>{
     const player=players.find(pl=>pl.id===p.element);
     if(player){
+      const isCap=p.is_captain?' ⭐':'';
+      const isVC=p.is_vice_captain?' 🔶':'';
+      const badge=isCap||isVC?isCap+isVC:'';
+      
+      // Injury status badge
+      const injBadge=player.status==='a'?'':'<span style="color:var(--fire);font-weight:bold;margin-left:2px;">!</span>';
+      
+      // Get team name
+      const teamName=teamsMap[player.team]||player.club;
+      
+      // This week's score
+      let gwScore='-';
+      const fixtures=player.fixtures||[];
+      const thisGwFix=fixtures.find(f=>f.event===userTeam.gw);
+      if(thisGwFix){
+        gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
+      }
+      
       html+=`<div class="team-card">
-        <div class="team-card-pos">${player.pos}</div>
-        <div class="team-card-name">${player.name}</div>
-        <div class="team-card-club">${player.club}</div>
+        <div class="team-card-pos">${player.pos}${badge}</div>
+        <div class="team-card-name">${player.name}${injBadge}</div>
+        <div class="team-card-club">${teamName}</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
     }
