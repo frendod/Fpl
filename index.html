@@ -782,6 +782,7 @@ textarea:focus{border-color:var(--accent)}
         <div style="padding:18px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input type="number" id="fplId" placeholder="Enter FPL ID" aria-label="FPL ID" style="flex:1;min-width:150px">
           <button class="btn" id="loadTeamBtn">Load Team</button>
+          <button class="btn" id="clearFplBtn" style="background:rgba(255,100,100,.2);border-color:var(--fire);color:var(--fire);">Clear</button>
           <span id="teamLoadStatus" style="font-size:12px;color:var(--dim);flex-basis:100%;word-break:break-word"></span>
         </div>
       </div>
@@ -925,7 +926,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22r';
+const APP_BUILD = 'app-2026-08-22t';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1831,7 +1832,6 @@ async function loadUserTeam(fplId){
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
-    console.log('=== FPL Team Load Start ===');
     console.log('FPL ID:',fplId);
     
     const proxyBase='/api/fpl-proxy?path=';
@@ -1879,6 +1879,9 @@ async function loadUserTeam(fplId){
     $('teamMeta').textContent=`${entry.player_first_name} · ID ${fplId}`;
     renderUserTeam();
     
+    // Save FPL ID to localStorage
+    localStorage.setItem('fplRockId',fplId);
+    
     console.log('\n=== Team Loaded Successfully ===\n');
     status.textContent='✓ Team loaded successfully';
     status.style.color='var(--live)';
@@ -1890,6 +1893,14 @@ async function loadUserTeam(fplId){
   }
 }
 
+// Load saved FPL ID on page load
+function loadSavedFplId(){
+  const saved=localStorage.getItem('fplRockId');
+  if(saved){
+    $('fplId').value=saved;
+  }
+}
+
 function renderUserTeam(){
   if(!userTeam.picks)return;
   const picks=userTeam.picks;
@@ -1898,7 +1909,7 @@ function renderUserTeam(){
   const teamsMap={};
   if(bootstrap&&bootstrap.teams){
     bootstrap.teams.forEach(t=>{
-      teamsMap[t.id]=t.name;
+      teamsMap[t.id]=t.short_name||t.name;
     });
   }
   
@@ -1922,10 +1933,22 @@ function renderUserTeam(){
       // Get team name
       const teamName=teamsMap[player.team]||player.club;
       
+      // Find fixture for current GW
+      let fixtureText='—';
+      if(fixtures&&fixtures.length){
+        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.team||f.team_a===player.team));
+        if(fix){
+          const oppId=fix.team_h===player.team?fix.team_a:fix.team_h;
+          const oppName=teamsMap[oppId]||'OPP';
+          const isHome=fix.team_h===player.team;
+          fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
+        }
+      }
+      
       // This week's score
       let gwScore='-';
-      const fixtures=player.fixtures||[];
-      const thisGwFix=fixtures.find(f=>f.event===userTeam.gw);
+      const playerHistory=player.fixtures||[];
+      const thisGwFix=playerHistory.find(f=>f.event===userTeam.gw);
       if(thisGwFix){
         gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
       }
@@ -1934,6 +1957,7 @@ function renderUserTeam(){
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
         <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
@@ -1955,10 +1979,22 @@ function renderUserTeam(){
       // Get team name
       const teamName=teamsMap[player.team]||player.club;
       
+      // Find fixture for current GW
+      let fixtureText='—';
+      if(fixtures&&fixtures.length){
+        const fix=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.team||f.team_a===player.team));
+        if(fix){
+          const oppId=fix.team_h===player.team?fix.team_a:fix.team_h;
+          const oppName=teamsMap[oppId]||'OPP';
+          const isHome=fix.team_h===player.team;
+          fixtureText=`vs ${oppName} (${isHome?'H':'A'})`;
+        }
+      }
+      
       // This week's score
       let gwScore='-';
-      const fixtures=player.fixtures||[];
-      const thisGwFix=fixtures.find(f=>f.event===userTeam.gw);
+      const playerHistory=player.fixtures||[];
+      const thisGwFix=playerHistory.find(f=>f.event===userTeam.gw);
       if(thisGwFix){
         gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
       }
@@ -1967,6 +2003,7 @@ function renderUserTeam(){
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
         <div style="font-size:11px;color:var(--accent);margin-top:2px;">GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
       </div>`;
@@ -3342,6 +3379,10 @@ async function load(){
   clearNotes();
   const btn=$('runBtn'); btn.disabled=true; btn.textContent=t('loading');
   $('tabs').hidden=false;
+  
+  // Load saved FPL ID if available
+  loadSavedFplId();
+  
   $('pickGrid').innerHTML='<div class="loading" style="grid-column:1/-1"><div class="spin"></div>'
     +'<div class="ltext">'+t('loading')+'</div></div>';
 
@@ -3601,6 +3642,14 @@ document.addEventListener('click',e=>{
   if(e.target===$('loadTeamBtn')){
     const id=$('fplId').value.trim();
     if(id)loadUserTeam(id);
+  }
+  if(e.target===$('clearFplBtn')){
+    $('fplId').value='';
+    localStorage.removeItem('fplRockId');
+    $('teamInput').hidden=false;
+    $('teamDisplay').hidden=true;
+    $('teamLoadStatus').textContent='ID cleared';
+    setTimeout(()=>{$('teamLoadStatus').textContent=''},2000);
   }
   if(e.target===$('gwPrev')){
     const gw=parseInt($('gwSelect').value,10);
