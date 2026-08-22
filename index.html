@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22f';
+const APP_BUILD = 'app-2026-08-22g';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1756,87 +1756,118 @@ async function loadUserTeam(fplId){
     status.textContent='Loading...';
     status.style.color='var(--dim)';
     const apiBase='https://fantasy.premierleague.com/api/entry/';
+    console.log('Starting FPL load for ID:',fplId);
     
     // Try direct fetch first
     let hist=null;
-    let histRes=await fetch(apiBase+fplId+'/history/');
-    
-    if(histRes.ok){
-      try{
+    console.log('Attempting direct fetch...');
+    try{
+      let histRes=await fetch(apiBase+fplId+'/history/');
+      console.log('Direct fetch response status:',histRes.status);
+      if(histRes.ok){
         hist=await histRes.json();
-      }catch(e){
-        throw new Error('Invalid response format');
+        console.log('Direct fetch succeeded');
+      } else {
+        console.log('Direct fetch failed with status:',histRes.status);
       }
-    } else if(histRes.status===0||histRes.type==='opaque'){
-      // CORS blocked - try multiple proxies
+    }catch(e){
+      console.log('Direct fetch error (expected due to CORS):',e.message);
+    }
+    
+    // If direct fetch failed, try proxies
+    if(!hist){
+      console.log('Trying CORS proxies...');
       const proxies=[
-        'https://corsproxy.io/?',
-        'https://cors-anywhere.herokuapp.com/',
-        'https://thingproxy.freeboard.io/fetch/'
+        {name:'corsproxy.io',url:'https://corsproxy.io/?'},
+        {name:'cors-anywhere',url:'https://cors-anywhere.herokuapp.com/'},
+        {name:'thingproxy',url:'https://thingproxy.freeboard.io/fetch/'}
       ];
       
-      let lastError=null;
       for(let proxy of proxies){
         try{
-          const url=proxy+(proxy.includes('?')?'':'')+encodeURIComponent(apiBase+fplId+'/history/');
-          histRes=await fetch(url);
+          console.log('Trying proxy:',proxy.name);
+          const url=proxy.url+(proxy.url.includes('?')?'':'')+encodeURIComponent(apiBase+fplId+'/history/');
+          let histRes=await fetch(url);
+          console.log(proxy.name+' response status:',histRes.status);
           if(histRes.ok){
-            hist=await histRes.json();
-            break;
+            const text=await histRes.text();
+            console.log(proxy.name+' response length:',text.length);
+            try{
+              hist=JSON.parse(text);
+              console.log('Successfully parsed response from',proxy.name);
+              break;
+            }catch(je){
+              console.log('Failed to parse JSON from',proxy.name,'error:',je.message);
+              continue;
+            }
           }
         }catch(e){
-          lastError=e;
+          console.log('Proxy '+proxy.name+' error:',e.message);
           continue;
         }
       }
-      if(!hist)throw new Error('All CORS proxies failed - try again later');
-    } else {
-      throw new Error('Entry not found (ID: '+fplId+')');
     }
+    
+    if(!hist)throw new Error('Could not fetch data (all methods failed - check console)');
     
     const current=hist.current?hist.current[0]:null;
     if(!current)throw new Error('No active season for this ID');
+    console.log('Current gameweek:',current.event);
     
     // Fetch picks for current gameweek
     const picksUrl=apiBase+fplId+'/event/'+current.event+'/picks/';
-    let picksRes=await fetch(picksUrl);
     let picksData=null;
+    console.log('Attempting to fetch picks from GW '+current.event);
     
-    if(picksRes.ok){
-      try{
+    try{
+      let picksRes=await fetch(picksUrl);
+      console.log('Direct picks fetch status:',picksRes.status);
+      if(picksRes.ok){
         picksData=await picksRes.json();
-      }catch(e){
-        throw new Error('Invalid picks response format');
+        console.log('Direct picks fetch succeeded');
       }
-    } else if(picksRes.status===0||picksRes.type==='opaque'){
-      // CORS blocked - try proxies for picks too
+    }catch(e){
+      console.log('Direct picks fetch error (expected due to CORS):',e.message);
+    }
+    
+    // If direct picks fetch failed, try proxies
+    if(!picksData){
+      console.log('Trying proxies for picks...');
       const proxies=[
-        'https://corsproxy.io/?',
-        'https://cors-anywhere.herokuapp.com/',
-        'https://thingproxy.freeboard.io/fetch/'
+        {name:'corsproxy.io',url:'https://corsproxy.io/?'},
+        {name:'cors-anywhere',url:'https://cors-anywhere.herokuapp.com/'},
+        {name:'thingproxy',url:'https://thingproxy.freeboard.io/fetch/'}
       ];
       
-      let lastError=null;
       for(let proxy of proxies){
         try{
-          const url=proxy+(proxy.includes('?')?'':'')+encodeURIComponent(picksUrl);
-          picksRes=await fetch(url);
+          console.log('Trying picks proxy:',proxy.name);
+          const url=proxy.url+(proxy.url.includes('?')?'':'')+encodeURIComponent(picksUrl);
+          let picksRes=await fetch(url);
+          console.log(proxy.name+' picks response status:',picksRes.status);
           if(picksRes.ok){
-            picksData=await picksRes.json();
-            break;
+            const text=await picksRes.text();
+            console.log(proxy.name+' picks response length:',text.length);
+            try{
+              picksData=JSON.parse(text);
+              console.log('Successfully parsed picks from',proxy.name);
+              break;
+            }catch(je){
+              console.log('Failed to parse picks JSON from',proxy.name,'error:',je.message);
+              continue;
+            }
           }
         }catch(e){
-          lastError=e;
+          console.log('Picks proxy '+proxy.name+' error:',e.message);
           continue;
         }
       }
-      if(!picksData)throw new Error('Could not load picks from any proxy');
-    } else {
-      throw new Error('Could not fetch picks (status: '+picksRes.status+')');
     }
     
-    if(!picksData.picks)throw new Error('No picks in response');
+    if(!picksData)throw new Error('Could not fetch picks (all methods failed - check console)');
+    if(!picksData.picks)throw new Error('No picks array in response');
     
+    console.log('All data fetched successfully. Building team...');
     userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
     $('teamInput').hidden=true;
@@ -1845,12 +1876,14 @@ async function loadUserTeam(fplId){
     renderUserTeam();
     status.textContent='✓ Team loaded successfully';
     status.style.color='var(--live)';
+    console.log('Team rendered successfully');
     setTimeout(()=>{status.textContent=''},4000);
   }catch(e){
-    status.textContent='✗ Load failed: '+e.message;
+    status.textContent='✗ '+e.message;
     status.style.color='var(--fire)';
-    console.error('FPL load error:',e);
-    console.log('Attempted FPL ID:',fplId);
+    console.error('FPL load failed:',e.message);
+    console.log('Full error:',e);
+    console.log('Check console for detailed proxy logs above');
   }
 }
 
