@@ -400,9 +400,15 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 }
 .pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
   background:var(--line);transform:translateX(-50%)}
-.prow-xi{display:flex;justify-content:center;gap:5px;margin-bottom:17px;flex-wrap:wrap;position:relative}
+/* Fluid pitch sizing. A 5-across row must satisfy 5w + 4g <= rowWidth,
+   where rowWidth = 100vw - 40px (wrap) - 24px (pitch). With g=4px that
+   gives w <= 20vw - 16px; the clamp caps at the original 62px on desktop
+   and floors at 46px on very small phones. */
+.pitch{--pcw:clamp(46px,calc(20vw - 16px),62px)}
+.benchstrip{--pcw:clamp(46px,calc(20vw - 16px),62px)}
+.prow-xi{display:flex;justify-content:center;gap:4px;margin-bottom:17px;flex-wrap:wrap;position:relative}
 .prow-xi:last-child{margin-bottom:0}
-.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px}
+.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;width:var(--pcw,62px)}
 .club-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex:0 0 auto}
 .datasource{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
 .datasource-summary{cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:12px;
@@ -413,9 +419,10 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .datasource-hint{margin-left:auto;color:var(--dimmer);letter-spacing:.04em;text-transform:none;font-size:12px}
 .datasource-body{padding:0 18px 18px}
 .pdisc{
-  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;position:relative;
-  border:1px solid;
+  width:calc(var(--pcw,62px)*.68);height:calc(var(--pcw,62px)*.68);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:clamp(10.5px,2.9vw,13px);
+  font-weight:600;position:relative;border:1px solid;flex:0 0 auto;
 }
 .pdisc.GKP{background:rgba(217,164,65,.16);border-color:rgba(217,164,65,.5);color:var(--prior)}
 .pdisc.DEF{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5);color:var(--live)}
@@ -424,9 +431,10 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
-.pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;max-width:62px;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:4px}
-.pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer)}
+.pcname{font-size:clamp(8px,2.4vw,9.5px);text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:var(--pcw,62px);color:var(--paper);display:flex;align-items:center;justify-content:center;gap:3px}
+.pcsub{font-family:'IBM Plex Mono',monospace;font-size:clamp(7px,2.1vw,8.5px);color:var(--dimmer);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:var(--pcw,62px)}
 .pbadge{
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
@@ -570,6 +578,16 @@ textarea:focus{border-color:var(--accent)}
 .fix-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
 .fix-gw{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+/* Next-3-fixtures strip. Boxes divide the parent card evenly, so they
+   inherit whatever width the card has — pitch card or MY TEAM card. */
+.fixrow{display:flex;gap:2px;margin-top:5px;width:100%}
+.fixbox{
+  flex:1 1 0;min-width:0;padding:3px 1px;text-align:center;border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;font-weight:600;line-height:1.25;
+  font-size:clamp(6px,1.8vw,9px);color:#0d1117;
+  overflow:hidden;white-space:nowrap;
+}
+.fixbox.fdr-blank{color:var(--dimmer)}
 .fdr-easy{background:#2ecc71}
 .fdr-easier{background:#27ae60}
 .fdr-mid{background:#e8e8e8}
@@ -930,7 +948,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22o';
+const APP_BUILD = 'app-2026-08-22p';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2028,13 +2046,12 @@ function renderUserTeam(){
       const next3=getNext3Fixtures(player.teamId);
       let fixturesBoxes='';
       if(next3 && next3.length){
-        fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+        fixturesBoxes='<div class="fixrow">';
         next3.forEach(fx=>{
           if(fx.opp==='—'){
-            fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
+            fixturesBoxes+='<div class="fixbox fdr-blank">—</div>';
           }else{
-            const fdrClass=getFDRClass(fx.difficulty);
-            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117;">${fx.opp}</div>`;
+            fixturesBoxes+='<div class="fixbox '+getFDRClass(fx.difficulty)+'">'+fx.opp+'</div>';
           }
         });
         fixturesBoxes+='</div>';
@@ -2089,13 +2106,12 @@ function renderUserTeam(){
       const next3=getNext3Fixtures(player.teamId);
       let fixturesBoxes='';
       if(next3 && next3.length){
-        fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+        fixturesBoxes='<div class="fixrow">';
         next3.forEach(fx=>{
           if(fx.opp==='—'){
-            fixturesBoxes+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
+            fixturesBoxes+='<div class="fixbox fdr-blank">—</div>';
           }else{
-            const fdrClass=getFDRClass(fx.difficulty);
-            fixturesBoxes+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117;">${fx.opp}</div>`;
+            fixturesBoxes+='<div class="fixbox '+getFDRClass(fx.difficulty)+'">'+fx.opp+'</div>';
           }
         });
         fixturesBoxes+='</div>';
@@ -2572,12 +2588,12 @@ function renderXI(){
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
 
     const next3=getNext3Fixtures(p.teamId);
-    let fixBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+    let fixBoxes='<div class="fixrow">';
     next3.forEach(f=>{
       if(f.opp==='—'){
-        fixBoxes+='<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:var(--dim)">—</div>';
+        fixBoxes+='<div class="fixbox fdr-blank">—</div>';
       }else{
-        fixBoxes+='<div class="'+getFDRClass(f.difficulty)+'" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:9px;font-weight:bold;color:#0d1117">'+f.opp+'</div>';
+        fixBoxes+='<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+'</div>';
       }
     });
     fixBoxes+='</div>';
