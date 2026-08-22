@@ -235,6 +235,16 @@ body::before{
 
 .wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
 .wgroup:last-child{border-bottom:none}
+.wgroup-details{border-bottom:1px solid var(--line)}
+.wgroup-details:last-child{border-bottom:none}
+.wgroup-details[open] summary{border-bottom:1px solid var(--line2);padding-bottom:14px;margin-bottom:14px}
+.wgroup-details summary{
+  padding:14px 20px;margin:-14px -20px;cursor:pointer;user-select:none;
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  transition:background .15s;
+}
+.wgroup-details summary:hover{background:rgba(255,255,255,.02)}
+.wgroup-details summary::marker{color:var(--dim)}
 .wgroup-head{
   display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;
 }
@@ -750,15 +760,6 @@ textarea:focus{border-color:var(--accent)}
   <div id="errNote" class="note err" hidden></div>
   <div id="warnNote" class="note warn" hidden></div>
 
-  <!-- WEIGHTS -->
-  <div class="panel">
-    <div class="panel-head">
-      <div class="panel-title" data-i18n="weights">Weights</div>
-      <div class="preset-strip" id="presets"></div>
-    </div>
-    <div id="weightBody"></div>
-  </div>
-
   <!-- TABS -->
   <div class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" role="tab" aria-selected="true" data-view="picks" data-i18n="tabPicks">Picks</button>
@@ -797,7 +798,18 @@ textarea:focus{border-color:var(--accent)}
     </div>
   </div>
   
-  <div class="view" id="view-xi"><div id="xiBody"></div></div>
+  <div class="view" id="view-xi">
+    <!-- WEIGHTS IN XI TAB -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title" data-i18n="weights">Weights</div>
+        <div class="preset-strip" id="presets"></div>
+      </div>
+      <div id="weightBody"></div>
+    </div>
+    <!-- SQUAD BUILD -->
+    <div id="xiBody"></div>
+  </div>
 
   <div class="view" id="view-table">
     <div class="panel">
@@ -913,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22c';
+const APP_BUILD = 'app-2026-08-22e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1678,8 +1690,8 @@ function renderWeights(){
         +(hint?'<span class="whint">'+hint+'</span>':'')
         +'</div>';
     }).join('');
-    return '<div class="wgroup"><div class="wgroup-head"><span class="wgroup-name">'+t(g.nameK)+'</span>'
-      +'<span class="wgroup-desc">'+t(g.descK)+'</span></div><div class="wgrid">'+rows+'</div></div>';
+    return '<details class="wgroup-details" open><summary><span class="wgroup-name">'+t(g.nameK)+'</span>'
+      +'<span class="wgroup-desc">'+t(g.descK)+'</span></summary><div class="wgrid">'+rows+'</div></details>';
   }).join('');
 
   strip.querySelectorAll('.preset').forEach(b=>{
@@ -1738,26 +1750,45 @@ async function loadUserTeam(fplId){
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
-    const corsProxy='https://api.allorigins.win/get?url=';
     const apiBase='https://fantasy.premierleague.com/api/entry/';
     
-    // Fetch history via CORS proxy
-    const histUrl=apiBase+fplId+'/history/';
-    const histRes=await fetch(corsProxy+encodeURIComponent(histUrl));
-    if(!histRes.ok)throw new Error('Network error');
-    const histWrap=await histRes.json();
-    if(histWrap.status.code!==200)throw new Error('User not found ('+histWrap.status.code+')');
-    const hist=JSON.parse(histWrap.contents);
-    const current=hist.current[0];
-    if(!current)throw new Error('No season data');
+    // Try direct fetch first (some environments allow it)
+    let hist=null;
+    let histRes=await fetch(apiBase+fplId+'/history/');
+    
+    if(histRes.ok){
+      hist=await histRes.json();
+    } else if(histRes.status===0||histRes.type==='opaque'){
+      // CORS blocked, try proxy
+      const corsProxy='https://corsproxy.io/?';
+      histRes=await fetch(corsProxy+encodeURIComponent(apiBase+fplId+'/history/'));
+      if(!histRes.ok)throw new Error('CORS proxy failed');
+      hist=await histRes.json();
+    } else {
+      throw new Error('Entry not found ('+histRes.status+')');
+    }
+    
+    const current=hist.current?hist.current[0]:null;
+    if(!current)throw new Error('No season data or invalid ID');
     
     // Fetch picks for current gameweek
     const picksUrl=apiBase+fplId+'/event/'+current.event+'/picks/';
-    const picksRes=await fetch(corsProxy+encodeURIComponent(picksUrl));
-    if(!picksRes.ok)throw new Error('Could not fetch picks');
-    const picksWrap=await picksRes.json();
-    if(picksWrap.status.code!==200)throw new Error('Could not load picks');
-    const picksData=JSON.parse(picksWrap.contents);
+    let picksRes=await fetch(picksUrl);
+    let picksData=null;
+    
+    if(picksRes.ok){
+      picksData=await picksRes.json();
+    } else if(picksRes.status===0||picksRes.type==='opaque'){
+      // CORS blocked, try proxy
+      const corsProxy='https://corsproxy.io/?';
+      picksRes=await fetch(corsProxy+encodeURIComponent(picksUrl));
+      if(!picksRes.ok)throw new Error('Could not fetch picks');
+      picksData=await picksRes.json();
+    } else {
+      throw new Error('Could not fetch picks ('+picksRes.status+')');
+    }
+    
+    if(!picksData.picks)throw new Error('No picks data');
     
     userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
@@ -1767,11 +1798,12 @@ async function loadUserTeam(fplId){
     renderUserTeam();
     status.textContent='✓ Loaded';
     status.style.color='var(--live)';
-    setTimeout(()=>{status.textContent=''},2000);
+    setTimeout(()=>{status.textContent=''},3000);
   }catch(e){
     status.textContent='✗ '+e.message;
     status.style.color='var(--fire)';
-    console.error('FPL load error:',e);
+    console.error('FPL load error details:',e);
+    console.log('Attempted FPL ID:',fplId);
   }
 }
 
