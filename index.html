@@ -588,6 +588,7 @@ textarea:focus{border-color:var(--accent)}
 .fix-gw{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 /* MY TEAM pitch extras */
+.xp-note{padding:6px 20px 8px;font-size:10.5px;line-height:1.35;color:var(--dimmer);border-bottom:1px solid var(--line)}
 .pcnote{font-family:'IBM Plex Mono',monospace;font-size:8px;
   letter-spacing:.06em;color:var(--dim);line-height:1;min-height:8px;text-align:center}
 .pcnote{font-size:clamp(6px,12.5cqw,8px)}
@@ -968,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22s';
+const APP_BUILD = 'app-2026-08-22u';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1662,6 +1663,7 @@ function build(){
     const f=fdrFor(p.team,gws);
     return{
       id:p.id, el:p,
+      epNext:parseFloat(p.ep_next)||0,
       name:p.web_name,
       fullName:((p.first_name||'')+' '+(p.second_name||'')).trim(),
       secondName:p.second_name||'',
@@ -1911,13 +1913,16 @@ async function loadUserTeam(fplId){
     userTeam={
       picks:picksData.picks,
       gw:current.event,
+      entryId:fplId,
+      basePicks:picksData.picks,
+      isFuture:false,
       username:entry.player_first_name,
       teamName:entry.name||'',
       currentEvent:current.event,
       chips:picksData.chips||[]
     };
     
-    $('gwSelect').max=current.event;
+    $('gwSelect').max=38;
     $('teamInput').hidden=true;
     $('teamDisplay').hidden=false;
     // entry.name is the FPL squad name; fall back to the manager if it is blank
@@ -1947,11 +1952,11 @@ function loadSavedFplId(){
 }
 
 // Get next 3 fixtures for a team — same approach as the player history modal
-function getNext3Fixtures(teamId){
+function getNext3Fixtures(teamId,startGW){
   const blanks=[{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null}];
   if(!teamId||!fixtures||!fixtures.length)return blanks;
 
-  const start=state.nextGW||1;
+  const start=startGW||state.nextGW||1;
   const teams=(bootstrap&&bootstrap.teams)||[];
   const out=[];
 
@@ -1984,6 +1989,77 @@ function getFDRClass(difficulty){
   else baseClass='fdr-mid'; // default to mid
   
   return baseClass+(fdrTheme==='light'?' light-theme':'');
+}
+
+// Switch the MY TEAM view to another gameweek.
+// Past/current GWs have real picks to fetch. Future GWs do not exist in the
+// FPL API yet, so we carry the latest known squad forward and show expected
+// points instead of scores.
+// Expected points for a player in a given gameweek.
+//
+// FPL publishes ep_next, which is its estimate for the NEXT gameweek only and
+// is already fixture-aware. For that week we pass it through untouched.
+// Beyond it there is no published figure, so we adjust ep_next by that week's
+// fixture difficulty: easier than average scales up, harder scales down.
+// That adjustment is a rule of thumb, not a model — see the footnote shown
+// alongside it in the UI.
+const XP_FDR_SWING=0.15;
+function projectedPoints(player,gw){
+  if(!player)return 0;
+  const base=player.epNext||0;
+  const nextGW=(userTeam.currentEvent||0)+1;
+  if(gw<=nextGW||!base)return base;
+
+  let diff=null;
+  if(fixtures&&fixtures.length){
+    const fx=fixtures.find(f=>f.event===gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
+    if(fx)diff=(fx.team_h===player.teamId)?fx.team_h_difficulty:fx.team_a_difficulty;
+  }
+  if(diff==null)return 0;           // blank gameweek: no fixture, no points
+  const mult=diff<=2?1+XP_FDR_SWING:diff>=4?1-XP_FDR_SWING:1;
+  return base*mult;
+}
+
+async function changeGameweek(gw){
+  if(!userTeam.picks)return;
+  gw=Math.max(1,Math.min(38,parseInt(gw,10)||1));
+  const current=userTeam.currentEvent||gw;
+  $('gwSelect').value=gw;
+
+  const status=$('gwStatus');
+  userTeam.gw=gw;
+  userTeam.isFuture=gw>current;
+
+  // scores from the previous gameweek must not leak into the new view
+  userTeam.gwScores={};
+  userTeam.gwMinutes={};
+  userTeam.autosubs={};
+
+  if(userTeam.isFuture){
+    // no picks published yet — keep the current squad as the best available guess
+    userTeam.picks=userTeam.basePicks||userTeam.picks;
+    renderUserTeam();
+    return;
+  }
+
+  try{
+    if(status)status.textContent='Loading GW '+gw+'…';
+    const url='/api/fpl-proxy?path='+encodeURIComponent('entry/'+userTeam.entryId+'/event/'+gw+'/picks/');
+    const res=await fetch(url);
+    if(!res.ok)throw new Error('status '+res.status);
+    const data=await res.json();
+    if(!data.picks)throw new Error('no picks returned');
+    userTeam.picks=data.picks;
+    userTeam.chips=data.chips||[];
+    renderUserTeam();
+  }catch(err){
+    console.log('GW '+gw+' picks unavailable:',err.message);
+    if(status)status.textContent='GW '+gw+' unavailable';
+    // leave the previous squad on screen rather than blanking the view
+    userTeam.picks=userTeam.basePicks||userTeam.picks;
+    userTeam.isFuture=true;
+    renderUserTeam();
+  }
 }
 
 function renderUserTeam(){
@@ -2034,7 +2110,11 @@ function renderUserTeam(){
       }
     }
 
-    const gwScore=(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined)?userTeam.gwScores[p.element]:'–';
+    // A future gameweek has no result, so show expected points rather than
+    // a misleading zero.
+    const gwScore=userTeam.isFuture
+      ? projectedPoints(player,userTeam.gw).toFixed(1)
+      : ((userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined)?userTeam.gwScores[p.element]:'–');
 
     const capMark=p.is_captain?'<span class="capmark">'+t('sqCap')+'</span>'
                  :p.is_vice_captain?'<span class="capmark capmark-vc">V</span>':'';
@@ -2043,7 +2123,7 @@ function renderUserTeam(){
       :player.status==='i'||player.status==='s'?'inj':player.status==='u'?'unav':'new';
     const injBadge=player.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'';
 
-    const next3=getNext3Fixtures(player.teamId);
+    const next3=getNext3Fixtures(player.teamId,userTeam.gw);
     let fixBoxes='<div class="fixrow">';
     next3.forEach(f=>{
       fixBoxes+=f.opp==='—'
@@ -2068,13 +2148,26 @@ function renderUserTeam(){
   });
 
   let html='';
+  const fut=userTeam.isFuture;
+  const totalLabel=fut?'Projected: '+totalPoints+' xP':'Total: '+totalPoints+' pts';
   html+='<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;'
     +'justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'
     +'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--dim);'
     +'text-transform:uppercase;letter-spacing:.1em;">'+t('sqStarting')+chipText+'</span>'
     +'<div style="font-size:14px;font-weight:bold;color:var(--accent);" data-team-total>'
-    +'Total: '+totalPoints+' pts</div>'
+    +totalLabel+'</div>'
     +'</div>';
+  if(fut){
+    const oneAhead=userTeam.gw<=(userTeam.currentEvent||0)+1;
+    html+='<div class="xp-note">'
+      +(oneAhead
+        ? "xP = expected points, FPL's own estimate for this gameweek."
+        : 'xP = expected points. Beyond next gameweek FPL publishes no figure, '
+          +'so this is a guesstimate: its GW '+((userTeam.currentEvent||0)+1)
+          +' estimate nudged \u00b115% by fixture difficulty. Treat as indicative.')
+      +' Squad shown is your current one.'
+      +'</div>';
+  }
 
   html+='<div style="padding:0 10px 4px">'
     +'<div class="pitch">'
@@ -2095,7 +2188,7 @@ function renderUserTeam(){
 
   $('teamBody').innerHTML=html;
 
-  populateGWScores(picks);
+  if(!userTeam.isFuture)populateGWScores(picks);
 }
 
 // Fetch player histories for all picks to get this week's scores and minutes
@@ -2231,10 +2324,19 @@ function applyAutosubs(picks){
 // - Only count starting XI (11) unless Bench Boost
 // - Bench Boost counts all 15 players
 function calculateGWTotal(){
-  if(!userTeam.picks||!userTeam.gwScores)return 0;
-  
+  if(!userTeam.picks)return 0;
+  if(!userTeam.gwScores)userTeam.gwScores={};
+
   const picks=userTeam.picks;
-  const scores=userTeam.gwScores;
+  // On a future gameweek there are no results, so total the expected points
+  // for the same eleven instead. Autosubs cannot apply to an unplayed match.
+  const scores=userTeam.isFuture
+    ? picks.reduce((acc,pk)=>{
+        const pl=players.find(x=>x.id===pk.element);
+        acc[pk.element]=pl?projectedPoints(pl,userTeam.gw):0;
+        return acc;
+      },{})
+    : userTeam.gwScores;
   const autosubs=userTeam.autosubs||{};
   
   // Determine captain multiplier based on chip
@@ -2272,7 +2374,7 @@ function calculateGWTotal(){
     }
     
     let pts=scores[playerToScore.element]||0;
-    if(typeof pts==='string')pts=parseInt(pts,10)||0;
+    if(typeof pts==='string')pts=parseFloat(pts)||0;
     
     // Apply captain multiplier (2x or 3x)
     // Only if this player IS the captain
@@ -2289,7 +2391,7 @@ function calculateGWTotal(){
       if(Object.values(autosubs).includes(p.element))return;
       
       let pts=scores[p.element]||0;
-      if(typeof pts==='string')pts=parseInt(pts,10)||0;
+      if(typeof pts==='string')pts=parseFloat(pts)||0;
       
       // Apply captain multiplier to subs if they have it (rare)
       if(p.is_captain){
@@ -2299,7 +2401,7 @@ function calculateGWTotal(){
     });
   }
   
-  return total;
+  return userTeam.isFuture?total.toFixed(1):total;
 }
 
 // Update total in header dynamically
@@ -4004,14 +4106,13 @@ document.addEventListener('click',e=>{
     setTimeout(()=>{$('teamLoadStatus').textContent=''},2000);
   }
   if(e.target===$('gwPrev')){
-    const gw=parseInt($('gwSelect').value,10);
-    if(gw>1)$('gwSelect').value=gw-1;
+    changeGameweek(parseInt($('gwSelect').value,10)-1);
   }
   if(e.target===$('gwNext')){
-    const gw=parseInt($('gwSelect').value,10);
-    if(gw<38)$('gwSelect').value=gw+1;
+    changeGameweek(parseInt($('gwSelect').value,10)+1);
   }
 });
+$('gwSelect').addEventListener('change',e=>changeGameweek(e.target.value));
 $('histOverlay').addEventListener('click',e=>{ if(e.target===$('histOverlay'))closeHistory(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').hidden)closeHistory(); });
 
