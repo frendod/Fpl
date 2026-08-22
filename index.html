@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22l';
+const APP_BUILD = 'app-2026-08-22m';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1233,11 +1233,9 @@ function setTheme(theme){
 
 /* ══ CONFIG ════════════════════════════════════════════ */
 const FPL='https://fantasy.premierleague.com/api';
-const PROXIES=[
-  t=>'https://api.allorigins.win/raw?url='+encodeURIComponent(t),
-  t=>'https://api.codetabs.com/v1/proxy/?quest='+t,
-  t=>'https://thingproxy.freeboard.io/fetch/'+t,
-];
+// Netlify proxy function at /api/fpl-proxy
+// Takes path as query param: /api/fpl-proxy?path=entry/185282/history/
+const PROXIES=[];
 // Understat labels a season by its starting year: 2026 = 2026/27, 2025 = 2025/26.
 const SEASON_LIVE=2026, SEASON_PRIOR=2025;
 const SEASON_LABEL=SEASON_LIVE+'/'+String(SEASON_LIVE+1).slice(2);
@@ -1346,19 +1344,22 @@ function percentiles(list,valueFn,groupFn){
 
 /* ══ FETCH ═════════════════════════════════════════════ */
 async function viaProxy(url,asText){
-  let last=null;
-  for(let i=0;i<PROXIES.length;i++){
+  // Use Netlify function proxy for all FPL API requests
+  const fplBase='https://fantasy.premierleague.com/api/';
+  if(url.startsWith(fplBase)){
+    const path=url.substring(fplBase.length);
+    const proxyUrl='/api/fpl-proxy?path='+encodeURIComponent(path);
     try{
-      const ctl=new AbortController();
-      const timer=setTimeout(()=>ctl.abort(),13000);
-      const r=await fetch(PROXIES[i](url),{signal:ctl.signal});
-      clearTimeout(timer);
-      if(!r.ok){last=new Error('proxy '+(i+1)+' returned '+r.status);continue;}
-      diag.proxyUsed=i+1;
+      const r=await fetch(proxyUrl);
+      if(!r.ok) throw new Error('Netlify proxy returned '+r.status);
+      diag.proxyUsed='netlify-fpl-proxy';
       return asText?await r.text():await r.json();
-    }catch(e){last=e}
+    }catch(e){
+      throw new Error('FPL proxy failed: '+e.message);
+    }
   }
-  throw last||new Error('every proxy failed');
+  // Fallback for non-FPL URLs (if any)
+  throw new Error('No proxy available for '+url);
 }
 const fplGet=p=>viaProxy(FPL+p,false);
 
@@ -2248,7 +2249,7 @@ async function fetchPlayerHistory(pid){
   window.__histDebug={pid, attempts:[]};
   const tries=[
     {label:'api', run:()=>fetch('/api/player?id='+pid,{cache:'no-store'})},
-    {label:'proxy', run:()=>fetch(PROXIES[0]('https://fantasy.premierleague.com/api/element-summary/'+pid+'/'))
+    {label:'fpl-proxy', run:()=>fetch('/api/fpl-proxy?path='+encodeURIComponent('element-summary/'+pid+'/'))
           .then(r=>r.json()).then(shapeFromRaw)},
   ];
   for(let i=0;i<tries.length;i++){
