@@ -782,7 +782,7 @@ textarea:focus{border-color:var(--accent)}
         <div style="padding:18px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input type="number" id="fplId" placeholder="Enter FPL ID" aria-label="FPL ID" style="flex:1;min-width:150px">
           <button class="btn" id="loadTeamBtn">Load Team</button>
-          <span id="teamLoadStatus" style="font-size:12px;color:var(--dim)"></span>
+          <span id="teamLoadStatus" style="font-size:12px;color:var(--dim);flex-basis:100%;word-break:break-word"></span>
         </div>
       </div>
       <div id="teamDisplay" hidden>
@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22e';
+const APP_BUILD = 'app-2026-08-22f';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1690,7 +1690,7 @@ function renderWeights(){
         +(hint?'<span class="whint">'+hint+'</span>':'')
         +'</div>';
     }).join('');
-    return '<details class="wgroup-details" open><summary><span class="wgroup-name">'+t(g.nameK)+'</span>'
+    return '<details class="wgroup-details"><summary><span class="wgroup-name">'+t(g.nameK)+'</span>'
       +'<span class="wgroup-desc">'+t(g.descK)+'</span></summary><div class="wgrid">'+rows+'</div></details>';
   }).join('');
 
@@ -1747,29 +1747,55 @@ let userTeam={picks:null,gw:1};
 
 async function loadUserTeam(fplId){
   const status=$('teamLoadStatus');
+  if(!fplId||fplId.trim()===''){
+    status.textContent='✗ Please enter an FPL ID';
+    status.style.color='var(--fire)';
+    return;
+  }
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
     const apiBase='https://fantasy.premierleague.com/api/entry/';
     
-    // Try direct fetch first (some environments allow it)
+    // Try direct fetch first
     let hist=null;
     let histRes=await fetch(apiBase+fplId+'/history/');
     
     if(histRes.ok){
-      hist=await histRes.json();
+      try{
+        hist=await histRes.json();
+      }catch(e){
+        throw new Error('Invalid response format');
+      }
     } else if(histRes.status===0||histRes.type==='opaque'){
-      // CORS blocked, try proxy
-      const corsProxy='https://corsproxy.io/?';
-      histRes=await fetch(corsProxy+encodeURIComponent(apiBase+fplId+'/history/'));
-      if(!histRes.ok)throw new Error('CORS proxy failed');
-      hist=await histRes.json();
+      // CORS blocked - try multiple proxies
+      const proxies=[
+        'https://corsproxy.io/?',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/'
+      ];
+      
+      let lastError=null;
+      for(let proxy of proxies){
+        try{
+          const url=proxy+(proxy.includes('?')?'':'')+encodeURIComponent(apiBase+fplId+'/history/');
+          histRes=await fetch(url);
+          if(histRes.ok){
+            hist=await histRes.json();
+            break;
+          }
+        }catch(e){
+          lastError=e;
+          continue;
+        }
+      }
+      if(!hist)throw new Error('All CORS proxies failed - try again later');
     } else {
-      throw new Error('Entry not found ('+histRes.status+')');
+      throw new Error('Entry not found (ID: '+fplId+')');
     }
     
     const current=hist.current?hist.current[0]:null;
-    if(!current)throw new Error('No season data or invalid ID');
+    if(!current)throw new Error('No active season for this ID');
     
     // Fetch picks for current gameweek
     const picksUrl=apiBase+fplId+'/event/'+current.event+'/picks/';
@@ -1777,18 +1803,39 @@ async function loadUserTeam(fplId){
     let picksData=null;
     
     if(picksRes.ok){
-      picksData=await picksRes.json();
+      try{
+        picksData=await picksRes.json();
+      }catch(e){
+        throw new Error('Invalid picks response format');
+      }
     } else if(picksRes.status===0||picksRes.type==='opaque'){
-      // CORS blocked, try proxy
-      const corsProxy='https://corsproxy.io/?';
-      picksRes=await fetch(corsProxy+encodeURIComponent(picksUrl));
-      if(!picksRes.ok)throw new Error('Could not fetch picks');
-      picksData=await picksRes.json();
+      // CORS blocked - try proxies for picks too
+      const proxies=[
+        'https://corsproxy.io/?',
+        'https://cors-anywhere.herokuapp.com/',
+        'https://thingproxy.freeboard.io/fetch/'
+      ];
+      
+      let lastError=null;
+      for(let proxy of proxies){
+        try{
+          const url=proxy+(proxy.includes('?')?'':'')+encodeURIComponent(picksUrl);
+          picksRes=await fetch(url);
+          if(picksRes.ok){
+            picksData=await picksRes.json();
+            break;
+          }
+        }catch(e){
+          lastError=e;
+          continue;
+        }
+      }
+      if(!picksData)throw new Error('Could not load picks from any proxy');
     } else {
-      throw new Error('Could not fetch picks ('+picksRes.status+')');
+      throw new Error('Could not fetch picks (status: '+picksRes.status+')');
     }
     
-    if(!picksData.picks)throw new Error('No picks data');
+    if(!picksData.picks)throw new Error('No picks in response');
     
     userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
@@ -1796,13 +1843,13 @@ async function loadUserTeam(fplId){
     $('teamDisplay').hidden=false;
     $('teamMeta').textContent=`${hist.entry.player_first_name} · ID ${fplId}`;
     renderUserTeam();
-    status.textContent='✓ Loaded';
+    status.textContent='✓ Team loaded successfully';
     status.style.color='var(--live)';
-    setTimeout(()=>{status.textContent=''},3000);
+    setTimeout(()=>{status.textContent=''},4000);
   }catch(e){
-    status.textContent='✗ '+e.message;
+    status.textContent='✗ Load failed: '+e.message;
     status.style.color='var(--fire)';
-    console.error('FPL load error details:',e);
+    console.error('FPL load error:',e);
     console.log('Attempted FPL ID:',fplId);
   }
 }
