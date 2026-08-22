@@ -930,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22i';
+const APP_BUILD = 'app-2026-08-22k';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1906,10 +1906,9 @@ function loadSavedFplId(){
   }
 }
 
-// Get next 3 fixtures for a team from fixtures array
+// Get next 3 fixtures for a team using player fixture data
 function getNext3Fixtures(teamId){
-  if(!teamId || !fixtures || !fixtures.length) {
-    // Graceful fallback: show blanks
+  if(!teamId || !players || !players.length) {
     return [
       {gw: 1, opp: '—', difficulty: null},
       {gw: 2, opp: '—', difficulty: null},
@@ -1917,31 +1916,42 @@ function getNext3Fixtures(teamId){
     ];
   }
   
-  const teams = bootstrap?.teams || [];
-  const fixturesList = [];
+  // Find all fixtures by looking at all players from this team
+  const teamPlayers = players.filter(p => p.teamId === teamId);
+  const foundFixtures = {};
   
-  // Get all fixtures for this team
-  const teamFx = fixtures.filter(f => f.team_h === teamId || f.team_a === teamId);
-  
-  // Take first 3
-  for(let i=0; i<3; i++){
-    const fx = teamFx[i];
-    if(fx){
-      const isH = fx.team_h === teamId;
-      const oppId = isH ? fx.team_a : fx.team_h;
-      const opp = teams.find(t => t.id === oppId);
-      const diff = isH ? fx.team_h_difficulty : fx.team_a_difficulty;
-      fixturesList.push({
-        gw: fx.event,
-        opp: opp?.short_name || '?',
-        difficulty: diff || 3
-      });
-    }else{
-      fixturesList.push({gw: 0, opp: '—', difficulty: null});
+  // Each player has a fixture field with their next GW
+  teamPlayers.forEach(p => {
+    if(p.fixture && !foundFixtures[p.fixture]) {
+      // Try to get opponent from fixtures array first
+      if(fixtures && fixtures.length) {
+        const fx = fixtures.find(f => f.event === p.fixture && (f.team_h === teamId || f.team_a === teamId));
+        if(fx) {
+          const isH = fx.team_h === teamId;
+          const oppId = isH ? fx.team_a : fx.team_h;
+          const opp = bootstrap?.teams?.find(t => t.id === oppId);
+          foundFixtures[p.fixture] = {
+            gw: p.fixture,
+            opp: opp?.short_name || '?',
+            difficulty: isH ? fx.team_h_difficulty : fx.team_a_difficulty
+          };
+        }
+      }
     }
+  });
+  
+  // If we found any fixtures, return up to 3
+  if(Object.keys(foundFixtures).length) {
+    const sorted = Object.values(foundFixtures).sort((a, b) => a.gw - b.gw);
+    return sorted.slice(0, 3);
   }
   
-  return fixturesList;
+  // Fallback: return blanks
+  return [
+    {gw: 1, opp: '—', difficulty: null},
+    {gw: 2, opp: '—', difficulty: null},
+    {gw: 3, opp: '—', difficulty: null}
+  ];
 }
 
 // Get CSS class for FDR color (matches fixture run colors with 5 levels)
@@ -2100,8 +2110,9 @@ function renderUserTeam(){
       
       // Get next 3 fixtures for this player's team
       const next3=getNext3Fixtures(player.team);
+      console.log(`Sub ${player.name} (team ${player.team}): fixtures=`, next3);
       let fixturesBoxes='';
-      if(next3&&next3.length===3){
+      if(next3 && next3.length){
         fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
         next3.forEach(fx=>{
           if(fx.opp==='—'){
