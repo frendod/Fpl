@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22m';
+const APP_BUILD = 'app-2026-08-22p';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1363,40 +1363,116 @@ async function viaProxy(url,asText){
 }
 const fplGet=p=>viaProxy(FPL+p,false);
 
-async function understat(year){
+/* ══ HISTORY DATA LOADER ═══════════════════════════════════════ */
+// Load Understat xG from committed team-sharded JSON files
+// Caches by team to avoid re-fetching same team multiple times
+
+const teamFileCache = {}; // cache fetched team JSON by filename
+
+// Map FPL team IDs to history folder filenames (Premier League)
+const FPL_TEAM_SLUG_MAP = {
+  1: 'arsenal',
+  2: 'aston-villa',
+  3: 'bournemouth',
+  4: 'brentford',
+  5: 'brighton',
+  6: 'chelsea',
+  7: 'crystal-palace',
+  8: 'everton',
+  9: 'fulham',
+  10: 'ipswich',
+  11: 'leicester',
+  12: 'liverpool',
+  13: 'manchester-city',
+  14: 'manchester-united',
+  15: 'newcastle',
+  16: 'nottingham-forest',
+  17: 'southampton',
+  18: 'tottenham',
+  19: 'west-ham',
+  20: 'wolverhampton-wanderers',
+};
+
+function slugifyTeamName(name){
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g,'')     // remove special chars
+    .replace(/\s+/g,'-')          // spaces to dashes
+    .replace(/-+/g,'-')           // collapse dashes
+    .replace(/^-|-$/g,'');        // trim dashes
+}
+
+async function getTeamHistory(teamSlug){
+  if(teamFileCache[teamSlug])return teamFileCache[teamSlug];
+  
   try{
-    const html=await viaProxy('https://understat.com/league/EPL/'+year,true);
-    let raw=null;
-    const pats=[/var playersData\s*=\s*JSON\.parse\('([\s\S]+?)'\)/,
-                /var playersData\s*=\s*JSON\.parse\("([\s\S]+?)"\)/];
-    for(const p of pats){const m=html.match(p);if(m){raw=m[1];break}}
-    if(!raw)return{n:0,map:{}};
-    const json=raw
-      .replace(/\\x([0-9A-Fa-f]{2})/g,(_,h)=>String.fromCharCode(parseInt(h,16)))
-      .replace(/\\u([0-9A-Fa-f]{4})/g,(_,h)=>String.fromCharCode(parseInt(h,16)))
-      .replace(/\\'/g,"'").replace(/\\\\/g,'\\');
-    const arr=JSON.parse(json);
-    const map={};
-    arr.forEach(p=>{
-      const mins=parseFloat(p.time)||0;
-      if(mins<1)return;
-      const per90=v=>(parseFloat(v)||0)/(mins/90);
-      const rec={
-        xg90:per90(p.xG), xa90:per90(p.xA), npxg90:per90(p.npxG),
-        xgdiff90:((parseInt(p.goals)||0)-(parseFloat(p.xG)||0))/(mins/90),
-        mins, games:parseInt(p.games)||0,
-      };
-      const full=normName(p.player_name);
-      const parts=full.split(' ');
-      const last=parts[parts.length-1];
-      if(!map[full])map[full]=rec;
-      if(last&&!map[last])map[last]=rec;          // last name, first writer wins
-    });
-    return{n:arr.length,map};
+    const res=await fetch('/history/'+teamSlug+'.json');
+    if(!res.ok)return null;
+    const data=await res.json();
+    teamFileCache[teamSlug]=data;
+    console.log('Loaded history for',teamSlug+':',Object.keys(data).length,'players');
+    return data;
   }catch(e){
-    console.warn('understat '+year+':',e.message);
-    return{n:0,map:{}};
+    console.warn('History file unavailable:',teamSlug+'.json');
+    return null;
   }
+}
+
+async function getPlayerHistory(pid, playerTeamId, playerTeamName){
+  // Try FPL team ID mapping first (Premier League)
+  let teamSlug=null;
+  if(playerTeamId && FPL_TEAM_SLUG_MAP[playerTeamId]){
+    teamSlug=FPL_TEAM_SLUG_MAP[playerTeamId];
+  }
+  // Fall back to slugifying the team name (for non-PL teams in history)
+  else if(playerTeamName){
+    teamSlug=slugifyTeamName(playerTeamName);
+  }
+  
+  if(!teamSlug){
+    console.warn('Cannot determine team slug for player',pid);
+    return null;
+  }
+  
+  const teamData=await getTeamHistory(teamSlug);
+  if(!teamData||!teamData[pid])return null;
+  
+  const playerData=teamData[pid];
+  
+  // Transform match data into xG-by-opponent format
+  const byOpponent={};
+  if(playerData.matches){
+    playerData.matches.forEach(m=>{
+      const opp=m.opponent;
+      if(!byOpponent[opp])byOpponent[opp]=[];
+      byOpponent[opp].push({
+        season:m.season,
+        date:m.date,
+        venue:m.venue,
+        min:m.min,
+        goals:m.goals,
+        assists:m.assists,
+        xg:m.xg,
+        xa:m.xa,
+        npxg:m.npxg,
+        shots:m.shots,
+        keyPasses:m.keyPasses,
+      });
+    });
+  }
+  
+  return{
+    name:playerData.name,
+    team:playerData.team,
+    byOpponent,
+    matches:playerData.matches||[]
+  };
+}
+
+// Legacy understat() function - returns empty (uses committed data instead)
+async function understat(year){
+  // Live Understat fetch disabled - using committed history/ folder data instead
+  return{n:0,map:{}};
 }
 
 function lookupU(map,p){
@@ -2247,8 +2323,15 @@ function clubName(teamId){
 async function fetchPlayerHistory(pid){
   if(histCache[pid])return histCache[pid];
   window.__histDebug={pid, attempts:[]};
+  
+  // Get player object from bootstrap to extract team info for history file lookup
+  const playerObj=players.find(p=>p.id===pid);
+  const playerTeamId=playerObj?playerObj.team:null;
+  const playerTeamName=playerObj?playerObj.team_name:null;
+  
   const tries=[
     {label:'api', run:()=>fetch('/api/player?id='+pid,{cache:'no-store'})},
+    {label:'committed-history', run:()=>getPlayerHistory(pid, playerTeamId, playerTeamName)},
     {label:'fpl-proxy', run:()=>fetch('/api/fpl-proxy?path='+encodeURIComponent('element-summary/'+pid+'/'))
           .then(r=>r.json()).then(shapeFromRaw)},
   ];
@@ -2259,11 +2342,11 @@ async function fetchPlayerHistory(pid){
       const data=(res&&typeof res.json==='function')?await res.json():res;
       att.gotData=!!data;
       att.keys=data?Object.keys(data).slice(0,8):null;
-      att.hasPast=!!(data&&(data.pastSeasons||data.history_past));
+      att.hasPast=!!(data&&(data.pastSeasons||data.history_past||data.matches));
       att.error=data&&data.error||null;
       window.__histDebug.attempts.push(att);
-      if(data&&(data.pastSeasons||data.history_past)){
-        const norm=data.pastSeasons?data:shapeFromRaw(data);
+      if(data&&(data.pastSeasons||data.history_past||data.matches)){
+        const norm=data.matches?data:data.pastSeasons?data:shapeFromRaw(data);
         histCache[pid]=norm; return norm;
       }
     }catch(e){
