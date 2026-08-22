@@ -926,7 +926,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22w';
+const APP_BUILD = 'app-2026-08-22b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1870,7 +1870,8 @@ async function loadUserTeam(fplId){
       picks:picksData.picks,
       gw:current.event,
       username:entry.player_first_name,
-      currentEvent:current.event
+      currentEvent:current.event,
+      chips:picksData.chips||[]
     };
     
     $('gwSelect').max=current.event;
@@ -1915,11 +1916,39 @@ function renderUserTeam(){
   
   $('gwStatus').textContent=`GW ${userTeam.gw} / ${userTeam.currentEvent||38}`;
   
+  // Calculate total points for the week
+  let totalPoints=calculateGWTotal();
+  
+  // Check for active chips
+  let chipText='';
+  if(userTeam.chips&&userTeam.chips.length){
+    const activeChip=userTeam.chips[userTeam.chips.length-1]; // Last chip is current
+    if(activeChip&&activeChip.chip_name){
+      const chipMap={
+        'wildcard':'WILDCARD',
+        'free_hit':'FREE HIT',
+        'bench_boost':'BENCH BOOST',
+        '3xc':'3x CAPTAIN'
+      };
+      chipText=' · '+chipMap[activeChip.chip_name.toLowerCase()]||activeChip.chip_name;
+    }
+  }
+  
   let html='';
   let xi=picks.filter(p=>p.position<12);
   let subs=picks.filter(p=>p.position>=12);
   
-  html+='<div class="team-section-head">Starting XI</div><div class="team-grid">';
+  // Header with total points and chip info
+  html+=`<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Starting XI${chipText}</span>
+    </div>
+    <div style="font-size:14px;font-weight:bold;color:var(--accent);" data-team-total>
+      Total: ${totalPoints} pts
+    </div>
+  </div>`;
+  
+  html+='<div class="team-grid">';
   xi.forEach(p=>{
     const player=players.find(pl=>pl.id===p.element);
     if(player){
@@ -2013,9 +2042,10 @@ function renderUserTeam(){
   populateGWScores(picks);
 }
 
-// Fetch player histories for all picks to get this week's scores
+// Fetch player histories for all picks to get this week's scores and minutes
 async function populateGWScores(picks){
   if(!userTeam.gwScores)userTeam.gwScores={};
+  if(!userTeam.gwMinutes)userTeam.gwMinutes={};
   
   console.log('Starting GW score population for',picks.length,'players, GW',userTeam.gw);
   
@@ -2040,7 +2070,9 @@ async function populateGWScores(picks){
           
           if(gwData&&gwData.points!==undefined){
             userTeam.gwScores[p.element]=gwData.points;
-            console.log('Updated GW score for player',p.element,':',gwData.points);
+            // Also track minutes played (0 means didn't play)
+            userTeam.gwMinutes[p.element]=gwData.minutes||0;
+            console.log('Updated GW score for player',p.element,': points=',gwData.points,'mins=',gwData.minutes);
             // Update the card in DOM directly
             const cards=document.querySelectorAll(`[data-pid="${p.element}"]`);
             console.log('Found',cards.length,'cards for player',p.element);
@@ -2061,6 +2093,205 @@ async function populateGWScores(picks){
   
   await Promise.all(promises);
   console.log('GW score population complete. Scores:',userTeam.gwScores);
+  console.log('Minutes data:',userTeam.gwMinutes);
+  
+  // Apply autosubs before calculating total
+  userTeam.autosubs=applyAutosubs(userTeam.picks);
+  console.log('Autosubs applied:',userTeam.autosubs);
+  
+  // Update total points in header (applies captain multiplier, chip logic, autosubs)
+  updateGWTotal();
+}
+
+// Apply autosubs: if a starter has 0 minutes, swap with best available sub
+// Returns a mapping of swaps for display purposes
+function applyAutosubs(picks){
+  if(!userTeam.gwMinutes||!userTeam.gwScores)return {};
+  
+  const autosubs={}; // Maps starter_id -> sub_id if swapped
+  const starters=picks.filter(p=>p.position<12);
+  const subs=picks.filter(p=>p.position>=12);
+  
+  // Position mapping: 1=GK, 2=DEF, 3=MID, 4=FWD
+  const positionGroups={
+    1:['GK'],
+    2:['DEF'],
+    3:['MID'],
+    4:['FWD']
+  };
+  
+  // Track which subs have been used for autosubs
+  const usedSubs=new Set();
+  
+  // For each starter, check if they should be auto-subbed
+  starters.forEach(starter=>{
+    const minutes=userTeam.gwMinutes[starter.element]||0;
+    const points=parseInt(userTeam.gwScores[starter.element]||0,10);
+    
+    // Autosub logic:
+    // 1. First check: Did they play any minutes?
+    // 2. If 0 mins: Did they receive cards (red/yellow)? Check if points are negative
+    // 3. Only autosub if: 0 mins played AND 0 or positive points (no cards)
+    
+    if(minutes>0){
+      // They played - don't autosub regardless of points
+      console.log('Starter',starter.element,'played',minutes,'mins, no autosub');
+    }else if(minutes===0&&points<0){
+      // 0 mins but negative points = got carded on bench (or other penalty)
+      // Keep the penalty, don't autosub
+      console.log('Starter',starter.element,'has 0 mins and negative points (',points,', carded on bench), NOT autosub');
+    }else if(minutes===0&&points>=0){
+      // 0 mins and 0 or positive points = genuinely didn't play, no penalties
+      // This is a candidate for autosub
+      console.log('Starter',starter.element,'has 0 mins and',points,'pts (genuinely no play), looking for autosub');
+      
+      // Find eligible subs (same position, not already used)
+      const eligibleSubs=subs.filter(sub=>{
+        if(usedSubs.has(sub.element))return false; // Already used for another autosub
+        if(sub.position!==starter.position)return false; // Must match position
+        return true;
+      });
+      
+      // Pick the sub with highest points
+      if(eligibleSubs.length>0){
+        const bestSub=eligibleSubs.reduce((best, current)=>{
+          const bestPts=parseInt(userTeam.gwScores[best.element]||0,10);
+          const currentPts=parseInt(userTeam.gwScores[current.element]||0,10);
+          return currentPts>bestPts?current:best;
+        });
+        
+        console.log('Autosub: starter',starter.element,'→ sub',bestSub.element,'('+userTeam.gwScores[bestSub.element]+'pts)');
+        autosubs[starter.element]=bestSub.element;
+        usedSubs.add(bestSub.element);
+      }else{
+        console.log('No eligible subs for starter',starter.element);
+      }
+    }
+  });
+  
+  return autosubs;
+}
+// - Captain 2x (or 3x if Triple Captain chip)
+// - Only count starting XI (11) unless Bench Boost
+// - Bench Boost counts all 15 players
+function calculateGWTotal(){
+  if(!userTeam.picks||!userTeam.gwScores)return 0;
+  
+  const picks=userTeam.picks;
+  const scores=userTeam.gwScores;
+  const autosubs=userTeam.autosubs||{};
+  
+  // Determine captain multiplier based on chip
+  let captainMult=2;
+  if(userTeam.chips&&userTeam.chips.length){
+    const lastChip=userTeam.chips[userTeam.chips.length-1];
+    if(lastChip.chip_name&&lastChip.chip_name.toLowerCase()==='3xc'){
+      captainMult=3;
+    }
+  }
+  
+  // Determine if counting 15 (Bench Boost) or 11 (normal)
+  let countBench=false;
+  if(userTeam.chips&&userTeam.chips.length){
+    const lastChip=userTeam.chips[userTeam.chips.length-1];
+    if(lastChip.chip_name&&lastChip.chip_name.toLowerCase()==='bench_boost'){
+      countBench=true;
+    }
+  }
+  
+  // Get starting XI (positions < 12) and subs (positions >= 12)
+  let starters=picks.filter(p=>p.position<12);
+  let subs=picks.filter(p=>p.position>=12);
+  
+  let total=0;
+  
+  // Score the starting XI (11 players), applying autosubs if applicable
+  starters.forEach(p=>{
+    // Check if this starter was auto-subbed
+    let playerToScore=p;
+    if(autosubs[p.element]){
+      // Find the sub that replaced this starter
+      const subPlayer=subs.find(s=>s.element===autosubs[p.element]);
+      if(subPlayer)playerToScore=subPlayer;
+    }
+    
+    let pts=scores[playerToScore.element]||0;
+    if(typeof pts==='string')pts=parseInt(pts,10)||0;
+    
+    // Apply captain multiplier (2x or 3x)
+    // Only if this player IS the captain
+    if(playerToScore.is_captain){
+      pts=pts*captainMult;
+    }
+    total+=pts;
+  });
+  
+  // If Bench Boost, also score the subs (4 players)
+  if(countBench){
+    subs.forEach(p=>{
+      // Skip subs that were used for autosubs (already counted in starters)
+      if(Object.values(autosubs).includes(p.element))return;
+      
+      let pts=scores[p.element]||0;
+      if(typeof pts==='string')pts=parseInt(pts,10)||0;
+      
+      // Apply captain multiplier to subs if they have it (rare)
+      if(p.is_captain){
+        pts=pts*captainMult;
+      }
+      total+=pts;
+    });
+  }
+  
+  return total;
+}
+
+// Update total in header dynamically
+function updateGWTotal(){
+  const totalDiv=document.querySelector('[data-team-total]');
+  if(totalDiv){
+    const total=calculateGWTotal();
+    totalDiv.textContent=`Total: ${total} pts`;
+  }
+  
+  // Mark autosub players visually
+  markAutosubs();
+}
+
+// Visually mark players who were auto-subbed in
+function markAutosubs(){
+  if(!userTeam.autosubs||!userTeam.picks)return;
+  
+  const starters=userTeam.picks.filter(p=>p.position<12);
+  
+  starters.forEach(starter=>{
+    if(userTeam.autosubs[starter.element]){
+      // This starter was replaced by an autosub
+      // Find the starter card and update it
+      const starterCard=document.querySelector(`[data-pid="${starter.element}"]`);
+      if(starterCard){
+        // Add a subtle indicator that this was auto-subbed
+        starterCard.style.opacity='0.65';
+        starterCard.style.border='2px solid var(--dim)';
+        
+        // Add a note
+        const posDiv=starterCard.querySelector('.team-card-pos');
+        if(posDiv){
+          posDiv.innerHTML+='<div style="font-size:8px;color:var(--dim);margin-top:2px;">autosub</div>';
+        }
+      }
+      
+      // Highlight the sub that came in
+      const subCard=document.querySelector(`[data-pid="${userTeam.autosubs[starter.element]}"]`);
+      if(subCard){
+        subCard.style.border='2px solid var(--live)';
+        const posDiv=subCard.querySelector('.team-card-pos');
+        if(posDiv){
+          posDiv.innerHTML+='<div style="font-size:8px;color:var(--live);margin-top:2px;">✓sub</div>';
+        }
+      }
+    }
+  });
 }
 
 function renderPicks(){
