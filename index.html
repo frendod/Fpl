@@ -926,7 +926,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22t';
+const APP_BUILD = 'app-2026-08-22u';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1945,15 +1945,13 @@ function renderUserTeam(){
         }
       }
       
-      // This week's score
+      // This week's score (will be populated by populateGWScores)
       let gwScore='-';
-      const playerHistory=player.fixtures||[];
-      const thisGwFix=playerHistory.find(f=>f.event===userTeam.gw);
-      if(thisGwFix){
-        gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
+      if(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined){
+        gwScore=userTeam.gwScores[p.element];
       }
       
-      html+=`<div class="team-card">
+      html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
@@ -1991,15 +1989,13 @@ function renderUserTeam(){
         }
       }
       
-      // This week's score
+      // This week's score (will be populated by populateGWScores)
       let gwScore='-';
-      const playerHistory=player.fixtures||[];
-      const thisGwFix=playerHistory.find(f=>f.event===userTeam.gw);
-      if(thisGwFix){
-        gwScore=thisGwFix.points!==undefined?thisGwFix.points:'-';
+      if(userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined){
+        gwScore=userTeam.gwScores[p.element];
       }
       
-      html+=`<div class="team-card">
+      html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
         <div class="team-card-club">${teamName}</div>
@@ -2012,6 +2008,31 @@ function renderUserTeam(){
   html+='</div>';
   
   $('teamBody').innerHTML=html;
+  
+  // Fetch player histories to populate GW scores
+  populateGWScores(picks);
+}
+
+// Fetch player histories for all picks to get this week's scores
+async function populateGWScores(picks){
+  if(!userTeam.gwScores)userTeam.gwScores={};
+  
+  const promises=picks.map(p=>
+    fetchPlayerHistory(p.element)
+      .then(hist=>{
+        if(hist&&hist.thisSeason){
+          const gwData=hist.thisSeason.find(g=>g.round===userTeam.gw);
+          if(gwData&&gwData.points!==undefined){
+            userTeam.gwScores[p.element]=gwData.points;
+          }
+        }
+      })
+      .catch(e=>console.log('Score fetch for player',p.element,'failed'))
+  );
+  
+  await Promise.all(promises);
+  // Re-render to show populated scores
+  renderUserTeam();
 }
 
 function renderPicks(){
