@@ -930,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22h';
+const APP_BUILD = 'app-2026-08-22i';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1906,39 +1906,38 @@ function loadSavedFplId(){
   }
 }
 
-// Get next 3 fixtures for a team with FDR difficulty colors
+// Get next 3 fixtures for a team from fixtures array
 function getNext3Fixtures(teamId){
-  // Guard against missing data
   if(!teamId || !fixtures || !fixtures.length) {
-    console.warn('getNext3Fixtures: missing data', {teamId, fixturesAvailable: !!fixtures, fixturesLength: fixtures?.length});
-    return [];
+    // Graceful fallback: show blanks
+    return [
+      {gw: 1, opp: '—', difficulty: null},
+      {gw: 2, opp: '—', difficulty: null},
+      {gw: 3, opp: '—', difficulty: null}
+    ];
   }
   
-  // For MY TEAM, use userTeam.gw; for Best XI (state), use state.nextGW
-  const startGW = (userTeam && userTeam.gw) ? userTeam.gw : (state && state.nextGW) ? state.nextGW : 1;
+  const teams = bootstrap?.teams || [];
+  const fixturesList = [];
   
-  const upcomingGWs=[];
-  for(let gw=startGW; gw<startGW+3; gw++){
-    upcomingGWs.push(gw);
-  }
+  // Get all fixtures for this team
+  const teamFx = fixtures.filter(f => f.team_h === teamId || f.team_a === teamId);
   
-  const teams=bootstrap.teams||[];
-  const fixturesList=[];
-  
-  for(const gw of upcomingGWs){
-    const fx=fixtures.find(f=>f&&f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+  // Take first 3
+  for(let i=0; i<3; i++){
+    const fx = teamFx[i];
     if(fx){
-      const isH=fx.team_h===teamId;
-      const oppId=isH?fx.team_a:fx.team_h;
-      const opp=(teams.find(t=>t.id===oppId)||{});
-      const diff=isH?fx.team_h_difficulty:fx.team_a_difficulty;
+      const isH = fx.team_h === teamId;
+      const oppId = isH ? fx.team_a : fx.team_h;
+      const opp = teams.find(t => t.id === oppId);
+      const diff = isH ? fx.team_h_difficulty : fx.team_a_difficulty;
       fixturesList.push({
-        gw,
-        opp:opp.short_name||'?',
-        difficulty:diff||3
+        gw: fx.event,
+        opp: opp?.short_name || '?',
+        difficulty: diff || 3
       });
     }else{
-      fixturesList.push({gw, opp:'—', difficulty:null});
+      fixturesList.push({gw: 0, opp: '—', difficulty: null});
     }
   }
   
