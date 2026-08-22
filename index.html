@@ -925,7 +925,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22h';
+const APP_BUILD = 'app-2026-08-22k';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1755,63 +1755,62 @@ async function loadUserTeam(fplId){
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
-    console.log('Starting FPL load for ID:',fplId);
+    console.log('=== FPL Team Load Start ===');
+    console.log('FPL ID:',fplId);
     
-    // Use Netlify function proxy
     const proxyBase='/api/fpl-proxy?path=';
     
-    // Fetch history via Netlify proxy
-    console.log('Fetching history via Netlify proxy...');
-    const histRes=await fetch(proxyBase+encodeURIComponent('entry/'+fplId+'/history/'));
+    // Fetch entry details (player name, etc)
+    console.log('\n--- Fetching Entry Details ---');
+    const entryUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/');
+    const entryRes=await fetch(entryUrl);
+    if(!entryRes.ok) throw new Error('Could not load entry (status '+entryRes.status+')');
+    const entry=await entryRes.json();
+    console.log('Entry player name:',entry.player_first_name);
     
-    if(!histRes.ok){
-      throw new Error('Failed to load history (status: '+histRes.status+')');
-    }
-    
-    let hist=await histRes.json();
-    if(hist.error){
-      throw new Error(hist.error);
-    }
-    console.log('History loaded successfully');
+    // Fetch history (current GW and past seasons)
+    console.log('\n--- Fetching History ---');
+    const histUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/history/');
+    const histRes=await fetch(histUrl);
+    if(!histRes.ok) throw new Error('Could not load history (status '+histRes.status+')');
+    const hist=await histRes.json();
     
     const current=hist.current?hist.current[0]:null;
-    if(!current){
-      throw new Error('No active season for this ID');
-    }
-    console.log('Current gameweek:',current.event);
+    if(!current) throw new Error('No active season');
+    console.log('Current GW:',current.event);
     
-    // Fetch picks via Netlify proxy
-    console.log('Fetching picks for GW '+current.event+'...');
-    const picksRes=await fetch(proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+current.event+'/picks/'));
+    // Fetch picks
+    console.log('\n--- Fetching Picks ---');
+    const picksUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+current.event+'/picks/');
+    const picksRes=await fetch(picksUrl);
+    if(!picksRes.ok) throw new Error('Could not load picks (status '+picksRes.status+')');
+    const picksData=await picksRes.json();
     
-    if(!picksRes.ok){
-      throw new Error('Failed to load picks (status: '+picksRes.status+')');
-    }
+    if(!picksData.picks) throw new Error('No picks in response');
+    console.log('Picks loaded:',picksData.picks.length);
     
-    let picksData=await picksRes.json();
-    if(picksData.error){
-      throw new Error(picksData.error);
-    }
-    if(!picksData.picks){
-      throw new Error('No picks in response');
-    }
-    console.log('Picks loaded successfully');
+    // Build team object
+    userTeam={
+      picks:picksData.picks,
+      gw:current.event,
+      username:entry.player_first_name,
+      currentEvent:current.event
+    };
     
-    userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
     $('teamInput').hidden=true;
     $('teamDisplay').hidden=false;
-    $('teamMeta').textContent=`${hist.entry.player_first_name} · ID ${fplId}`;
+    $('teamMeta').textContent=`${entry.player_first_name} · ID ${fplId}`;
     renderUserTeam();
+    
+    console.log('\n=== Team Loaded Successfully ===\n');
     status.textContent='✓ Team loaded successfully';
     status.style.color='var(--live)';
-    console.log('Team rendered successfully');
     setTimeout(()=>{status.textContent=''},4000);
   }catch(e){
+    console.error('Load error:',e.message);
     status.textContent='✗ '+e.message;
     status.style.color='var(--fire)';
-    console.error('FPL load failed:',e.message);
-    console.log('Full error:',e);
   }
 }
 
