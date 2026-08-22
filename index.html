@@ -571,11 +571,15 @@ textarea:focus{border-color:var(--accent)}
 .fix-gw{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 .fdr-easy{background:#2ecc71}
+.fdr-easier{background:#27ae60}
 .fdr-mid{background:#e8e8e8}
+.fdr-harder{background:#c0504d}
 .fdr-hard{background:#e55555}
 /* Light theme versions */
 .fdr-easy.light-theme{background:#4ade80}
+.fdr-easier.light-theme{background:#22c55e}
 .fdr-mid.light-theme{background:#ffffff}
+.fdr-harder.light-theme{background:#ef4444}
 .fdr-hard.light-theme{background:#f87171}
 .fdr-blank{background:transparent;border:1px dashed var(--line2)}
 .fix-opp{font-size:15px;color:var(--paper);flex:1}
@@ -926,7 +930,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22b';
+const APP_BUILD = 'app-2026-08-22d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1902,6 +1906,103 @@ function loadSavedFplId(){
   }
 }
 
+// Calculate expected points for a player for next N gameweeks
+// Adjusts player's current score based on fixture difficulty
+function getExpectedPoints(playerId, numWeeks=3){
+  const p=players.find(pl=>pl.id===playerId);
+  if(!p)return [];
+  
+  const expectations=[];
+  const startGW=state.nextGW;
+  
+  for(let i=0;i<numWeeks;i++){
+    const gw=startGW+i;
+    const fx=fixtures.find(f=>f.event===gw&&(f.team_h===p.teamId||f.team_a===p.teamId));
+    
+    if(!fx){
+      expectations.push({gw, expectedPts:0, difficulty:null});
+      continue;
+    }
+    
+    const isH=fx.team_h===p.teamId;
+    const diff=isH?fx.team_h_difficulty:fx.team_a_difficulty;
+    
+    // Adjust expected points based on fixture difficulty
+    // FDR 1-2 (easy): boost by 15%, 3 (even): no change, 4-5 (hard): reduce by 15%
+    let multiplier=1;
+    if(diff<=2)multiplier=1.15;      // Easy fixture - expect more
+    else if(diff===3)multiplier=1.0; // Even fixture
+    else multiplier=0.85;             // Hard fixture - expect less
+    
+    const expectedPts=Math.round(p.score*multiplier*10)/10; // Round to 1 decimal
+    expectations.push({gw, expectedPts, difficulty:diff});
+  }
+  
+  return expectations;
+}
+
+// Helper: Get CSS class for expected points box (uses FDR colors)
+function getExpectedPtsBox(expectations){
+  if(!expectations.length)return '';
+  
+  let html='<div style="display:flex;gap:3px;margin-top:6px;">';
+  expectations.forEach(exp=>{
+    if(exp.difficulty===null){
+      html+=`<div class="fdr-blank" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--dim);">—</div>`;
+    }else{
+      const fdrClass=getFDRClass(exp.difficulty);
+      html+=`<div class="${fdrClass}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${exp.expectedPts}</div>`;
+    }
+  });
+  html+='</div>';
+  return html;
+}
+  if(!teamId||!fixtures.length)return [];
+  
+  const upcomingGWs=[];
+  for(let gw=userTeam.gw;gw<userTeam.gw+4;gw++){
+    upcomingGWs.push(gw);
+  }
+  
+  const teams=bootstrap.teams||[];
+  const fixturesList=[];
+  
+  for(const gw of upcomingGWs){
+    const fx=fixtures.filter(f=>f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+    if(fx.length){
+      fx.forEach(f=>{
+        const isH=f.team_h===teamId;
+        const oppId=isH?f.team_a:f.team_h;
+        const opp=(teams.find(t=>t.id===oppId)||{});
+        const diff=isH?f.team_h_difficulty:f.team_a_difficulty;
+        fixturesList.push({
+          gw,
+          opp:opp.short_name||'?',
+          difficulty:diff,
+          venue:isH?'H':'A'
+        });
+      });
+    }
+    if(fixturesList.length>=3)break;
+  }
+  
+  return fixturesList.slice(0,3);
+}
+
+// Get CSS class for FDR color (matches fixture run colors with 5 levels)
+function getFDRClass(difficulty){
+  // FDR levels: 1=easy (bright green), 2=easier (dark green), 3=even (white), 4=harder (dark red), 5=hard (bright red)
+  let baseClass;
+  if(difficulty===1)baseClass='fdr-easy';
+  else if(difficulty===2)baseClass='fdr-easier';
+  else if(difficulty===3)baseClass='fdr-mid';
+  else if(difficulty===4)baseClass='fdr-harder';
+  else if(difficulty===5)baseClass='fdr-hard';
+  else baseClass='fdr-mid'; // default to mid
+  
+  return baseClass+(fdrTheme==='light'?' light-theme':'');
+}
+
 function renderUserTeam(){
   if(!userTeam.picks)return;
   const picks=userTeam.picks;
@@ -1980,6 +2081,17 @@ function renderUserTeam(){
         gwScore=userTeam.gwScores[p.element];
       }
       
+      // Get next 3 fixtures for this player's team
+      const next3=getNext3Fixtures(player.team);
+      let fixturesBoxes='';
+      if(next3.length>0){
+        fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+        next3.forEach(fx=>{
+          fixturesBoxes+=`<div class="${getFDRClass(fx.difficulty)}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+        });
+        fixturesBoxes+='</div>';
+      }
+      
       html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
@@ -1987,6 +2099,7 @@ function renderUserTeam(){
         <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
         <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
+        ${fixturesBoxes}
       </div>`;
     }
   });
@@ -2024,6 +2137,17 @@ function renderUserTeam(){
         gwScore=userTeam.gwScores[p.element];
       }
       
+      // Get next 3 fixtures for this player's team
+      const next3=getNext3Fixtures(player.team);
+      let fixturesBoxes='';
+      if(next3.length>0){
+        fixturesBoxes='<div style="display:flex;gap:3px;margin-top:6px;">';
+        next3.forEach(fx=>{
+          fixturesBoxes+=`<div class="${getFDRClass(fx.difficulty)}" style="flex:1;padding:3px 2px;text-align:center;border-radius:2px;font-size:8px;font-weight:bold;color:var(--paper);">${fx.opp}</div>`;
+        });
+        fixturesBoxes+='</div>';
+      }
+      
       html+=`<div class="team-card phist" data-pid="${p.element}" data-pname="${encodeURIComponent(player.name)}" style="cursor:pointer;">
         <div class="team-card-pos">${player.pos}${badge}</div>
         <div class="team-card-name">${player.name}${injBadge}</div>
@@ -2031,6 +2155,7 @@ function renderUserTeam(){
         <div style="font-size:10px;color:var(--dim);margin-top:2px;">${fixtureText}</div>
         <div style="font-size:11px;color:var(--accent);margin-top:2px;" data-gw-score>GW: ${gwScore} pts</div>
         <div class="team-card-price">£${player.price.toFixed(1)}m</div>
+        ${fixturesBoxes}
       </div>`;
     }
   });
@@ -2492,13 +2617,19 @@ function renderXI(){
     const playingPct=getPlayingPercentage(p);
     const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
+    
+    // Get expected points for next 3 weeks
+    const expectedPts=getExpectedPoints(p.id, 3);
+    const ptsBoxes=getExpectedPtsBox(expectedPts);
+    
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
       +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'')
       +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div>'
-      +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div></div>';
+      +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div>'
+      +ptsBoxes+'</div>';
   };
   const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
         mdX=xi.filter(p=>p.pos==='MID'), fwX=xi.filter(p=>p.pos==='FWD');
