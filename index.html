@@ -22,11 +22,11 @@
   --panel2:#1e2530;
   --line:rgba(232,228,220,.10);
   --line2:rgba(232,228,220,.18);
-  --paper:#e8e4dc;
-  --dim:#7b8795;
-  --dimmer:#576270;
+  --paper:#ffffff;
+  --dim:#ffffff;
+  --dimmer:#ffffff;
   --prior:#d9a441;
-  --live:#4da3ff;
+  --live:#ffffff;
   --good:#4ec9a0;
   --bad:#e5657a;
   --accent:#d9a441;
@@ -39,11 +39,11 @@
   --panel2:#8f8f8f;
   --line:rgba(0,0,0,.15);
   --line2:rgba(0,0,0,.22);
-  --paper:#1a1a1a;
-  --dim:#2a2a2a;
-  --dimmer:#0a0a0a;
+  --paper:#ffffff;
+  --dim:#ffffff;
+  --dimmer:#ffffff;
   --prior:#d9a441;
-  --live:#3b82f6;
+  --live:#ffffff;
   --good:#4ec9a0;
   --bad:#e5657a;
   --accent:#d9a441;
@@ -70,11 +70,11 @@
 html{-webkit-text-size-adjust:100%}
 body{
   background:var(--ink);
-  -webkit-tap-highlight-color:rgba(77,163,255,.15);
+  -webkit-tap-highlight-color:rgba(255,255,255,.15);
   overscroll-behavior-y:none;
   color:var(--paper);
   font-family:'IBM Plex Sans',system-ui,sans-serif;
-  font-size:15px;
+  font-size:16px;
   line-height:1.5;
   min-height:100vh;
   overflow-x:hidden;
@@ -94,16 +94,21 @@ body::before{
 
 /* ─── MASTHEAD ─────────────────────────────────────────── */
 .masthead{padding:38px 0 0px;border-bottom:1px solid var(--line2)}
-.masthead-bottom{display:flex;gap:20px;align-items:flex-start;margin-top:12px}
+.masthead-bottom{display:flex;gap:20px;align-items:flex-start;margin-top:12px;flex-direction:column}
+.masthead-content{display:flex;gap:12px;align-items:baseline}
+.masthead-toggle{cursor:pointer;user-select:none;font-size:14px;color:var(--dim);transition:color .3s}
+.masthead-toggle:hover{color:var(--paper)}
+.tagline-box{display:none;margin-top:8px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:3px;font-size:14px;color:var(--dim);line-height:1.5}
+.tagline-box.open{display:block}
 .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}
 .eyebrow{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
   text-transform:uppercase;color:var(--dim);
 }
 .langtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .langbtn, .themebtn{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;
   padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s;
 }
 .langbtn:hover, .themebtn:hover{color:var(--paper)}
@@ -115,54 +120,83 @@ body::before{
 }
 .masthead h1 em{color:var(--accent);transition:color .6s ease}
 .masthead p{
-  color:var(--dim);font-size:13px;margin-top:0;flex:1;min-width:0;
+  color:var(--dim);font-size:14px;margin-top:0;flex:1;min-width:0;
 }
 
 /* ─── SIGNATURE: EVIDENCE BLEND ────────────────────────── */
 .evidence{
-  margin:0;padding:8px 12px;flex:1;min-width:0;
-  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  margin:0;padding:6px 10px;flex:1;min-width:0;
+  background:transparent;border:none;border-radius:0;cursor:pointer;transition:opacity .3s;position:relative;
 }
+.evidence:hover{opacity:.8}
 .evidence-top{
-  display:flex;justify-content:space-between;align-items:baseline;
-  gap:8px;flex-wrap:wrap;margin-bottom:6px;
+  display:flex;justify-content:flex-start;align-items:center;
+  gap:8px;flex-wrap:nowrap;margin-bottom:0;height:20px;
 }
 .evidence-label{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--dim);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);line-height:1;
 }
 .evidence-state{
-  font-family:'Instrument Serif',serif;font-size:14px;color:var(--accent);
-  transition:color .6s ease;
+  font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
+  transition:color .6s ease;line-height:1;
 }
+/* Data status section - minimal, collapsed by default */
+.data-status{cursor:pointer;user-select:none;padding:0}
+.data-status-top{
+  display:flex;justify-content:flex-start;align-items:center;
+  gap:6px;flex-wrap:nowrap;margin-bottom:0;height:20px;
+}
+.data-status-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--dim);line-height:1;
+}
+.data-status-icon{
+  font-family:'Instrument Serif',serif;font-size:14px;
+  transition:all .2s ease;
+  width:16px;display:flex;align-items:center;justify-content:center;
+}
+.data-status-icon.ok{color:#4fc771}
+.data-status-icon.warn{color:#e8a040}
+.data-status-icon.error{color:#e5657a}
+.data-status-message{
+  display:none;font-size:11px;line-height:1.5;color:var(--paper2);
+  margin-top:12px;padding:8px 0;border-top:1px solid var(--line);
+  max-width:320px;
+}
+.data-status-message.open{display:block}
+.data-status:hover .data-status-icon{opacity:.7}
 .blend-track{
-  position:relative;height:18px;border-radius:2px;overflow:hidden;
+  display:none;position:relative;height:18px;border-radius:2px;overflow:hidden;
   background:var(--panel2);border:1px solid var(--line);
 }
+.blend-track.open{display:block;margin-top:8px}
 .blend-prior,.blend-live{
   position:absolute;top:0;bottom:0;
   display:flex;align-items:center;
-  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;
   text-transform:uppercase;white-space:nowrap;overflow:hidden;
   transition:width .8s cubic-bezier(.4,0,.2,1);
 }
 .blend-prior{left:0;background:linear-gradient(90deg,rgba(217,164,65,.30),rgba(217,164,65,.16));
   color:#000000;padding-left:12px;border-right:1px solid var(--line2)}
-.blend-live{right:0;background:linear-gradient(270deg,rgba(77,163,255,.28),rgba(77,163,255,.13));
+.blend-live{right:0;background:linear-gradient(270deg,rgba(255,255,255,.28),rgba(255,255,255,.13));
   color:var(--live);padding-right:12px;justify-content:flex-end}
 .blend-legend{
-  display:flex;justify-content:space-between;margin-top:5px;
-  font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dimmer);letter-spacing:.06em;
+  display:none;justify-content:space-between;margin-top:5px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dimmer);letter-spacing:.06em;
 }
+.blend-legend.open{display:flex}
 .evidence-note{
-  margin-top:6px;padding-top:6px;border-top:1px solid var(--line);
-  font-size:11px;color:var(--dim);line-height:1.4;
+  display:none;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--dim);line-height:1.4;
 }
+.evidence-note.open{display:block}
 
 /* ─── CONTROLS ─────────────────────────────────────────── */
 .controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px}
 .btn{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
   text-transform:uppercase;padding:12px 22px;border-radius:2px;cursor:pointer;
   border:1px solid var(--accent);background:var(--accent);color:var(--ink);
   font-weight:600;transition:opacity .15s,transform .1s;
@@ -184,19 +218,19 @@ body::before{
   display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
 }
 .panel-title{
-  font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:.005em;
+  font-family:'Instrument Serif',serif;font-size:19px;letter-spacing:.005em;
 }
 .panel-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.08em}
 
 /* ─── WEIGHTS ──────────────────────────────────────────── */
 .preset-strip{display:flex;gap:6px;flex-wrap:wrap}
 .preset{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer;
-  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
+  border:1px solid var(--paper);background:transparent;color:var(--paper);transition:all .15s;
 }
-.preset:hover{color:var(--paper);border-color:var(--line2)}
-.preset[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.preset:hover{color:var(--paper);border-color:var(--paper)}
+.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:var(--ink)}
 .preset:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 .wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
@@ -205,15 +239,15 @@ body::before{
   display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;
 }
 .wgroup-name{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--paper);
 }
 .wgroup-desc{font-size:11.5px;color:var(--dimmer)}
 .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
 .wrow{display:flex;flex-direction:column;gap:6px}
 .wrow-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.wname{font-size:13px;color:var(--paper)}
-.wval{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);min-width:34px;text-align:right;transition:color .6s ease}
+.wname{font-size:14px;color:var(--paper)}
+.wval{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);min-width:34px;text-align:right;transition:color .6s ease}
 input[type=range]{
   -webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:1px;
   background:var(--line2);outline:none;cursor:pointer;
@@ -229,13 +263,13 @@ input[type=range]::-moz-range-thumb{
 }
 input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px}
 .wtag{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   text-transform:uppercase;padding:1px 6px;border-radius:2px;
 }
-.wtag.live{background:rgba(77,163,255,.14);color:var(--live)}
+.wtag.live{background:rgba(255,255,255,.14);color:var(--live)}
 .wtag.cold{background:rgba(217,164,65,.14);color:var(--prior)}
 .wtag.pos{background:rgba(78,201,160,.13);color:var(--good)}
-.wrow.muted{opacity:.4}
+.wrow.muted{opacity:.85}
 .whint{font-size:10.5px;color:var(--dimmer);line-height:1.4}
 
 /* ─── TABS ─────────────────────────────────────────────── */
@@ -250,14 +284,6 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
 .tab:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 .view{display:none}
 .view.on{display:block}
-
-/* ─── PICK LISTS ───────────────────────────────────────── */
-.pickgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-bottom:22px}
-.prow{
-  display:flex;align-items:center;gap:12px;padding:11px 20px;
-  border-bottom:1px solid var(--line);
-}
-.prow:last-child{border-bottom:none}
 
 /* ─── TEAM DISPLAY ─────────────────────────────────────── */
 .team-input-section,.team-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -283,16 +309,24 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
 .team-card-price{font-size:11px;color:var(--accent);margin-top:4px;font-weight:500}
 .team-section-head{padding:14px 20px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border-top:1px solid var(--line);margin-top:14px}
 .team-section-head:first-of-type{border-top:none;margin-top:0}
+
+/* ─── PICK LISTS ───────────────────────────────────────── */
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-bottom:22px}
+.prow{
+  display:flex;align-items:center;gap:12px;padding:11px 20px;
+  border-bottom:1px solid var(--line);
+}
+.prow:last-child{border-bottom:none}
 .pidx{
-  font-family:'Instrument Serif',serif;font-size:17px;color:var(--dimmer);
+  font-family:'Instrument Serif',serif;font-size:18px;color:var(--dimmer);
   width:20px;flex-shrink:0;text-align:right;
 }
 .pidx.lead{color:var(--accent)}
 .pinfo{flex:1;min-width:0}
-.pname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pmeta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
+.pname{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmeta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
 .pscore{text-align:right;flex-shrink:0}
-.pscore b{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.pscore b{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--accent);transition:color .6s ease}
 .conf{
   display:flex;gap:2px;margin-top:5px;justify-content:flex-end;
 }
@@ -304,7 +338,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
 .filters{display:flex;gap:9px;flex-wrap:wrap;padding:13px 20px;border-bottom:1px solid var(--line)}
 .filters input,.filters select{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
-  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 11px;border-radius:2px;outline:none;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 11px;border-radius:2px;outline:none;
 }
 .filters input{flex:1;min-width:150px}
 .filters input:focus,.filters select:focus{border-color:var(--accent)}
@@ -312,7 +346,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
 .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse}
 thead th{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim);padding:10px 14px;text-align:left;border-bottom:1px solid var(--line2);
   white-space:nowrap;user-select:none;
 }
@@ -327,20 +361,20 @@ tbody tr:hover{background:rgba(232,228,220,.022)}
 tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .mono{font-family:'IBM Plex Mono',monospace}
 .pos{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   padding:2px 6px;border-radius:2px;
 }
 .pos-GKP{background:rgba(217,164,65,.15);color:var(--prior)}
-.pos-DEF{background:rgba(77,163,255,.15);color:var(--live)}
+.pos-DEF{background:rgba(255,255,255,.15);color:var(--live)}
 .pos-MID{background:rgba(78,201,160,.15);color:var(--good)}
 .pos-FWD{background:rgba(229,101,122,.15);color:var(--bad)}
-.sc{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.sc{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);transition:color .6s ease}
 .sc.mid{color:var(--paper);opacity:.75}
 .sc.lo{color:var(--dimmer)}
 .pager{display:flex;gap:9px;align-items:center;padding:13px 20px;border-top:1px solid var(--line);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim)}
 .pg{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 11px;border-radius:2px;cursor:pointer}
+  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 11px;border-radius:2px;cursor:pointer}
 .pg:hover{border-color:var(--accent);color:var(--accent)}
 .pg:disabled{opacity:.28;cursor:not-allowed}
 
@@ -349,7 +383,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   border:1px solid var(--line);border-radius:3px;margin-bottom:18px}
 .xistat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
-.xistat b{font-family:'Instrument Serif',serif;font-size:23px;font-weight:400}
+.xistat b{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400}
 .pitch{
   background:var(--panel);border:1px solid var(--line);border-radius:3px;
   padding:26px 12px;margin-bottom:22px;position:relative;overflow:hidden;
@@ -362,27 +396,39 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .club-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex:0 0 auto}
 .datasource{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
 .datasource-summary{cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:12px;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);list-style:none}
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);list-style:none}
 .datasource-summary::-webkit-details-marker{display:none}
 .datasource-summary::before{content:'▸';color:var(--dim);transition:transform .15s}
 .datasource[open] .datasource-summary::before{transform:rotate(90deg)}
-.datasource-hint{margin-left:auto;color:var(--dimmer);letter-spacing:.04em;text-transform:none;font-size:11px}
+.datasource-hint{margin-left:auto;color:var(--dimmer);letter-spacing:.04em;text-transform:none;font-size:12px}
 .datasource-body{padding:0 18px 18px}
 .pdisc{
   width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;position:relative;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;position:relative;
   border:1px solid;
 }
 .pdisc.GKP{background:rgba(217,164,65,.16);border-color:rgba(217,164,65,.5);color:var(--prior)}
-.pdisc.DEF{background:rgba(77,163,255,.16);border-color:rgba(77,163,255,.5);color:var(--live)}
+.pdisc.DEF{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5);color:var(--live)}
 .pdisc.MID{background:rgba(78,201,160,.16);border-color:rgba(78,201,160,.5);color:var(--good)}
 .pdisc.FWD{background:rgba(229,101,122,.16);border-color:rgba(229,101,122,.5);color:var(--bad)}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
-  background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:8px;
+  background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
 .pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;max-width:62px;color:var(--paper)}
+  text-overflow:ellipsis;max-width:62px;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:4px}
 .pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer)}
+.pbadge{
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
+  clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
+  flex-shrink:0;position:relative;margin-left:2px;line-height:1;
+}
+.pbadge.avail{background:rgba(78,201,160,.9)}
+.pbadge.doubt{background:rgba(217,164,65,.9)}
+.pbadge.inj{background:rgba(229,101,122,.9)}
+.pbadge.sus{background:rgba(229,101,122,.9)}
+.pbadge.unav{background:rgba(229,101,122,.9)}
+.pbadge.new{background:rgba(100,120,160,.7)}
 
 /* ─── DIAGNOSTICS ──────────────────────────────────────── */
 .diag{padding:0}
@@ -396,20 +442,20 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .dv.off{color:var(--bad)}
 
 /* ─── STATES ───────────────────────────────────────────── */
-.note{padding:13px 17px;border-radius:2px;font-size:12.5px;line-height:1.6;margin-bottom:18px}
+.note{padding:6px 10px;border-radius:2px;font-size:11px;line-height:1.4;margin-bottom:8px}
 .note.err{background:rgba(229,101,122,.09);border:1px solid rgba(229,101,122,.3);color:#f0a3b0}
 .note.warn{background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);color:#e8c584}
 .loading{display:flex;flex-direction:column;align-items:center;gap:13px;padding:54px 20px;color:var(--dim)}
 .spin{width:22px;height:22px;border:1.5px solid var(--line2);border-top-color:var(--accent);
   border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.ltext{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase}
-.empty{padding:44px 20px;text-align:center;color:var(--dim);font-size:13px}
+.ltext{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.13em;text-transform:uppercase}
+.empty{padding:44px 20px;text-align:center;color:var(--dim);font-size:14px}
 
 /* ─── PASTE ────────────────────────────────────────────── */
 textarea{
   width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:11px;border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:11px;border-radius:2px;
   outline:none;resize:vertical;min-height:72px;
 }
 textarea:focus{border-color:var(--accent)}
@@ -422,30 +468,30 @@ textarea:focus{border-color:var(--accent)}
 .prow-click{cursor:pointer}
 .phist{cursor:pointer;-webkit-tap-highlight-color:rgba(217,164,65,.15)}
 .phist:active{opacity:.7}
-.benchstrip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+.benchstrip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   background:var(--panel2);border:1px dashed var(--line2);border-radius:10px;
-  padding:12px;margin:14px 0 22px}
+  padding:14px;margin:14px 0 22px}
 .lockbar{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:14px;margin-bottom:18px}
 .lockbar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.lockbar-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
-.lockbar-clear{background:none;border:1px solid var(--line2);color:var(--dim);font-size:10px;
+.lockbar-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.lockbar-clear{background:none;border:1px solid var(--line2);color:var(--dim);font-size:11px;
   padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
 .lockbar-clear:hover{color:var(--paper);border-color:var(--dim)}
-.lockbar-empty{font-size:12px;color:var(--dimmer)}
+.lockbar-empty{font-size:13px;color:var(--dimmer)}
 .lockchips{display:flex;flex-wrap:wrap;gap:8px}
 .lockchip{display:inline-flex;align-items:center;gap:6px;background:rgba(217,164,65,.12);
-  border:1px solid var(--accent);color:var(--paper);font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer}
-.lockchip-x{color:var(--dim);font-size:10px}
+  border:1px solid var(--accent);color:var(--paper);font-size:13px;padding:4px 10px;border-radius:20px;cursor:pointer}
+.lockchip-x{color:var(--dim);font-size:11px}
 .lockchip:hover .lockchip-x{color:var(--paper)}
-.lockstar{background:none;border:none;color:var(--dimmer);font-size:15px;cursor:pointer;padding:0;line-height:1}
+.lockstar{background:none;border:none;color:var(--dimmer);font-size:16px;cursor:pointer;padding:0;line-height:1}
 .lockstar.on{color:var(--accent)}
 .lockstar:hover{color:var(--accent)}
-.bench-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
+.bench-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);margin-right:4px}
 .benchstrip .pcard{opacity:.82}
 .xi-row td{color:var(--paper)}
 .bench-row td{color:var(--dim)}
-.bench-row td:first-child,.xi-row td:first-child{font-size:10px}
+.bench-row td:first-child,.xi-row td:first-child{font-size:11px}
 .hist-overlay[hidden]{display:none!important}
 /* the hidden attribute must beat any display: rule below (flex/grid/etc) */
 [hidden]{display:none!important}
@@ -479,34 +525,40 @@ textarea:focus{border-color:var(--accent)}
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim);margin-bottom:5px;
 }
-.hist-name{font-family:'Instrument Serif',serif;font-size:26px;line-height:1;}
+.hist-name{font-family:'Instrument Serif',serif;font-size:27px;line-height:1;}
 .hist-close{
   background:var(--panel2);border:1px solid var(--line2);color:var(--dim);
-  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:13px;flex-shrink:0;
+  width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
 .hist-close:hover{color:var(--paper);border-color:var(--line2)}
 .hist-body{overflow-y:auto;padding:4px 0;flex:1;-webkit-overflow-scrolling:touch}
 .hist-foot{
   padding:11px 20px;border-top:1px solid var(--line);flex-shrink:0;
-  font-size:11px;color:var(--dimmer);line-height:1.5;
+  font-size:12px;color:var(--dimmer);line-height:1.5;
 }
-.hist-section{padding:16px 20px;border-bottom:1px solid var(--line)}
+.hist-section{padding:0;border-bottom:1px solid var(--line)}
 .hist-section:last-child{border-bottom:none}
+.hist-section-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;transition:opacity .2s}
+.hist-section-header:hover{opacity:.8}
+.hist-section-toggle{display:inline-block;font-size:12px;transition:transform .2s;color:var(--dim)}
+.hist-section.collapsed .hist-section-toggle{transform:rotate(-90deg)}
 .hist-section-title{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);margin-bottom:12px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0;flex:1;
 }
+.hist-section-body{padding:0 20px 16px 20px;display:none}
+.hist-section.expanded .hist-section-body{display:block}
 .vs-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .vs-head .hist-section-title{margin-bottom:0}
 .vs-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.vs-lab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.vs-lab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .vs-filter-sm{max-width:70px}
 .hist-total-row td{border-top:1px solid var(--line2);font-weight:600;color:var(--accent)}
-.hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .fix-strip{display:flex;flex-direction:column;gap:2px}
 .fix-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
-.fix-gw{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);min-width:42px}
+.fix-gw{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:42px}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 .fdr-easy{background:#2ecc71}
 .fdr-mid{background:#e8e8e8}
@@ -516,24 +568,34 @@ textarea:focus{border-color:var(--accent)}
 .fdr-mid.light-theme{background:#ffffff}
 .fdr-hard.light-theme{background:#f87171}
 .fdr-blank{background:transparent;border:1px dashed var(--line2)}
-.fix-opp{font-size:14px;color:var(--paper);flex:1}
+.fix-opp{font-size:15px;color:var(--paper);flex:1}
 .fix-opp.fix-blank{color:var(--dimmer)}
-.fix-venue{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);
+.fix-venue{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
   border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
-.sum-block{margin:0 0 22px;padding:16px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
-.sum-season{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);margin-bottom:12px}
-.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px}
-.sum-cell{display:flex;flex-direction:column;gap:2px}
-.sum-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-.sum-v{font-size:16px;color:var(--paper);font-weight:600;line-height:1}
-.sum-k2{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:3px}
-.sum-v2{font-size:13px;color:var(--paper2,#c9c9c9)}
+.sum-block{margin:0 0 4px;padding:12px 14px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
+.sum-season{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px}
+.sum-cell{display:flex;flex-direction:column;gap:1px}
+.sum-k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.sum-v{font-size:15px;color:var(--paper);font-weight:600;line-height:1}
+.sum-k2{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:1px}
+.sum-v2{font-size:12px;color:var(--paper2,#c9c9c9)}
 .sum-na{color:var(--dimmer);font-weight:400}
 @media(max-width:520px){.sum-grid{grid-template-columns:repeat(2,1fr)}}
+.sum-options{display:flex;gap:6px;margin:6px 0 0 0;flex-wrap:wrap;border-bottom:none;padding:0}
+.sum-option-btn{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:7px 14px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
+}
+.sum-option-btn:hover{color:var(--paper);border-color:var(--paper)}
+.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.hist-tab-content{display:none;padding:8px 18px;border-bottom:none}
+.hist-tab-content.shown{display:block}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;border-radius:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;
   max-width:60%;cursor:pointer;
 }
 .vs-filter:focus{outline:1px solid var(--accent);outline-offset:-1px}
@@ -548,21 +610,21 @@ textarea:focus{border-color:var(--accent)}
   font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;
   padding:7px;border-bottom:1px solid var(--line);white-space:nowrap;
 }
-.hist-table td:first-child{text-align:left;font-size:12px}
+.hist-table td:first-child{text-align:left;font-size:13px}
 .hist-table tr:last-child td{border-bottom:none}
 .hist-table tbody tr:hover{background:rgba(232,228,220,.02)}
 .hist-price-up{color:var(--good)}
 .hist-price-down{color:var(--bad)}
 .hist-empty{padding:26px 20px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
 .hist-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--dim)}
-.hist-venue{display:inline-block;width:20px;font-size:10px;color:var(--dim)}
+.hist-venue{display:inline-block;width:20px;font-size:11px;color:var(--dim)}
 
 /* ─── SEASON PLAN ──────────────────────────────────────── */
 .fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
-.fxgrid th{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+.fxgrid th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   color:var(--dim);padding:5px 4px;text-align:center;border:none;white-space:nowrap}
 .fxgrid th.club{text-align:left;padding-left:14px;position:sticky;left:0;background:var(--panel);z-index:2}
-.fxgrid td.club{font-family:'IBM Plex Mono',monospace;font-size:11px;padding-left:14px;
+.fxgrid td.club{font-family:'IBM Plex Mono',monospace;font-size:12px;padding-left:14px;
   position:sticky;left:0;background:var(--panel);z-index:2;white-space:nowrap}
 .fxgrid tbody tr:hover{background:none}
 .fxgrid tbody tr:hover td:not(.club){filter:brightness(1.25)}
@@ -570,18 +632,18 @@ textarea:focus{border-color:var(--accent)}
   font-size:9.5px;text-align:center;line-height:1.25}
 .d1{background:#2ecc71;color:#bff0dd}
 .d2{background:rgba(46,204,113,.5);color:#a9e2cc}
-.d3{background:#e8e8e8;color:var(--dim)}
+.d3{background:#e8e8e8;color:#2d3748}
 .d4{background:rgba(229,85,85,.5);color:#f2b5c0}
 .d5{background:#e55555;color:#ffc9d2}
 /* Light theme versions */
 .d1.light-theme{background:#4ade80;color:#bff0dd}
 .d2.light-theme{background:rgba(78,201,160,.19);color:#a9e2cc}
-.d3.light-theme{background:#ffffff;color:var(--dim)}
+.d3.light-theme{background:#ffffff;color:#2d3748}
 .d4.light-theme{background:rgba(229,101,122,.19);color:#f2b5c0}
 .d5.light-theme{background:#f87171;color:#ffc9d2}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
   color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
-.cell .dbl{display:block;font-size:8px;letter-spacing:.08em;color:var(--live);margin-top:1px}
+.cell .dbl{display:block;font-size:9px;letter-spacing:.08em;color:var(--live);margin-top:1px}
 .cell.good5run{border-top:3px solid var(--accent)!important;border-bottom:3px solid var(--accent)!important}
 .halfmark{border-left:2px solid var(--accent)!important}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line);
@@ -590,14 +652,14 @@ textarea:focus{border-color:var(--accent)}
 .chipcard{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;
   align-items:flex-start;flex-wrap:wrap}
 .chipcard:last-child{border-bottom:none}
-.chipname{font-family:'Instrument Serif',serif;font-size:19px;width:130px;flex-shrink:0}
+.chipname{font-family:'Instrument Serif',serif;font-size:20px;width:130px;flex-shrink:0}
 .chipbody{flex:1;min-width:200px}
-.chipwin{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:3px}
-.chipwhy{font-size:12px;color:var(--dim);line-height:1.55}
-.chiphalf{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;
+.chipwin{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:3px}
+.chipwhy{font-size:13px;color:var(--dim);line-height:1.55}
+.chiphalf{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dimmer);margin-bottom:4px}
 .halfsplit{padding:11px 20px;background:var(--panel2);border-bottom:1px solid var(--line);
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--accent)}
 .swingrow{display:flex;justify-content:space-between;gap:14px;padding:9px 20px;
   border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
@@ -607,7 +669,7 @@ textarea:focus{border-color:var(--accent)}
 
 @media (hover:none) and (pointer:coarse){
   .filters input,.filters select,textarea,input[type=text],input[type=number]{
-    font-size:16px;
+    font-size:17px;
   }
   .tab{padding:14px 18px}
   .btn{padding:14px 22px}
@@ -645,25 +707,41 @@ textarea:focus{border-color:var(--accent)}
         </div>
       </div>
     </div>
-    <h1><span id="i18n-engineA">Scoring</span> <span id="i18n-engineB">Engine</span></h1>
+    <!-- H1 + Evidence Blend + Data Status on same row, right-aligned -->
+    <div style="display:flex;gap:24px;align-items:flex-start;justify-content:space-between;margin-top:12px">
+      <h1 style="margin:0">⚽ FPL Model</h1>
+      <div style="display:flex;gap:24px;align-items:flex-start">
+        <div class="evidence" id="evidenceToggle" title="Click to expand">
+          <div class="evidence-top">
+            <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
+            <div class="evidence-state" id="stateLabel">Not loaded</div>
+          </div>
+          <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
+            <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
+            <div class="blend-live" id="blendLive" style="width:0%">This season</div>
+          </div>
+          <div class="blend-legend" id="blendLegend">
+            <span id="legendPrior">prior 100%</span>
+            <span id="legendLive">live 0%</span>
+          </div>
+          <div class="evidence-note" id="evidenceNote">
+            Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+          </div>
+        </div>
+        <div class="data-status" id="dataStatusToggle" title="Click to expand">
+          <div class="data-status-top">
+            <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
+            <div class="data-status-icon" id="dataStatusIcon">✓</div>
+          </div>
+          <div class="data-status-message" id="dataStatusMessage"></div>
+        </div>
+      </div>
+    </div>
     <div class="masthead-bottom">
-      <p id="i18n-tagline">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
-      <!-- SIGNATURE: evidence blend -->
-      <div class="evidence">
-        <div class="evidence-top">
-          <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
-          <div class="evidence-state" id="stateLabel">Not loaded</div>
-        </div>
-        <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
-          <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
-          <div class="blend-live" id="blendLive" style="width:0%">This season</div>
-        </div>
-        <div class="blend-legend">
-          <span id="legendPrior">prior 100%</span>
-          <span id="legendLive">live 0%</span>
-        </div>
-        <div class="evidence-note" id="evidenceNote">
-          Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+      <div class="masthead-content">
+        <span class="masthead-toggle" id="taglineToggle" title="Click to expand">ℹ</span>
+        <div class="tagline-box" id="taglineBox">
+          <p id="i18n-tagline" style="margin:0;font-size:13px">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
         </div>
       </div>
     </div>
@@ -684,13 +762,16 @@ textarea:focus{border-color:var(--accent)}
   <!-- TABS -->
   <div class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" role="tab" aria-selected="true" data-view="picks" data-i18n="tabPicks">Picks</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="myteam" data-i18n="tabMyTeam">My Team</button>
     <button class="tab" role="tab" aria-selected="false" data-view="xi" data-i18n="tabXI">Best XI</button>
     <button class="tab" role="tab" aria-selected="false" data-view="table" data-i18n="tabTable">All players</button>
     <button class="tab" role="tab" aria-selected="false" data-view="plan" data-i18n="tabPlan">Season plan</button>
     <button class="tab" role="tab" aria-selected="false" data-view="diag" data-i18n="tabDiag">Diagnostics</button>
   </div>
 
-  <div class="view on" id="view-picks">
+  <div class="view on" id="view-picks"><div class="pickgrid" id="pickGrid"></div></div>
+  
+  <div class="view" id="view-myteam">
     <div class="panel">
       <div class="panel-head">
         <div class="panel-title" data-i18n="myTeam">My Team</div>
@@ -715,6 +796,7 @@ textarea:focus{border-color:var(--accent)}
       </div>
     </div>
   </div>
+  
   <div class="view" id="view-xi"><div id="xiBody"></div></div>
 
   <div class="view" id="view-table">
@@ -831,7 +913,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-22a';
+const APP_BUILD = 'app-2026-08-22c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -842,6 +924,7 @@ const I18N={
     tagline:'Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.',
     engineA:'FPL', engineB:'Model',
     evidenceBlend:'Evidence blend',
+    dataStatus:'Data loaded',
     notLoaded:'Not loaded', coldStart:'Cold start', warmingUp:'Warming up', liveData:'Live data',
     lastSeason:'Last season', thisSeason:'This season', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'prior '+p+'%', livePct:p=>'live '+p+'%',
@@ -888,6 +971,7 @@ const I18N={
     fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
     highlight5Good:'Highlight 5+ week good runs',
     legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
+    leg2:'easier', leg4:'harder',
     fdrDark:'Dark', fdrLight:'Light', fdrTheme:'FDR theme',
     club:'Club',
     chipWindows:'Chip windows', chipMeta:d=>'Two sets of four · first expires at the GW'+d+' deadline',
@@ -912,7 +996,7 @@ const I18N={
     dYes:'yes', dNo:'no', dNone:'none — pasted data',
     // load messages
     srcLive:'live data', srcPublished:'published data', srcLiveApi:'live API', srcSaved:'saved data',
-    loadedFrom:(src,age)=>'Loaded from '+src+(age?' ('+age+')':'')+'.',
+    loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
     offlineStale:' Offline — this is your last saved copy, so numbers may be stale.',
     understatFB:'. Expected goals shown use FPL\u2019s own figures.',
     noDefWarn:'No defensive contribution field found — that input scores neutral. Check Diagnostics.',
@@ -929,21 +1013,21 @@ const I18N={
     histTitle:'Player history', histLoading:'Loading history…',
     histErr:'Could not load history for this player.',
     histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
-    histVsClubAll:'By opponent (all seasons, Understat xG)',
+    histVsClubAll:'By opponent (all seasons xG)',
     histFilterAll:'All opponents', histVsMatches:'Matches vs {opp}', histNoVs:'No matches recorded vs that club.',
-    histTotal:'Total', histSeasonStats:'Per-season stats (Understat)', histLastN:'Seasons shown',
+    histTotal:'Total', histSeasonStats:'Per-season stats', histLastN:'Seasons shown',
     hAll:'All', hShots:'Shots', hKP:'Key passes', hNpG:'npG', hNpxG:'npxG',
     histUpcoming:'Upcoming fixtures', histNoFix:'No upcoming fixtures loaded.', hGW:'GW',
     sumPrice:'Price', sumOwn:'Ownership', sumTransfers:'Transfers', sumPts:'Total pts',
     sumPPG:'Per game', sumMin:'Minutes', sumGames:'Games', sumForm:'Form', sumBonus:'Total bonus',
     sumGoals:'Goals', sumAssists:'Assists', sumShots:'Shots', sumOnTarget:'On target',
     sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
-    histUnderstatNote:'Multi-season xG by opponent from Understat.',
+    histUnderstatNote:'Multi-season xG by opponent.',
     hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
-    histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent from Understat.',
+    histClose:'Close', histNote:'FPL points history plus multi-season xG-by-opponent',
     priceMove:'price',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
     sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
@@ -975,6 +1059,7 @@ const I18N={
     tagline:'Clasifica a cada jugador según evidencia ponderada y luego ajusta por su probabilidad de jugar. Cuánta de esa evidencia procede de esta temporada depende de cuánta temporada se ha disputado.',
     engineA:'Motor de', engineB:'Puntuación',
     evidenceBlend:'Mezcla de evidencia',
+    dataStatus:'Datos cargados',
     notLoaded:'Sin cargar', coldStart:'Arranque frío', warmingUp:'Calentando', liveData:'Datos actuales',
     lastSeason:'Temp. pasada', thisSeason:'Esta temp.', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'previa '+p+'%', livePct:p=>'actual '+p+'%',
@@ -1020,6 +1105,7 @@ const I18N={
     fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
     highlight5Good:'Destacar rachas de 5+ semanas fáciles',
     legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
+    leg2:'más fácil', leg4:'más difícil',
     fdrDark:'Oscuro', fdrLight:'Claro', fdrTheme:'Tema FDR',
     club:'Club',
     chipWindows:'Ventanas de comodines', chipMeta:d=>'Dos juegos de cuatro · el primero caduca en el límite de la J'+d,
@@ -1042,7 +1128,7 @@ const I18N={
     dNotFound:'no encontrado', dSummed:parts=>'sumado de '+parts, dUnavail:'no disponible', dPlayers:' jugadores',
     dYes:'sí', dNo:'no', dNone:'ninguno — datos pegados',
     srcLive:'datos en vivo', srcPublished:'datos publicados', srcLiveApi:'API en vivo', srcSaved:'datos guardados',
-    loadedFrom:(src,age)=>'Cargado desde '+src+(age?' ('+age+')':'')+'.',
+    loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
     offlineStale:' Sin conexión — esta es tu última copia guardada, los números pueden estar desactualizados.',
     understatFB:'. Los goles esperados usan las cifras propias de FPL.',
     noDefWarn:'No se encontró el campo de contribución defensiva — esa entrada puntúa neutra. Revisa Diagnóstico.',
@@ -1059,21 +1145,21 @@ const I18N={
     histTitle:'Historial del jugador', histLoading:'Cargando historial…',
     histErr:'No se pudo cargar el historial de este jugador.',
     histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
-    histVsClubAll:'Por rival (todas las temporadas, xG de Understat)',
+    histVsClubAll:'Por rival (todas las temporadas xG)',
     histFilterAll:'Todos los rivales', histVsMatches:'Partidos vs {opp}', histNoVs:'Sin partidos registrados vs ese club.',
-    histTotal:'Total', histSeasonStats:'Estadísticas por temporada (Understat)', histLastN:'Temporadas',
+    histTotal:'Total', histSeasonStats:'Estadísticas por temporada', histLastN:'Temporadas',
     hAll:'Todas', hShots:'Tiros', hKP:'Pases clave', hNpG:'GsP', hNpxG:'npxG',
     histUpcoming:'Próximos partidos', histNoFix:'No hay próximos partidos cargados.', hGW:'J',
     sumPrice:'Precio', sumOwn:'Propiedad', sumTransfers:'Fichajes', sumPts:'Puntos tot.',
     sumPPG:'Por partido', sumMin:'Minutos', sumGames:'Partidos', sumForm:'Forma', sumBonus:'Bonus total',
     sumGoals:'Goles', sumAssists:'Asist.', sumShots:'Tiros', sumOnTarget:'A puerta',
     sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
-    histUnderstatNote:'xG por rival multitemporada de Understat.',
+    histUnderstatNote:'xG por rival multitemporada.',
     hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
-    histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada de Understat.',
+    histClose:'Cerrar', histNote:'Historial de puntos FPL más xG por rival multitemporada',
     priceMove:'precio',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
     sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
@@ -1378,6 +1464,26 @@ function minutesSecurity(p){
   return rate*statusMult*copMult;
 }
 
+/* ══ STATUS & PLAYING % ════════════════════════════════ */
+function getStatusBadge(status){
+  const labels={
+    a:{en:'Avail',es:'Disp'},
+    d:{en:'Doubt',es:'Duda'},
+    i:{en:'Inj',es:'Les'},
+    s:{en:'Sus',es:'Sus'},
+    u:{en:'Unav',es:'No disp'},
+    n:{en:'New',es:'Nuevo'}
+  };
+  const info=labels[status]||{en:'—',es:'—'};
+  return info[LANG==='es'?'es':'en'];
+}
+
+function getPlayingPercentage(p){
+  if(state.gwPlayed===0)return '—';
+  const pct=clamp((p.minutes||0)/(state.gwPlayed*90),0,1);
+  return Math.round(pct*100)+'%';
+}
+
 /* ══ WEIGHTING ═════════════════════════════════════════ */
 function effWeight(key){
   const w=WEIGHTS[key]||0, av=FEATURES[key].avail;
@@ -1519,7 +1625,7 @@ function lerpColor(a,b,t){
 
 function paintState(){
   const lw=state.liveWeight;
-  const accent=lerpColor('#d9a441','#4da3ff',lw);
+  const accent=lerpColor('#d9a441','#ffffff',lw);
   document.documentElement.style.setProperty('--accent',accent);
   document.documentElement.style.setProperty('--accent-soft',
     'rgba('+parseInt(accent.slice(1,3),16)+','+parseInt(accent.slice(3,5),16)+','+parseInt(accent.slice(5,7),16)+',.14)');
@@ -1617,7 +1723,7 @@ function pickCard(title,note,list,metaFn){
   if(!list.length)return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div></div><div class="empty">'+t('nothingQ')+'</div></div>';
   const rows=list.map((p,i)=>
     '<div class="prow phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pidx'+(i===0?' lead':'')+'">'+(i+1)+'</div>'
-    +'<div class="pinfo"><div class="pname">'+p.name+'</div>'
+    +'<div class="pinfo"><div class="pname">'+p.name+(p.status!=='a'?'<span class="pbadge '+(p.status==='d'?'doubt':p.status==='i'?'inj':p.status==='s'?'inj':p.status==='u'?'unav':'new')+'" style="margin-left:6px" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</div>'
     +'<div class="pmeta">'+p.club+' · '+p.pos+' · '+p.price.toFixed(1)+metaFn(p)+'</div></div>'
     +'<div class="pscore"><b>'+p.score.toFixed(1)+'</b>'+confDots(p)+'</div></div>').join('');
   return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div>'
@@ -1632,15 +1738,26 @@ async function loadUserTeam(fplId){
   try{
     status.textContent='Loading...';
     status.style.color='var(--dim)';
-    const res=await fetch(`https://fantasy.premierleague.com/api/entry/${fplId}/history/`);
-    if(!res.ok)throw new Error('User not found');
-    const hist=await res.json();
+    const corsProxy='https://api.allorigins.win/get?url=';
+    const apiBase='https://fantasy.premierleague.com/api/entry/';
+    
+    // Fetch history via CORS proxy
+    const histUrl=apiBase+fplId+'/history/';
+    const histRes=await fetch(corsProxy+encodeURIComponent(histUrl));
+    if(!histRes.ok)throw new Error('Network error');
+    const histWrap=await histRes.json();
+    if(histWrap.status.code!==200)throw new Error('User not found ('+histWrap.status.code+')');
+    const hist=JSON.parse(histWrap.contents);
     const current=hist.current[0];
     if(!current)throw new Error('No season data');
     
-    const picksRes=await fetch(`https://fantasy.premierleague.com/api/entry/${fplId}/event/${current.event}/picks/`);
-    if(!picksRes.ok)throw new Error('Could not load picks');
-    const picksData=await picksRes.json();
+    // Fetch picks for current gameweek
+    const picksUrl=apiBase+fplId+'/event/'+current.event+'/picks/';
+    const picksRes=await fetch(corsProxy+encodeURIComponent(picksUrl));
+    if(!picksRes.ok)throw new Error('Could not fetch picks');
+    const picksWrap=await picksRes.json();
+    if(picksWrap.status.code!==200)throw new Error('Could not load picks');
+    const picksData=JSON.parse(picksWrap.contents);
     
     userTeam={picks:picksData.picks,gw:current.event,username:hist.entry.player_first_name,currentEvent:current.event};
     $('gwSelect').max=current.event;
@@ -1654,14 +1771,13 @@ async function loadUserTeam(fplId){
   }catch(e){
     status.textContent='✗ '+e.message;
     status.style.color='var(--fire)';
+    console.error('FPL load error:',e);
   }
 }
 
 function renderUserTeam(){
   if(!userTeam.picks)return;
   const picks=userTeam.picks;
-  const club=state.clubMap||{};
-  const pos=['GKP','DEF','MID','FWD'];
   
   $('gwStatus').textContent=`GW ${userTeam.gw} / ${userTeam.currentEvent||38}`;
   
@@ -1701,23 +1817,14 @@ function renderUserTeam(){
 }
 
 function renderPicks(){
-  if(userTeam.picks){
-    // User team is loaded, don't override with model picks
-    return;
-  }
   const fit=players.filter(p=>p.status==='a'&&p.mins>.35);
   const cap=fit.slice(0,5);
   const value=fit.slice().sort((a,b)=>(b.score/b.price)-(a.score/a.price)).slice(0,5);
   const diff=fit.filter(p=>p.sel<12).slice(0,5);
-  
-  // Show model picks as cards (the old behavior)
-  const pickgrid=$('pickGrid');
-  if(pickgrid){
-    pickgrid.innerHTML=
-      pickCard(t('capTitle'),t('capMeta'),cap,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'))
-     +pickCard(t('valTitle'),t('valMeta'),value,p=>' · '+(p.score/p.price).toFixed(2)+' '+t('perM'))
-     +pickCard(t('difTitle'),t('difMeta'),diff,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'));
-  }
+  $('pickGrid').innerHTML=
+    pickCard(t('capTitle'),t('capMeta'),cap,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'))
+   +pickCard(t('valTitle'),t('valMeta'),value,p=>' · '+(p.score/p.price).toFixed(2)+' '+t('perM'))
+   +pickCard(t('difTitle'),t('difMeta'),diff,p=>' · '+p.sel.toFixed(1)+'% '+t('owned'));
 }
 
 /* ══ SQUAD OPTIMISER ═══════════════════════════════════
@@ -1875,7 +1982,7 @@ function renderXI(){
   const lockBar='<div class="lockbar">'
     +'<div class="lockbar-head"><span class="lockbar-title">'+t('sqLocked')+'</span>'
     +(lockedPlayers.length?'<button class="lockbar-clear" id="clearLocks">'+t('sqClearLocks')+'</button>':''
-      +'<a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none;font-size:10px">'+t('selectPlayer')+' ▹</a>')
+      +'<a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none;font-size:11px">'+t('selectPlayer')+' ▹</a>')
     +'</div>'
     +(lockedPlayers.length
       ? '<div class="lockchips">'+lockedPlayers.map(p=>'<span class="lockchip" data-lock="'+p.id+'">★ '
@@ -1904,26 +2011,37 @@ function renderXI(){
       opp=((o||{}).short_name||'?')+(h?' H':' A')}
     const short=(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name||'';
     const col=clubColor(short);
+    const playingPct=getPlayingPercentage(p);
+    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
-      +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name+'</div>'
+      +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name
+      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'')
+      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div>'
       +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div></div>';
   };
   const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
         mdX=xi.filter(p=>p.pos==='MID'), fwX=xi.filter(p=>p.pos==='FWD');
 
   // squad table row (marks starters vs bench, with a lock star)
-  const row=p=>'<tr class="phist'+(inXI(p.id)?' xi-row':' bench-row')+'" data-pid="'+p.id
+  const row=p=>{
+    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
+    const statusText=p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'';
+    return '<tr class="phist'+(inXI(p.id)?' xi-row':' bench-row')+'" data-pid="'+p.id
       +'" data-pname="'+encodeURIComponent(p.name)+'">'
-    +'<td>'+(inXI(p.id)?'●':'○')+'</td>'
-    +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock">'
-      +(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
-    +'<td><span class="club-dot" style="background:'+clubColor((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name)+'"></span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+'</td>'
-    +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
-    +'<td class="mono">'+p.price.toFixed(1)+'</td>'
-    +'<td class="sc">'+p.score.toFixed(1)+'</td>'
-    +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
+      +'<td>'+(inXI(p.id)?'●':'○')+'</td>'
+      +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock">'
+        +(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
+      +'<td style="display:flex;align-items:center;gap:6px"><span class="club-dot" style="background:'+clubColor((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name)+'"></span><span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
+      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
+      +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
+      +'<td class="mono">'+p.price.toFixed(1)+'</td>'
+      +'<td class="sc">'+p.score.toFixed(1)+'</td>'
+      +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
+  };
   const order={GKP:0,DEF:1,MID:2,FWD:3};
   const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||b.score-a.score);
 
@@ -1934,7 +2052,7 @@ function renderXI(){
     +'<div class="xistat"><span>'+t('sqXIScore')+'</span><b>'+xiScore.toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqBudget')+'</span><b>'+cost.toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqRemaining')+'</span><b>'+(XI_BUDGET-cost).toFixed(1)+'</b></div>'
-    +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:17px">'+cap.name+'</b></div>'
+    +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:18px">'+cap.name+(cap.status!=='a'?'<span class="pbadge '+(cap.status==='d'?'doubt':cap.status==='i'?'inj':cap.status==='s'?'inj':cap.status==='u'?'unav':'new')+'" style="margin-left:6px;font-size:10px" title="'+(cap.status==='d'?'Doubt':cap.status==='i'?'Injured':cap.status==='s'?'Suspended':cap.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</b></div>'
     +'</div>'
     +'<div class="pitch">'
       +'<div class="prow-xi">'+gkX.map(disc).join('')+'</div>'
@@ -1953,6 +2071,39 @@ function renderXI(){
   wireLockControls();
 }
 
+/* ══ PERSISTENCE ═══════════════════════════════════════ */
+function saveState(){
+  try{
+    const state={
+      lockedIds:Array.from(lockedIds),
+      timestamp:new Date().toISOString()
+    };
+    localStorage.setItem('fplRock_state',JSON.stringify(state));
+  }catch(e){
+    console.warn('localStorage save failed:',e);
+  }
+}
+
+function loadState(){
+  try{
+    const saved=localStorage.getItem('fplRock_state');
+    if(saved){
+      const state=JSON.parse(saved);
+      if(state.lockedIds&&Array.isArray(state.lockedIds)){
+        lockedIds.clear();
+        state.lockedIds.forEach(id=>lockedIds.add(id));
+        // re-render to show restored locks
+        renderXI();
+        renderTable();
+        return true;
+      }
+    }
+  }catch(e){
+    console.warn('localStorage load failed:',e);
+  }
+  return false;
+}
+
 // wire lock stars, chips, and clear button (called after each renderXI and renderTable)
 function wireLockControls(){
   document.querySelectorAll('[data-locktoggle]').forEach(btn=>{
@@ -1962,13 +2113,14 @@ function wireLockControls(){
       // re-render both views to keep them in sync
       renderXI();
       renderTable();
+      saveState();
     });
   });
   $('xiBody').querySelectorAll('[data-lock]').forEach(chip=>{
-    chip.addEventListener('click',()=>{ lockedIds.delete(+chip.dataset.lock); renderXI(); });
+    chip.addEventListener('click',()=>{ lockedIds.delete(+chip.dataset.lock); renderXI(); saveState(); });
   });
   const clr=$('clearLocks');
-  if(clr)clr.addEventListener('click',()=>{ lockedIds.clear(); renderXI(); });
+  if(clr)clr.addEventListener('click',()=>{ lockedIds.clear(); renderXI(); saveState(); });
   // wire up Select Player link to switch to All Players tab
   const selectLink=$('selectPlayerLink');
   if(selectLink)selectLink.addEventListener('click',e=>{e.preventDefault();
@@ -2013,9 +2165,13 @@ function renderTable(){
 
   $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
     const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
+    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
     +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
-    +'<td><div>'+p.name+'</div><div class="mono" style="font-size:10px;color:var(--dim)">'+p.club+'</div></td>'
+    +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name
+    +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')
+    +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
     +'<td class="'+cls+'">'+p.score.toFixed(1)+'</td>'
@@ -2222,7 +2378,21 @@ async function openHistory(pid,pname){
   histOppFilter='';                // reset the opponent filter for each new player
   histSeasonN=0;                   // reset the season-range filter
   const ov=$('histOverlay');
-  $('histName').textContent=pname;
+  
+  // Get player data for injury status - try bootstrap first, then players array
+  let player=bootstrap.elements.find(p=>String(p.id)===String(pid));
+  if(!player) player=players.find(p=>String(p.id)===String(pid));
+  
+  const statusText=player?.status==='d'?'Doubt':player?.status==='i'?'Injured':player?.status==='s'?'Suspended':player?.status==='u'?'Unavailable':'';
+  const statusClass=player?.status==='d'?'doubt':player?.status==='i'?'inj':player?.status==='s'?'inj':player?.status==='u'?'unav':'';
+  
+  // Display player name with injury badge if applicable
+  let nameHtml=pname;
+  if(statusText){
+    nameHtml+=' <span class="pbadge '+statusClass+'" style="margin-left:8px;cursor:help" title="'+statusText+'">!</span>';
+  }
+  $('histName').innerHTML=nameHtml;
+  
   $('histEyebrow').textContent=t('histTitle');
   $('histFoot').textContent=t('histNote');
   $('histBody').innerHTML='<div class="hist-loading"><div class="spin"></div>'
@@ -2244,7 +2414,7 @@ async function openHistory(pid,pname){
     renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
-      +'<div style="margin-top:12px;font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:var(--dimmer);word-break:break-all;text-align:left">'
+      +'<div style="margin-top:12px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--dimmer);word-break:break-all;text-align:left">'
       +String(e&&e.message||e)+'</div></div>';
   }
 }
@@ -2275,8 +2445,13 @@ function renderVsClub(understat, filter){
   const scope=seasonsInScope(allMatches, histSeasonN);
   const matches=allMatches.filter(m=>scope.has(m.season));
   const vc=understatVsClub(matches);          // recompute vs-club within scope
-  const opts=vc.map(c=>c.opponent).sort();
-
+  
+  // Filter opponents to only current Premier League teams
+  const currentTeams=new Set((bootstrap.teams||[]).map(t=>t.name));
+  const vcFiltered=vc.filter(c=>currentTeams.has(c.opponent));
+  
+  const opts=vcFiltered.map(c=>c.opponent).sort();
+  
   // season-range dropdown: All, then last 1..5 (only offer counts we have)
   const seasonCount=new Set(allMatches.map(m=>m.season)).size;
   let seasonOpts='<option value="0"'+(histSeasonN===0?' selected':'')+'>'+t('hAll')+'</option>';
@@ -2292,15 +2467,15 @@ function renderVsClub(understat, filter){
   let body;
   if(!filter){
     // summary: one row per opponent + TOTAL row
-    const tot=vc.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
+    const tot=vcFiltered.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
       {g:0,go:0,as:0,xg:0,xa:0});
     body='<table class="hist-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
       +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
       +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
-      +vc.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
+      +vcFiltered.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
         +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
-        +'<td style="color:var(--dim);font-size:10px">'+c.seasons.length+'</td></tr>').join('')
+        +'<td style="color:var(--dim);font-size:11px">'+c.seasons.length+'</td></tr>').join('')
       +'<tr class="hist-total-row"><td>'+t('histTotal')+'</td><td>'+tot.g+'</td><td>'+tot.go+'</td>'
       +'<td>'+tot.as+'</td><td>'+tot.xg.toFixed(1)+'</td><td>'+tot.xa.toFixed(1)+'</td><td></td></tr>'
       +'</tbody></table>';
@@ -2324,10 +2499,10 @@ function renderVsClub(understat, filter){
     }
   }
 
-  return '<div class="vs-head"><div class="hist-section-title">'+t('histVsClubAll')+'</div>'
-    +'<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div></div>'
+  // Return controls + body (section wrapper is handled in renderHistoryInner)
+  return '<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div>'
     +body
-    +'<div style="padding:8px 2px 0;font-size:10px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
+    +'<div style="padding:8px 2px 0;font-size:11px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
 }
 
 // per-season stats block (Understat): totals per season across all opponents
@@ -2342,15 +2517,15 @@ function renderSeasonStats(understat){
   });
   const rows=Object.values(bySeason).sort((a,b)=>b.season.localeCompare(a.season));
   if(!rows.length)return '';
-  return '<div class="hist-section"><div class="hist-section-title">'+t('histSeasonStats')+'</div>'
-    +'<div class="tscroll"><table class="hist-table"><thead><tr>'
+  // Return just the table content (no section wrapper, since renderHistoryInner wraps it)
+  return '<div class="tscroll"><table class="hist-table"><thead><tr>'
     +'<th>'+t('hSeason')+'</th><th>'+t('hApps')+'</th><th>'+t('hMin')+'</th>'
     +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
     +'<th>'+t('hNpG')+'</th><th>'+t('hNpxG')+'</th><th>'+t('hShots')+'</th><th>'+t('hKP')+'</th></tr></thead><tbody>'
     +rows.map(r=>'<tr><td>'+r.season+'</td><td>'+r.apps+'</td><td>'+r.min+'</td>'
       +'<td>'+r.goals+'</td><td>'+r.assists+'</td><td>'+r.xg.toFixed(1)+'</td><td>'+r.xa.toFixed(1)+'</td>'
       +'<td>'+r.npg+'</td><td>'+r.npxg.toFixed(1)+'</td><td>'+r.shots+'</td><td>'+r.kp+'</td></tr>').join('')
-    +'</tbody></table></div></div>';
+    +'</tbody></table></div>';
 }
 
 function renderHistory(d, understat){
@@ -2375,8 +2550,8 @@ function renderHistory(d, understat){
     }
     if(!rows.length)return '';
     const dotClass=d=>(d<=2?'fdr-easy':d===3?'fdr-mid':'fdr-hard')+(fdrTheme==='light'?' light-theme':'');
-    return '<div class="hist-section"><div class="hist-section-title">'+t('histUpcoming')+'</div>'
-      +'<div class="fix-strip">'
+    // Return just the fix-strip content (section wrapper is handled in renderHistoryInner)
+    return '<div class="fix-strip">'
       +rows.map(r=>{
         if(r.blank)return '<div class="fix-row"><span class="fix-gw">'+t('hGW')+r.gw+'</span>'
           +'<span class="fix-dot fdr-blank"></span><span class="fix-opp fix-blank">—</span></div>';
@@ -2385,7 +2560,7 @@ function renderHistory(d, understat){
           +'<span class="fix-opp">'+r.opp+'</span>'
           +'<span class="fix-venue">'+r.venue+'</span></div>';
       }).join('')
-      +'</div></div>';
+      +'</div>';
   }
 
   return renderHistoryInner(d, understat, upcomingFixtures);
@@ -2502,40 +2677,76 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   const summary=playerSummary(d);
   if(summary)html+=summary;
 
-  // upcoming fixtures strip (next 7 GWs) — shown first, like the reference
+  // Build tab bar with all available sections (no Summary tab - always shown above)
+  const tabs=[];
+  if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
+  // Combined seasons tab (past + per-season stats)
+  if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
+  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
+  if(vs.length) tabs.push({id:'vsthis', label:t('histVsClub')});
+  if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
+  
+  // Tab buttons
+  if(tabs.length>0){
+    html+='<div class="sum-options">';
+    tabs.forEach((tab,i)=>{
+      html+='<button class="sum-option-btn '+(i===0?'active':'')+'" data-tab="'+tab.id+'">'+tab.label+'</button>';
+    });
+    html+='</div>';
+  }
+
+  // TAB CONTENT: Upcoming Fixtures
   if(d.teamId){
     const fx=upcomingFixtures(d.teamId);
-    if(fx)html+=fx;
+    if(fx){
+      html+='<div class="hist-tab-content" data-tab="upcoming">'
+        +'<div class="fix-strip">'+fx+'</div>'
+        +'</div>';
+    }
   }
 
-  // previous seasons
-  if(past.length){
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histPast')+'</div>'
-      +'<table class="hist-table"><thead><tr>'
-      +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
-      +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
-      +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
-      +past.map(s=>{
-        const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
-        return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
-          +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
-          +'<td>'+(s.defcon||'—')+'</td>'
-          +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
-      }).join('')+'</tbody></table></div>';
+  // TAB CONTENT: Combined Seasons (Previous Seasons + Per-Season Stats)
+  if(past.length||(understat&&understat.vsClub&&understat.vsClub.length)){
+    html+='<div class="hist-tab-content" data-tab="seasons">';
+    
+    // Previous Seasons Table
+    if(past.length){
+      html+='<div style="margin-bottom:20px"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:0 0 12px">'+t('histPast')+'</h4>'
+        +'<table class="hist-table"><thead><tr>'
+        +'<th>'+t('hSeason')+'</th><th>'+t('hPts')+'</th><th>'+t('hMin')+'</th>'
+        +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
+        +'<th>'+t('hDefcon')+'</th><th>'+t('hPrice')+'</th></tr></thead><tbody>'
+        +past.map(s=>{
+          const pc=s.endCost>s.startCost?'hist-price-up':s.endCost<s.startCost?'hist-price-down':'';
+          return '<tr><td>'+s.season+'</td><td>'+s.points+'</td><td>'+s.minutes+'</td>'
+            +'<td>'+s.goals+'</td><td>'+s.assists+'</td><td>'+s.xg.toFixed(1)+'</td><td>'+s.xa.toFixed(1)+'</td>'
+            +'<td>'+(s.defcon||'—')+'</td>'
+            +'<td class="'+pc+'">'+s.startCost.toFixed(1)+'→'+s.endCost.toFixed(1)+'</td></tr>';
+        }).join('')+'</tbody></table>'
+        +'</div>';
+    }
+    
+    // Per-Season Stats
+    if(understat&&understat.vsClub&&understat.vsClub.length){
+      html+='<div><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:0 0 12px">'+t('histSeasonStats')+'</h4>'
+        +renderSeasonStats(understat)
+        +'</div>';
+    }
+    
+    html+='</div>';
   }
 
-  // MULTI-SEASON vs-club from Understat (the headline feature) — with opponent filter
+  // TAB CONTENT: By Opponent (All Seasons xG)
   if(understat&&understat.vsClub&&understat.vsClub.length){
-    curUnderstat=understat;                 // stash for the filter handler
-    html+='<div class="hist-section" id="vsClubSection">'
+    curUnderstat=understat;
+    html+='<div class="hist-tab-content" data-tab="vsall">'
       +renderVsClub(understat, histOppFilter)
       +'</div>';
-    html+=renderSeasonStats(understat);
   }
 
-  // this season, per-opponent (FPL)
+  // TAB CONTENT: This Season vs Club
   if(vs.length){
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histVsClub')+'</div>'
+    html+='<div class="hist-tab-content" data-tab="vsthis">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hRound')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
@@ -2543,10 +2754,13 @@ function renderHistoryInner(d, understat, upcomingFixtures){
       +vs.map(c=>'<tr><td>'+clubName(c.opponent)+'</td><td>'+c.games+'</td><td>'+c.points+'</td>'
         +'<td>'+c.goals+'</td><td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
         +'<td>'+c.home+'/'+c.away+'</td></tr>').join('')
-      +'</tbody></table></div>';
+      +'</tbody></table>'
+      +'</div>';
+  }
 
-    // this season, game by game
-    html+='<div class="hist-section"><div class="hist-section-title">'+t('histThis')+'</div>'
+  // TAB CONTENT: Game by Game (This Season)
+  if(ts.length){
+    html+='<div class="hist-tab-content" data-tab="gbg">'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
@@ -2555,9 +2769,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'<td><span class="hist-venue">'+(g.home?'H':'A')+'</span></td><td>'+g.points+'</td>'
         +'<td>'+g.minutes+'</td><td>'+g.goals+'</td><td>'+g.assists+'</td><td>'+g.xg.toFixed(1)+'</td>'
         +'<td>'+g.bonus+'</td></tr>').join('')
-      +'</tbody></table></div>';
-  } else if(!(understat&&understat.vsClub&&understat.vsClub.length)){
-    html+='<div class="hist-empty">'+t('histNoThis')+'</div>';
+      +'</tbody></table>'
+      +'</div>';
   }
 
   const hasFixtures=d.teamId&&fixtures.length&&fixtures.some(f=>f.event>=(state.nextGW||1)&&(f.team_h===d.teamId||f.team_a===d.teamId));
@@ -2565,6 +2778,24 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length)&&!hasFixtures&&!hasSummary)
     html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
+  
+  // Wire up tab buttons
+  document.querySelectorAll('.sum-option-btn').forEach(btn=>{
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      const tabId=this.getAttribute('data-tab');
+      
+      // Hide all tabs
+      document.querySelectorAll('.hist-tab-content').forEach(t=>t.classList.remove('shown'));
+      // Deactivate all buttons
+      document.querySelectorAll('.sum-option-btn').forEach(b=>b.classList.remove('active'));
+      
+      // Show selected tab
+      const tab=document.querySelector('[data-tab="'+tabId+'"].hist-tab-content');
+      if(tab) tab.classList.add('shown');
+      this.classList.add('active');
+    });
+  });
 }
 
 function renderDiag(){
@@ -2757,7 +2988,8 @@ function renderPlan(){
     +' · <span style="font-weight:normal">'+t('fdrTheme')+': <label style="cursor:pointer;margin:0 4px"><input type="radio" name="fdrTheme" value="dark" '+(fdrTheme==='dark'?'checked':'')+'> '+t('fdrDark')+'</label>'
     +'<label style="cursor:pointer"><input type="radio" name="fdrTheme" value="light" '+(fdrTheme==='light'?'checked':'')+'> '+t('fdrLight')+'</label></span></div></div>'
     +'<div class="legend">'
-      +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d3"></i>'+t('legEven')+'</span>'
+      +'<span><i class="d1"></i>'+t('legEasy')+'</span><span><i class="d2"></i>'+t('leg2')+'</span>'
+      +'<span><i class="d3"></i>'+t('legEven')+'</span><span><i class="d4"></i>'+t('leg4')+'</span>'
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
       +'<span style="color:var(--dimmer)">* '+t('legAway')+'</span>'
@@ -2835,6 +3067,27 @@ function err(m){const e=$('errNote');e.textContent=m;e.hidden=false}
 function warn(m){const w=$('warnNote');w.textContent=m;w.hidden=false}
 function clearNotes(){$('errNote').hidden=true;$('warnNote').hidden=true;$('errNote').textContent='';$('warnNote').textContent=''}
 function addWarn(m){const w=$('warnNote');w.textContent=(w.textContent?w.textContent+' ':'')+m;w.hidden=false}
+
+function setDataStatus(m,status='ok'){
+  const msg=$('dataStatusMessage');
+  const icon=$('dataStatusIcon');
+  msg.textContent=m;
+  
+  // Clear all status classes
+  icon.classList.remove('ok','warn','error');
+  
+  // Set status-specific icon and class
+  if(status==='error'){
+    icon.textContent='✕';
+    icon.classList.add('error');
+  }else if(status==='warn'){
+    icon.textContent='●';
+    icon.classList.add('warn');
+  }else{
+    icon.textContent='✓';
+    icon.classList.add('ok');
+  }
+}
 
 /* ══ LOAD ══════════════════════════════════════════════ */
 /* ══ LOCAL CACHE (IndexedDB) ═══════════════════════════
@@ -2986,6 +3239,9 @@ async function load(){
 
   btn.textContent=t('scoring');
   build(); renderAll();
+  
+  // restore user's locked players from previous session
+  loadState();
 
   // persist for next time (never re-persist stale cache)
   if(source!=='cache')
@@ -2993,9 +3249,13 @@ async function load(){
 
   const age=stamp(bundle.fetched_at);
   const src={api:t('srcLive'),repo:t('srcPublished'),proxy:t('srcLiveApi'),cache:t('srcSaved')}[source];
-  addWarn(t('loadedFrom')(src,age)
+  const msg=t('loadedFrom')(src,age)
     +(source==='cache'?t('offlineStale'):'')
-    +((!uLive.n&&!uPrior.n)?t('understatFB'):''));
+    +((!uLive.n&&!uPrior.n)?t('understatFB'):'');
+  
+  // Determine status: warn if offline or missing understat, ok otherwise
+  const hasWarnings=source==='cache'||(!uLive.n&&!uPrior.n);
+  setDataStatus(msg,hasWarnings?'warn':'ok');
   if(!fields.defcon&&!fields.defconParts.length)
     addWarn(t('noDefWarn'));
 
@@ -3039,6 +3299,28 @@ function loadPasted(){
 $('runBtn').addEventListener('click',load);
 $('pasteBtn').addEventListener('click',()=>{const p=$('pastePanel');p.hidden=!p.hidden});
 $('pasteRun').addEventListener('click',loadPasted);
+
+/* Tagline toggle */
+$('taglineToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  const box=$('taglineBox');
+  box.classList.toggle('open');
+});
+
+/* Evidence blend toggle */
+$('evidenceToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  $('blendTrack').classList.toggle('open');
+  $('blendLegend').classList.toggle('open');
+  $('evidenceNote').classList.toggle('open');
+});
+
+/* Data status toggle */
+$('dataStatusToggle').addEventListener('click',e=>{
+  e.stopPropagation();
+  $('dataStatusMessage').classList.toggle('open');
+});
+
 ['fSearch','fPos','fPrice','fAvail'].forEach(id=>{
   const el=$(id);
   el.addEventListener(id==='fSearch'?'input':'change',applyFilters);
@@ -3068,6 +3350,7 @@ function applyStaticI18n(){
   set('i18n-engineB','engineB');
   set('i18n-tagline','tagline');
   set('i18n-evidenceBlend','evidenceBlend');
+  set('i18n-dataStatus','dataStatus');
   set('i18n-pasteData','pasteData');
   // data-i18n attributes
   document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -3120,15 +3403,23 @@ paintState();
 $('histCloseBtn').addEventListener('click',closeHistory);
 // opponent filter inside the history modal — re-render just the vs-club section
 document.addEventListener('change',e=>{
-  if(!e.target||!curUnderstat)return;
-  if(e.target.id==='vsOppFilter'){
-    histOppFilter=e.target.value;
-    const sec=$('vsClubSection');
-    if(sec)sec.innerHTML=renderVsClub(curUnderstat, histOppFilter);
-  }else if(e.target.id==='vsSeasonFilter'){
-    histSeasonN=parseInt(e.target.value,10)||0;
-    const sec=$('vsClubSection');
-    if(sec)sec.innerHTML=renderVsClub(curUnderstat, histOppFilter);
+  if(!e.target)return;
+  if((e.target.id==='vsOppFilter' || e.target.id==='vsSeasonFilter')&&curUnderstat){
+    // Update the filter value based on which select changed
+    if(e.target.id==='vsOppFilter'){
+      histOppFilter=e.target.value;
+    }
+    if(e.target.id==='vsSeasonFilter'){
+      histSeasonN=parseInt(e.target.value,10)||0;
+    }
+    
+    // Re-render the By Opponent tab content
+    const tabs=document.querySelectorAll('[data-tab="vsall"]');
+    if(tabs.length>0){
+      const tab=tabs[tabs.length-1];
+      const newContent=renderVsClub(curUnderstat, histOppFilter);
+      tab.innerHTML=newContent;
+    }
   }
 });
 // one delegated handler: any .phist element in any view opens that player's history
