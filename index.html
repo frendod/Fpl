@@ -969,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-28a';
+const APP_BUILD = 'app-2026-08-28b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1918,13 +1918,25 @@ async function loadUserTeam(fplId){
     if(!histRes.ok) throw new Error('Could not load history (status '+histRes.status+')');
     const hist=await histRes.json();
     
-    const current=hist.current?hist.current[0]:null;
-    if(!current) throw new Error('No active season');
-    console.log('Current GW:',current.event);
+    // Current gameweek: bootstrap's is_current flag is authoritative and flips
+    // the moment a gameweek's first match kicks off. hist.current is an ascending
+    // array of scored gameweeks, so its LAST entry is the latest — [0] is GW1 and
+    // would pin the view to the season opener all year.
+    let currentGW=null;
+    if(bootstrap&&bootstrap.events&&bootstrap.events.length){
+      const ev=bootstrap.events.find(e=>e.is_current)
+             ||bootstrap.events.filter(e=>e.finished).slice(-1)[0];
+      if(ev)currentGW=ev.id;
+    }
+    const histRows=(hist.current&&hist.current.length)?hist.current:null;
+    const lastRow=histRows?histRows[histRows.length-1]:null;
+    if(currentGW==null)currentGW=lastRow?lastRow.event:null;
+    if(currentGW==null) throw new Error('No active season');
+    console.log('Current GW:',currentGW,'(bootstrap is_current), history last:',lastRow?lastRow.event:'none');
     
     // Fetch picks
     console.log('\n--- Fetching Picks ---');
-    const picksUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+current.event+'/picks/');
+    const picksUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+currentGW+'/picks/');
     const picksRes=await fetch(picksUrl);
     if(!picksRes.ok) throw new Error('Could not load picks (status '+picksRes.status+')');
     const picksData=await picksRes.json();
@@ -1932,27 +1944,34 @@ async function loadUserTeam(fplId){
     if(!picksData.picks) throw new Error('No picks in response');
     console.log('Picks loaded:',picksData.picks.length);
     
+    // Overall rank: the live entry summary is the freshest, but mid-gameweek FPL
+    // sometimes leaves it null until the week is scored, so fall back to the last
+    // scored row from history.
+    const overallRank=entry.summary_overall_rank
+                    ||(lastRow?lastRow.overall_rank:null)
+                    ||null;
+
     // Build team object
     userTeam={
       picks:picksData.picks,
-      gw:current.event,
+      gw:currentGW,
       entryId:fplId,
       basePicks:picksData.picks,
       isFuture:false,
       username:entry.player_first_name,
       teamName:entry.name||'',
-      currentEvent:current.event,
+      currentEvent:currentGW,
       chips:picksData.chips||[],
-      rank:entry.summary_overall_rank||'—'
+      rank:overallRank
     };
     
     $('gwSelect').max=38;
+    $('gwSelect').value=currentGW;
     $('teamInput').hidden=true;
     $('teamDisplay').hidden=false;
     // entry.name is the FPL squad name; fall back to the manager if it is blank
-    // Display team name, ID, and current overall rank
-    const rankStr=userTeam.rank!=='—'?` · Rank #${userTeam.rank}`:'';
-    $('teamMeta').textContent=`${entry.name||entry.player_first_name||'Team'} · ID ${fplId}${rankStr}`;
+    const rankStr=overallRank?' \u00b7 Rank #'+overallRank.toLocaleString():'';
+    $('teamMeta').textContent=`${entry.name||entry.player_first_name||'Team'} \u00b7 ID ${fplId}${rankStr}`;
     renderUserTeam();
     
     // Save FPL ID to localStorage
