@@ -817,8 +817,7 @@ textarea:focus{border-color:var(--accent)}
   
   <div class="view" id="view-myteam">
     <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title" data-i18n="myTeam">My Team</div>
+      <div class="panel-head" style="padding-top:10px;padding-bottom:10px">
         <div class="panel-meta" id="teamMeta"></div>
       </div>
       <div class="team-input-section" id="teamInput">
@@ -836,6 +835,7 @@ textarea:focus{border-color:var(--accent)}
           <button class="btn-small" id="gwPrev" data-i18n="mtPrev">← Prev</button>
           <button class="btn-small" id="gwNext" data-i18n="mtNext">Next →</button>
           <span id="gwStatus" style="font-size:12px;color:var(--dim);margin-left:auto"></span>
+          <!-- gwStatus now carries only transient loading/error text, not a GW counter -->
         </div>
         <div id="teamBody"></div>
       </div>
@@ -969,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-28d';
+const APP_BUILD = 'app-2026-08-28e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1928,21 +1928,26 @@ async function loadUserTeam(fplId){
     if(!histRes.ok) throw new Error('Could not load history (status '+histRes.status+')');
     const hist=await histRes.json();
     
-    // Current gameweek: bootstrap's is_current flag is authoritative and flips
-    // the moment a gameweek's first match kicks off. hist.current is an ascending
-    // array of scored gameweeks, so its LAST entry is the latest — [0] is GW1 and
-    // would pin the view to the season opener all year.
-    let currentGW=null;
+    // Current gameweek. bootstrap.events carries is_current, but bootstrap can
+    // be served from cache and go stale — a cached copy from last week would pin
+    // the view to an old gameweek on load. The history response is always fetched
+    // live, and its last row is the newest gameweek FPL has scored, so take
+    // whichever of the two is further along.
+    const histRows=(hist.current&&hist.current.length)?hist.current:null;
+    const lastRow=histRows?histRows[histRows.length-1]:null;
+    let bootstrapGW=0;
     if(bootstrap&&bootstrap.events&&bootstrap.events.length){
       const ev=bootstrap.events.find(e=>e.is_current)
              ||bootstrap.events.filter(e=>e.finished).slice(-1)[0];
-      if(ev)currentGW=ev.id;
+      if(ev)bootstrapGW=ev.id;
     }
-    const histRows=(hist.current&&hist.current.length)?hist.current:null;
-    const lastRow=histRows?histRows[histRows.length-1]:null;
-    if(currentGW==null)currentGW=lastRow?lastRow.event:null;
-    if(currentGW==null) throw new Error('No active season');
-    console.log('Current GW:',currentGW,'(bootstrap is_current), history last:',lastRow?lastRow.event:'none');
+    const historyGW=lastRow?lastRow.event:0;
+    const currentGW=Math.max(bootstrapGW,historyGW);
+    if(!currentGW) throw new Error('No active season');
+    if(bootstrapGW&&historyGW&&bootstrapGW!==historyGW){
+      console.warn('Gameweek mismatch — bootstrap says',bootstrapGW,'history says',historyGW,'; using',currentGW);
+    }
+    console.log('Current GW:',currentGW);
     
     // Fetch picks
     console.log('\n--- Fetching Picks ---');
@@ -2133,7 +2138,8 @@ function renderUserTeam(){
     bootstrap.teams.forEach(t=>{teamsMap[t.id]=t.short_name||t.name});
   }
 
-  $('gwStatus').textContent=t('hGW')+userTeam.gw+' / '+(userTeam.currentEvent||38);
+  // gwStatus is reserved for transient loading/error messages; the gameweek
+  // number is already in the selector beside it, so no counter is written here.
 
   const totalPoints=calculateGWTotal();
 
@@ -2216,20 +2222,21 @@ function renderUserTeam(){
     +totalLabel+'</div>'
     +'</div>';
 
-  // Squad identity sits under the total: name, entry id, chip status, rank.
-  // The chip line always renders — "No chip in play" is information too.
+  // Squad identity under the total, two rows of a left and a right item:
+  //   name            chip status
+  //   ID              rank
+  // The rank cell stays empty on a future gameweek — it has not happened yet.
   const chipLine=activeChipLabel()||t('mtNoChip');
-  const shownRank=(userTeam.rankByGw&&userTeam.rankByGw[userTeam.gw])||userTeam.rank;
-  const metaLines=[
-    esc(userTeam.teamName||userTeam.username||'Team'),
-    'ID '+esc(String(userTeam.entryId)),
-    esc(chipLine),
-    shownRank?'Rank #'+Number(shownRank).toLocaleString():null
-  ].filter(Boolean);
+  const shownRank=rankForView();
+  const metaRow=(l,r)=>'<div style="display:flex;justify-content:space-between;'
+    +'align-items:baseline;gap:12px;">'
+    +'<span>'+l+'</span><span style="text-align:right">'+r+'</span></div>';
   html+='<div style="padding:10px 20px;border-bottom:1px solid var(--line);'
     +'font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:var(--dim);'
     +'line-height:1.7;">'
-    +metaLines.map(l=>'<div>'+l+'</div>').join('')
+    +metaRow(esc(userTeam.teamName||userTeam.username||'Team'),esc(chipLine))
+    +metaRow('ID '+esc(String(userTeam.entryId)),
+             shownRank?'Rank #'+Number(shownRank).toLocaleString():'')
     +'</div>';
   if(fut){
     const oneAhead=userTeam.gw<=(userTeam.currentEvent||0)+1;
@@ -2410,6 +2417,17 @@ function applyAutosubs(picks){
   
   return autosubs;
 }
+// Overall rank appropriate to the gameweek in view.
+//   current gameweek -> the live overall rank from the entry summary
+//   past gameweek    -> the rank as it stood when that week was scored
+//   future gameweek  -> nothing; the rank does not exist yet
+function rankForView(){
+  const gw=userTeam.gw, cur=userTeam.currentEvent||0;
+  if(gw>cur)return null;
+  if(gw===cur)return userTeam.rank||(userTeam.rankByGw&&userTeam.rankByGw[gw])||null;
+  return (userTeam.rankByGw&&userTeam.rankByGw[gw])||null;
+}
+
 // FPL's picks endpoint reports the chip as a short code on active_chip, or null
 // when none is played. These are the codes it actually uses — note bboost and
 // freehit, not bench_boost and free_hit.
