@@ -15,7 +15,7 @@
 
 export const config = { path: '/api/league' };
 
-const BUILD = 'league-v1';
+const BUILD = 'league-v2';
 const FPL = 'https://fantasy.premierleague.com/api/';
 const UA = { 'user-agent': 'Mozilla/5.0 (fplrock league)' };
 
@@ -82,6 +82,7 @@ export default async (req) => {
       gwp: r.event_total,
       tot: r.total,
       chip: fetched[i] ? fetched[i].chip : null,
+      subs: fetched[i] ? fetched[i].subs : [],
       picks: fetched[i] ? fetched[i].picks : [],
       ok: !!fetched[i],
     }));
@@ -91,7 +92,7 @@ export default async (req) => {
     let meRow = null;
     if (me && !rows.some(r => String(r.entry) === String(me))) {
       const mp = await getPicks(me, gw);
-      if (mp) meRow = { entry: Number(me), picks: mp.picks, chip: mp.chip, outOfSample: true };
+      if (mp) meRow = { entry: Number(me), picks: mp.picks, chip: mp.chip, subs: mp.subs, outOfSample: true };
     }
 
     return json({
@@ -124,6 +125,10 @@ async function getPicks(entry, gw) {
     if (!j || !Array.isArray(j.picks)) return null;
     return {
       chip: j.active_chip || null,
+      // Automatic substitutions, as [in, out]. Without these the per-player
+      // points in the squad view will not add up to the manager's gameweek
+      // total whenever a starter blanked.
+      subs: (j.automatic_subs || []).map(sub => [sub.element_in, sub.element_out]),
       picks: j.picks.map(p => [
         p.element,
         p.position,
