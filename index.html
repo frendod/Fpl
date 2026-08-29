@@ -824,6 +824,58 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
   .lg-name{font-size:13.5px}
 }
 
+/* ─── LEAGUE SQUAD TRAY ────────────────────────────────── */
+tbody tr.lg-pickrow{cursor:pointer;transition:background .12s}
+tbody tr.lg-pickrow:hover{background:rgba(232,228,220,.03)}
+tbody tr.lg-pickrow td:first-child{position:relative;padding-left:26px}
+tbody tr.lg-pickrow td:first-child::before{content:'';position:absolute;left:9px;top:50%;
+  transform:translateY(-50%);width:9px;height:9px;border:1px solid var(--line2);border-radius:2px}
+tbody tr.lg-pickrow.on td:first-child::before{background:var(--accent);border-color:var(--accent)}
+tbody tr.lg-pickrow.on{background:rgba(217,164,65,.07)}
+tbody tr.dead{cursor:default}
+tbody tr.dead td:first-child{padding-left:26px}
+.lg-nopicks{border-color:var(--bad)!important;color:var(--bad)!important}
+
+.lg-tray{border-top:1px solid var(--line2);background:var(--panel2)}
+.lg-trayhead{padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  border-bottom:1px solid var(--line)}
+.lg-trayempty{padding:18px 16px;font-size:12.5px;color:var(--dim);font-style:italic}
+.lg-traygrid{display:grid;gap:1px;background:var(--line)}
+.lg-traygrid.two{grid-template-columns:1fr 1fr}
+.lg-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  border:1px solid var(--accent);color:var(--accent);padding:3px 8px;border-radius:2px}
+.lg-legend{padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  color:var(--dim);display:flex;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.lg-legend i{display:inline-block;width:2px;height:10px;background:var(--accent);
+  vertical-align:-1px;margin-right:5px}
+
+.lg-sq{background:var(--panel2);min-width:0}
+.lg-sqhead{padding:12px 14px;border-bottom:1px solid var(--line2)}
+.lg-sqmgr{font-size:14px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lg-sqteam{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);
+  letter-spacing:.06em;display:block;margin-top:3px}
+.lg-sqnums{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);
+  letter-spacing:.08em;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.lg-sqnums b{color:var(--accent);font-weight:600}
+.lg-sqgrp{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);padding:9px 14px 4px}
+.lg-sqbench{border-top:1px solid var(--line2);margin-top:4px}
+.lg-sqp{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:13px;
+  border-bottom:1px solid var(--line);position:relative}
+.lg-sqp:last-child{border-bottom:none}
+.lg-sqnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.lg-sqnm:hover{color:var(--accent);text-decoration:underline}
+.lg-sqclub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);flex:none}
+.lg-sqpts{font-family:'IBM Plex Mono',monospace;font-size:12px;flex:none;width:28px;text-align:right}
+.lg-arm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;flex:none;
+  border:1px solid var(--accent);color:var(--accent);padding:0 4px;border-radius:2px}
+.lg-arm.v{border-color:var(--line2);color:var(--dim)}
+.lg-sub-in{color:var(--good);font-size:9px;flex:none}
+.lg-sub-out{color:var(--bad);font-size:9px;flex:none}
+.lg-sqp.diff .lg-sqnm{color:var(--accent)}
+.lg-sqp.diff::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+@media(max-width:700px){ .lg-traygrid.two{grid-template-columns:1fr} }
+
 </style>
 </head>
 <body>
@@ -1065,7 +1117,7 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29b';
+const APP_BUILD = 'app-2026-08-29c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1104,6 +1156,15 @@ const I18N={
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
     tabMyTeam:'My Team', myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
+    lgTapCompare:'tap up to two to compare squads',
+    lgTrayEmpty:'Tap a manager above to see their squad. Tap a second to compare — a third replaces the first.',
+    lgComparing:'Comparing two squads', lgOneSquad:'One squad',
+    lgShared:'shared', lgDifferent:'different', lgClear:'Clear', lgDiffs:'DIFFS',
+    lgLegendOnly:'ONLY THIS MANAGER HAS THEM', lgLegendBoth:'PLAIN = BOTH OWN', lgLegendBench:'DIMMED = SCORED NOTHING',
+    lgBenchWord:'Bench', lgBoosted:'boosted, all count', lgNoPicks:'NO PICKS',
+    lgSubIn:'Substituted in automatically', lgSubOut:'Substituted out automatically',
+    lgLiveLoading:'loading points…', lgLiveErr:'points unavailable',
+    lgTrayNote:'Points are what each player actually returned to that manager: the captain is already multiplied, an unused bench player reads 0, and automatic substitutions are applied. If the captain never played, the armband shows against the vice, which is what FPL does. Tap any name for its history.',
     lgNoTeam:'Load your team on the My Team tab first — your leagues come from your FPL ID.',
     lgNone:'No user-created leagues found for this ID. Global leagues are left out on purpose: a 50-team slice off the top of a million-entry table says nothing useful about ownership.',
     lgLeaguesWord:'leagues', lgTeamsWord:'teams', lgPrivate:'Private classic', lgPublic:'Public classic',
@@ -1270,6 +1331,15 @@ const I18N={
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
+    lgTapCompare:'toca hasta dos para comparar plantillas',
+    lgTrayEmpty:'Toca un mánager arriba para ver su plantilla. Toca un segundo para comparar — el tercero sustituye al primero.',
+    lgComparing:'Comparando dos plantillas', lgOneSquad:'Una plantilla',
+    lgShared:'en común', lgDifferent:'distintos', lgClear:'Limpiar', lgDiffs:'DIF',
+    lgLegendOnly:'SOLO ESTE MÁNAGER LO TIENE', lgLegendBoth:'NORMAL = LO TIENEN LOS DOS', lgLegendBench:'ATENUADO = NO PUNTUÓ',
+    lgBenchWord:'Banquillo', lgBoosted:'con Bench Boost, todos cuentan', lgNoPicks:'SIN ALINEACIÓN',
+    lgSubIn:'Entró por cambio automático', lgSubOut:'Salió por cambio automático',
+    lgLiveLoading:'cargando puntos…', lgLiveErr:'puntos no disponibles',
+    lgTrayNote:'Los puntos son lo que cada jugador dio realmente a ese mánager: el capitán ya va multiplicado, un suplente sin usar marca 0, y se aplican los cambios automáticos. Si el capitán no jugó, el brazalete aparece en el subcapitán, que es lo que hace FPL. Toca cualquier nombre para ver su historial.',
     lgNoTeam:'Carga tu equipo en la pestaña Mi equipo — tus ligas vienen de tu ID de FPL.',
     lgNone:'No se han encontrado ligas creadas por usuarios para este ID. Las ligas globales se excluyen a propósito: 50 equipos del principio de una tabla de un millón no dicen nada útil sobre la propiedad.',
     lgLeaguesWord:'ligas', lgTeamsWord:'equipos', lgPrivate:'Clásica privada', lgPublic:'Clásica pública',
@@ -4284,6 +4354,10 @@ const LG = {
   sel:{},             // leagueId -> element id being looked up
   sort:{},            // leagueId -> ownership grid sort key
   stand:{},           // leagueId -> {key,asc} for the standings table
+  pick:{},            // leagueId -> [entryId] selected for the squad tray, max 2
+  live:null,          // {gw,pts,mins} from event/{gw}/live/, shared across leagues
+  livePending:null,
+  liveErr:null,
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
   busy:{},            // leagueId:page -> bool
   err:{},             // leagueId -> message
@@ -4307,7 +4381,7 @@ function lgAdopt(entry, gw, fplId){
   LG.list = raw.filter(lgIsUserLeague);
   LG.entryId = String(fplId);
   LG.gw = gw;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.data={}; LG.busy={}; LG.err={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={};
 
   // Verification dump — confirms the filter against real data rather than
   // an assumption about what FPL puts in these fields.
@@ -4325,7 +4399,7 @@ function lgAdopt(entry, gw, fplId){
 
 function lgClear(){
   LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.data={}; LG.busy={}; LG.err={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={};
   renderLeagues();
 }
 
@@ -4558,16 +4632,21 @@ function lgPaneOwn(lid){
     +'</tr></thead><tbody>'
     +sortedRows.map(r=>{
       const isMe=String(r.entry)===meId;
-      return '<tr'+(isMe?' class="lg-me"':'')+'>'
+      const on=(LG.pick[lid]||[]).some(e=>String(e)===String(r.entry));
+      const dead=!r.picks||!r.picks.length;
+      const cls=['lg-pickrow',isMe?'lg-me':'',on?'on':'',dead?'dead':''].filter(Boolean).join(' ');
+      return '<tr class="'+cls+'"'+(dead?'':' data-lgpickrow="'+r.entry+'" data-lgid="'+lid+'"')+'>'
         +'<td class="mono">'+r.rank+'</td>'
         +'<td class="mono">'+lgMove(r.rank,r.last)+'</td>'
         +'<td>'+esc(r.mgr)+(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
-        +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')+'</td>'
+        +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')
+        +   (dead?'<span class="lg-chip lg-nopicks">'+esc(t('lgNoPicks'))+'</span>':'')+'</td>'
         +'<td>'+esc(r.team)+'</td>'
         +'<td class="mono">'+(r.gwp==null?'\u2014':r.gwp)+'</td>'
         +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td></tr>';
     }).join('')
-    +'</tbody></table></div>';
+    +'</tbody></table></div>'
+    +lgTray(lid);
 
   const key=LG.sort[lid]||'owners';
   const sorted=ix.list.slice().sort((a,b)=>{
@@ -4603,7 +4682,8 @@ function lgPaneOwn(lid){
     +'</tbody></table></div>'
     +'<div class="lg-hint">'+esc(t('lgEONote'))+'</div>';
 
-  return '<div class="lg-sec"><span class="lg-cap">'+esc(t('lgStandings')).toUpperCase()+'</span></div>'
+  return '<div class="lg-sec"><span class="lg-cap">'+esc(t('lgStandings')).toUpperCase()
+    +' \u2014 '+esc(t('lgTapCompare')).toUpperCase()+'</span></div>'
     +standings
     +'<div class="lg-sec" style="border-top:1px solid var(--line)"><span class="lg-cap">'
     +esc(t('lgOwnership')).toUpperCase()+'</span></div>'
@@ -4685,6 +4765,164 @@ function lgPaneCap(lid){
     +'<div class="lg-hint">'+esc(t('lgCapNote'))+'</div>';
 }
 
+
+/* ── live gameweek points ─────────────────────────────────
+   The picks endpoint carries no scores, so per-player points come from
+   event/{gw}/live/. One request covers every player in the game, so it is
+   fetched once per gameweek and shared across every league. */
+function lgLive(gw){
+  if(LG.live && LG.live.gw===gw) return Promise.resolve(LG.live);
+  if(LG.livePending) return LG.livePending;
+  LG.livePending = fetch('/api/fpl?path='+encodeURIComponent('event/'+gw+'/live/'))
+    .then(r=>{ if(!r.ok)throw new Error('live '+r.status); return r.json(); })
+    .then(j=>{
+      const pts={}, mins={};
+      (j.elements||[]).forEach(e=>{
+        const st=e.stats||{};
+        pts[e.id]=st.total_points||0;
+        mins[e.id]=st.minutes||0;
+      });
+      LG.live={gw:gw,pts:pts,mins:mins};
+      LG.livePending=null;
+      renderLeagues();
+      return LG.live;
+    })
+    .catch(e=>{ LG.livePending=null; LG.liveErr=e.message; renderLeagues(); return null; });
+  return LG.livePending;
+}
+
+/* Effective multiplier for one pick, after FPL has had its say.
+
+   Three things move between the deadline and the final score, and all three
+   have to be applied or the squad will not add up to the manager's total:
+     - a starter who blanked is substituted out and scores nothing
+     - the bench player who replaced them starts scoring
+     - if the captain never played, the armband falls to the vice */
+function lgEffective(row,live){
+  const out={}, into={};
+  (row.subs||[]).forEach(sb=>{ into[sb[0]]=1; out[sb[1]]=1; });
+
+  let capEl=null, viceEl=null;
+  row.picks.forEach(pk=>{ if(pk[3])capEl=pk[0]; if(pk[4])viceEl=pk[0]; });
+
+  // Vice takes over only when the captain genuinely did not play. Without live
+  // minutes we cannot know, so we leave the armband where the manager put it.
+  let armband=capEl;
+  if(live && capEl && (live.mins[capEl]||0)===0 && viceEl && (live.mins[viceEl]||0)>0){
+    armband=viceEl;
+  }
+  const triple = String(row.chip||'').toLowerCase()==='3xc';
+
+  const boost = String(row.chip||'').toLowerCase()==='bboost';
+  const eff={};
+  row.picks.forEach(pk=>{
+    const el=pk[0], position=pk[1], benched=position>11;
+    // Derived from scratch rather than trusting the multiplier FPL sent. When
+    // the vice inherits the armband the original captain drops back to a
+    // single share, and reusing their stored multiplier of 2 would double-count
+    // a blank.
+    let m;
+    if(out[el]) m=0;                                  // auto-subbed out
+    else if(into[el]) m=1;                            // auto-subbed in
+    else if(benched && !boost) m=0;                   // unused bench
+    else m=1;
+    if(el===armband && m>0) m=triple?3:2;
+    eff[el]={mult:m, benched:benched, subIn:!!into[el], subOut:!!out[el],
+             armband:el===armband, vice:el===viceEl && el!==armband, position:position};
+  });
+  return {eff:eff, armband:armband};
+}
+
+/* ── the squad tray ───────────────────────────────────────
+   Selected managers render here rather than inline under their standings row,
+   because the two teams worth comparing are rarely next to each other in the
+   table — inline they would be half a screen apart. */
+function lgTray(lid){
+  const d=LG.data[lid];
+  const picks=(LG.pick[lid]||[]).map(e=>d.rows.find(r=>String(r.entry)===String(e)))
+                                .filter(Boolean);
+  if(!picks.length)
+    return '<div class="lg-tray"><div class="lg-trayempty">'+esc(t('lgTrayEmpty'))+'</div></div>';
+
+  const live=(LG.live&&LG.live.gw===LG.gw)?LG.live:null;
+  if(!live && !LG.livePending) lgLive(LG.gw);
+
+  const two=picks.length===2;
+  let shared=0;
+  if(two){
+    const b={}; picks[1].picks.forEach(pk=>b[pk[0]]=1);
+    shared=picks[0].picks.filter(pk=>b[pk[0]]).length;
+  }
+
+  return '<div class="lg-tray">'
+    +'<div class="lg-trayhead"><span class="lg-cap">'
+    +  esc(two?t('lgComparing'):t('lgOneSquad'))+' · GW'+LG.gw
+    +  (live?'':' · '+esc(LG.liveErr?t('lgLiveErr'):t('lgLiveLoading')))+'</span>'
+    +  (two?'<span class="lg-pill">'+shared+' '+esc(t('lgShared'))+' · '
+        +(15-shared)+' '+esc(t('lgDifferent'))+'</span>':'')
+    +  '<button class="btn-small" data-lgclear="'+lid+'">'+esc(t('lgClear'))+'</button></div>'
+    +(two?'<div class="lg-legend"><span><i></i>'+esc(t('lgLegendOnly'))+'</span>'
+        +'<span>'+esc(t('lgLegendBoth'))+'</span><span>'+esc(t('lgLegendBench'))+'</span></div>':'')
+    +'<div class="lg-traygrid'+(two?' two':'')+'">'
+    + picks.map((r,i)=>lgSquadCard(r, two?picks[1-i]:null, live)).join('')
+    +'</div>'
+    +'<div class="lg-hint">'+esc(t('lgTrayNote'))+'</div></div>';
+}
+
+function lgSquadCard(row,other,live){
+  const E=lgEffective(row,live);
+  const otherSet={};
+  if(other) other.picks.forEach(pk=>otherSet[pk[0]]=1);
+
+  const meta=el=>{
+    const p=(typeof players!=='undefined'&&players.length)?players.find(x=>x.id===el):null;
+    return p||{id:el,name:'#'+el,pos:'—',club:''};
+  };
+
+  const line=pk=>{
+    const el=pk[0], p=meta(el), e=E.eff[el];
+    const diff=other&&!otherSet[el];
+    const raw=live?(live.pts[el]||0):null;
+    const pts=(raw==null)?'—':(raw*e.mult);
+    let arm='';
+    if(e.armband) arm='<span class="lg-arm">'+(String(row.chip||'').toLowerCase()==='3xc'?'TC':'C')+'</span>';
+    else if(e.vice) arm='<span class="lg-arm v">V</span>';
+    let sub='';
+    if(e.subIn)  sub='<span class="lg-sub-in" title="'+esc(t('lgSubIn'))+'">\u25B2</span>';
+    if(e.subOut) sub='<span class="lg-sub-out" title="'+esc(t('lgSubOut'))+'">\u25BC</span>';
+    return '<div class="lg-sqp'+(diff?' diff':'')+((e.mult===0)?' out':'')+'">'
+      +'<span class="pos">'+esc(p.pos)+'</span>'
+      +'<span class="lg-sqnm phist" data-pid="'+el+'" data-pname="'+encodeURIComponent(p.name)+'">'
+      +  esc(p.name)+'</span>'
+      +'<span class="lg-sqclub">'+esc(p.club)+'</span>'+sub+arm
+      +'<span class="lg-sqpts">'+pts+'</span></div>';
+  };
+
+  const starters=row.picks.filter(pk=>pk[1]<=11);
+  const bench=row.picks.filter(pk=>pk[1]>11).sort((a,b)=>a[1]-b[1]);
+  const grp=lbl=>{
+    const set=starters.filter(pk=>meta(pk[0]).pos===lbl);
+    return set.length?'<div class="lg-sqgrp">'+esc(lbl)+'</div>'+set.map(line).join(''):'';
+  };
+  const uniq=other?row.picks.filter(pk=>!otherSet[pk[0]]).length:0;
+  const isMe=String(row.entry)===String(LG.entryId);
+  const boosted=String(row.chip||'').toLowerCase()==='bboost';
+
+  return '<div class="lg-sq"><div class="lg-sqhead">'
+    +'<div class="lg-sqmgr">'+esc(row.mgr||('#'+row.entry))
+    +  (isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
+    +  (row.chip?'<span class="lg-chip">'+esc(lgChip(row.chip))+'</span>':'')+'</div>'
+    +'<span class="lg-sqteam">'+esc(row.team||'')+'</span>'
+    +'<div class="lg-sqnums"><span>'+esc(t('lgRk')).toUpperCase()+' <b>'+row.rank+'</b></span>'
+    +  '<span>'+esc(t('lgGwCol'))+' <b>'+(row.gwp==null?'\u2014':row.gwp)+'</b></span>'
+    +  '<span>'+esc(t('lgTotalCol')).toUpperCase()+' <b>'+(row.tot==null?'\u2014':row.tot)+'</b></span>'
+    +  (other?'<span>'+esc(t('lgDiffs'))+' <b>'+uniq+'</b></span>':'')+'</div></div>'
+    +grp('GK')+grp('DEF')+grp('MID')+grp('FWD')
+    +'<div class="lg-sqbench"><div class="lg-sqgrp">'+esc(t('lgBenchWord'))
+    +  (boosted?' \u2014 '+esc(t('lgBoosted')):'')+'</div>'
+    +  bench.map(line).join('')+'</div></div>';
+}
+
 /* ── events (delegated, so re-rendered markup keeps working) ── */
 document.addEventListener('click',e=>{
   const row=e.target.closest('[data-lgrow]');
@@ -4707,6 +4945,22 @@ document.addEventListener('click',e=>{
 
   const md=e.target.closest('[data-lgmode]');
   if(md){ e.stopPropagation(); LG.mode[Number(md.dataset.lgid)]=md.dataset.lgmode; renderLeagues(); return; }
+
+  const pr=e.target.closest('[data-lgpickrow]');
+  if(pr&&!e.target.closest('.phist')){
+    e.stopPropagation();
+    const lid=Number(pr.dataset.lgid), entry=pr.dataset.lgpickrow;
+    const cur=LG.pick[lid]||(LG.pick[lid]=[]);
+    const at=cur.findIndex(x=>String(x)===String(entry));
+    // Tapping a selected manager deselects them; a third pushes the first out.
+    if(at>-1) cur.splice(at,1);
+    else { cur.push(entry); if(cur.length>2) cur.shift(); }
+    renderLeagues();
+    return;
+  }
+
+  const cl=e.target.closest('[data-lgclear]');
+  if(cl){ e.stopPropagation(); LG.pick[Number(cl.dataset.lgclear)]=[]; renderLeagues(); return; }
 
   const sd=e.target.closest('[data-lgstand]');
   if(sd){
