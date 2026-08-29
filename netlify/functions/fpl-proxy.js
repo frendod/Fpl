@@ -12,6 +12,15 @@
 
 const BUILD = 'proxy-v2';
 
+// Netlify Functions v2 lets a function declare its own route, so this does not
+// depend on a redirect rule in netlify.toml existing or being correct. Without
+// it the function is only reachable at /.netlify/functions/fpl-proxy, and a
+// missing redirect shows up as Netlify's own 404 page rather than any error
+// this file could return.
+export const config = {
+  path: '/api/fpl-proxy',
+};
+
 const UA = {
   'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
   'accept': 'application/json, text/plain, */*',
