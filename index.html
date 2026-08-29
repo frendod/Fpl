@@ -879,29 +879,36 @@ tbody tr.dead td:first-child{padding-left:26px}
 .lg-diag{margin-top:8px;font-size:11.5px;color:var(--dim);font-style:italic;line-height:1.6}
 /* ─── GAMEWEEK FIXTURES UNDER MY TEAM ──────────────────── */
 .mt-fx{margin-top:16px;border-top:1px solid var(--line2)}
-.mt-fxhead{padding:12px 2px 8px}
+.mt-fxhead{padding:12px 2px 4px}
 .mt-fxempty{padding:6px 2px 14px;font-size:12.5px;color:var(--dim);font-style:italic}
-.mt-fxlist{display:grid;grid-template-columns:1fr auto 1fr auto;gap:0 10px;align-items:center}
-.mt-fxrow{display:contents}
-.mt-fxrow>*{padding:7px 0;border-bottom:1px solid var(--line)}
-.mt-fxt{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;color:var(--dim)}
+.mt-fxday{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);padding:14px 2px 5px}
+.mt-fxgroup{border-top:1px solid var(--line)}
+.mt-fxrow{display:flex;align-items:center;gap:8px;padding:8px 2px;
+  border-bottom:1px solid var(--line)}
+.mt-fxt{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;
+  color:var(--dim);flex:1 1 0;min-width:0}
 .mt-fxt.h{text-align:right}
 .mt-fxt.a{text-align:left}
 .mt-fxt.own{color:var(--paper);font-weight:600}
 .mt-fxscore{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;
-  text-align:center;min-width:52px;white-space:nowrap}
+  text-align:center;flex:0 0 56px;white-space:nowrap}
 .mt-fxscore.live{color:var(--accent)}
 .mt-fxdash{color:var(--dim);font-weight:400;padding:0 5px}
-.mt-fxtime{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);
-  text-align:center;min-width:52px;white-space:nowrap}
+.mt-fxtime{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
+  text-align:center;flex:0 0 56px;white-space:nowrap}
 .mt-fxlive{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
   color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:0 4px;
-  justify-self:start}
-.mt-fxkey{padding:9px 2px 2px;font-family:'IBM Plex Mono',monospace;font-size:9px;
+  flex:0 0 34px;text-align:center}
+.mt-fxft{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
+  color:var(--dim);flex:0 0 34px;text-align:center}
+.mt-fxpad{flex:0 0 34px}
+.mt-fxkey{padding:12px 2px 2px;font-family:'IBM Plex Mono',monospace;font-size:9px;
   letter-spacing:.1em;color:var(--dim)}
 @media(max-width:420px){
-  .mt-fxlist{gap:0 6px}
+  .mt-fxrow{gap:5px}
   .mt-fxt{font-size:11px}
+  .mt-fxscore,.mt-fxtime{flex:0 0 48px}
 }
 
 </style>
@@ -1145,7 +1152,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29g';
+const APP_BUILD = 'app-2026-08-29h';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1186,7 +1193,7 @@ const I18N={
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
     lgTapCompare:'tap up to two to compare squads',
     mtFxTitle:'Fixtures', mtFxNone:'No fixtures scheduled for this gameweek.',
-    mtFxTbc:'TBC', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
+    mtFxTbc:'TBC', mtFxTbcDate:'Date to be confirmed', mtFxFt:'FT', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
     lgErrShort:'could not load', lgRetry:'Try again',
     lgDiagNote:'Every header profile was refused. The console has the full list of what was tried and what FPL sent back.',
     lgTrayEmpty:'Tap a manager above to see their squad. Tap a second to compare — a third replaces the first.',
@@ -1365,7 +1372,7 @@ const I18N={
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
     lgTapCompare:'toca hasta dos para comparar plantillas',
     mtFxTitle:'Partidos', mtFxNone:'No hay partidos en esta jornada.',
-    mtFxTbc:'POR CONFIRMAR', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
+    mtFxTbc:'POR CONF.', mtFxTbcDate:'Fecha por confirmar', mtFxFt:'FIN', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
     lgErrShort:'no se pudo cargar', lgRetry:'Reintentar',
     lgDiagNote:'Se rechazaron todos los perfiles de cabeceras. La consola tiene la lista completa de lo que se intentó y lo que respondió FPL.',
     lgTrayEmpty:'Toca un mánager arriba para ver su plantilla. Toca un segundo para comparar — el tercero sustituye al primero.',
@@ -2389,14 +2396,19 @@ async function changeGameweek(gw){
 
 
 /* ── gameweek fixtures ────────────────────────────────────
-   Rendered under the squad and driven by userTeam.gw, so stepping through
-   gameweeks moves the fixture list with the team. Everything comes from the
-   fixtures array already in state — no extra request. */
+   Grouped by kickoff date and rendered under the squad, driven by userTeam.gw
+   so stepping through gameweeks moves the list with the team. Everything comes
+   from the fixtures array already in state — no extra request.
+
+   Each row is a self-contained flex line rather than cells in a shared grid.
+   A grid needs every row to emit the same number of children, and the live
+   badge only exists on matches in play, so absent badges pulled later rows out
+   of alignment. */
 function mtFixtures(gw, teamsMap){
   const list=(fixtures||[]).filter(f=>f.event===gw).slice()
     .sort((a,b)=>{
-      const ta=a.kickoff_time?Date.parse(a.kickoff_time):0;
-      const tb=b.kickoff_time?Date.parse(b.kickoff_time):0;
+      const ta=a.kickoff_time?Date.parse(a.kickoff_time):Infinity;
+      const tb=b.kickoff_time?Date.parse(b.kickoff_time):Infinity;
       return ta-tb;
     });
 
@@ -2413,52 +2425,67 @@ function mtFixtures(gw, teamsMap){
     if(pl) owned[pl.teamId]=1;
   });
 
-  const kickoff=f=>{
-    if(!f.kickoff_time) return t('mtFxTbc');
+  const loc=LANG==='es'?'es-ES':'en-GB';
+  const dateOf=f=>{
+    if(!f.kickoff_time)return null;
     const d=new Date(f.kickoff_time);
-    if(isNaN(d.getTime())) return t('mtFxTbc');
-    try{
-      return d.toLocaleString(LANG==='es'?'es-ES':'en-GB',
-        {weekday:'short',hour:'2-digit',minute:'2-digit'});
-    }catch(e){
-      return d.toISOString().slice(11,16);
-    }
+    return isNaN(d.getTime())?null:d;
+  };
+  const fmt=(d,opts)=>{
+    try{ return d.toLocaleString(loc,opts); }
+    catch(e){ return d.toISOString().slice(11,16); }
   };
 
-  const rows=list.map(f=>{
-    // finished_provisional flips first, before bonus is applied and the
-    // fixture is formally marked finished, so a match that has clearly ended
-    // still reads as a result rather than as in-play.
+  // Group on the local calendar day, so a late kickoff sits under the date the
+  // user would actually call it rather than whatever UTC says.
+  const groups=[]; const byKey={};
+  list.forEach(f=>{
+    const d=dateOf(f);
+    const key=d?[d.getFullYear(),d.getMonth()+1,d.getDate()].join('-'):'tbc';
+    if(!byKey[key]){ byKey[key]={key:key,date:d,rows:[]}; groups.push(byKey[key]); }
+    byKey[key].rows.push(f);
+  });
+
+  const row=f=>{
+    // finished_provisional flips as soon as a match ends, ahead of bonus being
+    // applied and finished being set, so a completed match reads as a result
+    // rather than as still in play.
     const done=!!(f.finished||f.finished_provisional);
     const live=!!f.started&&!done;
     const hasScore=(f.team_h_score!=null&&f.team_a_score!=null);
 
-    let mid, cls;
-    if((done||live)&&hasScore){
-      mid=f.team_h_score+'<span class="mt-fxdash">\u2013</span>'+f.team_a_score;
+    let mid,cls;
+    if(done||live){
+      const hs=hasScore?f.team_h_score:0, as=hasScore?f.team_a_score:0;
+      mid=hs+'<span class="mt-fxdash">\u2013</span>'+as;
       cls='mt-fxscore'+(live?' live':'');
-    }else if(live){
-      mid='0<span class="mt-fxdash">\u2013</span>0';
-      cls='mt-fxscore live';
     }else{
-      mid=esc(kickoff(f));
+      const d=dateOf(f);
+      mid=d?esc(fmt(d,{hour:'2-digit',minute:'2-digit'})):esc(t('mtFxTbc'));
       cls='mt-fxtime';
     }
 
-    const h=teamsMap[f.team_h]||'?', a=teamsMap[f.team_a]||'?';
     const badge=live
       ? '<span class="mt-fxlive">'+(f.minutes?f.minutes+"'":esc(t('mtFxLive')))+'</span>'
-      : '';
+      : (done?'<span class="mt-fxft">'+esc(t('mtFxFt'))+'</span>':'<span class="mt-fxpad"></span>');
 
     return '<div class="mt-fxrow">'
-      +'<span class="mt-fxt h'+(owned[f.team_h]?' own':'')+'">'+esc(h)+'</span>'
+      +'<span class="mt-fxt h'+(owned[f.team_h]?' own':'')+'">'+esc(teamsMap[f.team_h]||'?')+'</span>'
       +'<span class="'+cls+'">'+mid+'</span>'
-      +'<span class="mt-fxt a'+(owned[f.team_a]?' own':'')+'">'+esc(a)+'</span>'
+      +'<span class="mt-fxt a'+(owned[f.team_a]?' own':'')+'">'+esc(teamsMap[f.team_a]||'?')+'</span>'
       +badge
       +'</div>';
+  };
+
+  const body=groups.map(g=>{
+    const label=g.date
+      ? fmt(g.date,{weekday:'long',day:'numeric',month:'long'})
+      : t('mtFxTbcDate');
+    return '<div class="mt-fxday">'+esc(label)+'</div>'
+      +'<div class="mt-fxgroup">'+g.rows.map(row).join('')+'</div>';
   }).join('');
 
-  return '<div class="mt-fx">'+head+'<div class="mt-fxlist">'+rows+'</div>'
+  return '<div class="mt-fx">'+head+body
     +'<div class="mt-fxkey">'+esc(t('mtFxKey'))+'</div></div>';
 }
 
