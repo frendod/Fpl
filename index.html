@@ -969,7 +969,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-28f';
+const APP_BUILD = 'app-2026-08-28g';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1302,8 +1302,8 @@ function setTheme(theme){
 
 /* ══ CONFIG ════════════════════════════════════════════ */
 const FPL='https://fantasy.premierleague.com/api';
-// Netlify proxy function at /api/fpl-proxy
-// Takes path as query param: /api/fpl-proxy?path=entry/185282/history/
+// Netlify proxy function at /api/fpl (passthrough mode via ?path=)
+// Takes path as query param: /api/fpl?path=entry/185282/history/
 const PROXIES=[];
 // Understat labels a season by its starting year: 2026 = 2026/27, 2025 = 2025/26.
 const SEASON_LIVE=2026, SEASON_PRIOR=2025;
@@ -1425,11 +1425,11 @@ async function viaProxy(url,asText){
   const fplBase='https://fantasy.premierleague.com/api/';
   if(url.startsWith(fplBase)){
     const path=url.substring(fplBase.length);
-    const proxyUrl='/api/fpl-proxy?path='+encodeURIComponent(path);
+    const proxyUrl='/api/fpl?path='+encodeURIComponent(path);
     try{
       const r=await fetch(proxyUrl);
       if(!r.ok) throw new Error('Netlify proxy returned '+r.status);
-      diag.proxyUsed='netlify-fpl-proxy';
+      diag.proxyUsed='netlify-fpl-path';
       return asText?await r.text():await r.json();
     }catch(e){
       throw new Error('FPL proxy failed: '+e.message);
@@ -1911,7 +1911,7 @@ async function loadUserTeam(fplId){
     status.style.color='var(--dim)';
     console.log('FPL ID:',fplId);
     
-    const proxyBase='/api/fpl-proxy?path=';
+    const proxyBase='/api/fpl?path=';
     
     // Fetch entry details (player name, etc)
     console.log('\n--- Fetching Entry Details ---');
@@ -2110,7 +2110,7 @@ async function changeGameweek(gw){
 
   try{
     if(status)status.textContent=t('mtLoadingGw')(gw);
-    const url='/api/fpl-proxy?path='+encodeURIComponent('entry/'+userTeam.entryId+'/event/'+gw+'/picks/');
+    const url='/api/fpl?path='+encodeURIComponent('entry/'+userTeam.entryId+'/event/'+gw+'/picks/');
     const res=await fetch(url);
     if(!res.ok)throw new Error('status '+res.status);
     const data=await res.json();
@@ -2997,7 +2997,7 @@ async function fetchPlayerHistory(pid){
   const tries=[
     {label:'api', run:()=>fetch('/api/player?id='+pid,{cache:'no-store'})},
     {label:'committed-history', run:()=>getPlayerHistory(pid, playerTeamId, playerTeamName)},
-    {label:'fpl-proxy', run:()=>fetch('/api/fpl-proxy?path='+encodeURIComponent('element-summary/'+pid+'/'))
+    {label:'fpl-path', run:()=>fetch('/api/fpl?path='+encodeURIComponent('element-summary/'+pid+'/'))
           .then(r=>r.json()).then(shapeFromRaw)},
   ];
   for(let i=0;i<tries.length;i++){
