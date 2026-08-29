@@ -1,161 +1,137 @@
 // Netlify Function — runs on Netlify's servers, where browser CORS does not
-// apply. Reached at /api/fpl (see the redirect in netlify.toml).
+// apply. Fetches the FPL API directly and returns it to the app.
+// Reached at  /api/fpl  (see the redirect in netlify.toml).
 //
 // Two modes:
-//   /api/fpl                       -> bootstrap + fixtures bundle (unchanged)
-//   /api/fpl?path=entry/185282/    -> passthrough to any allowed FPL API path
-//
-// The passthrough lives here rather than in its own fpl-proxy function because
-// this route is known to deploy and resolve, and a separate function was
-// returning Netlify's 404 page — i.e. never reaching any code at all. One
-// function, one route, nothing extra to wire up.
+//   /api/fpl                     -> bundle of bootstrap-static + fixtures
+//   /api/fpl?path=entry/123/     -> passthrough to that FPL endpoint
 
 const BUILD = 'fpl-v2';
+const FPL = 'https://fantasy.premierleague.com/api/';
 
-const UA = {
-  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-  'accept': 'application/json, text/plain, */*',
-  'accept-language': 'en-GB,en;q=0.9',
-  'referer': 'https://fantasy.premierleague.com/',
-};
-
-// Only these prefixes may be proxied. Without this the endpoint relays anything
-// under fantasy.premierleague.com.
-const ALLOWED = [
-  'entry/',
-  'element-summary/',
-  'bootstrap-static/',
-  'fixtures',
-  'event/',
-  'leagues-classic/',
+// FPL answers bootstrap-static to almost anything, but guards the entry and
+// league endpoints harder — a bare user-agent gets a 403 from their edge.
+// Rather than guess which headers it wants, try progressively more
+// browser-like profiles and remember whichever one worked.
+const PROFILES = [
+  { name: 'browser', headers: () => ({
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'accept': 'application/json, text/plain, */*',
+      'accept-language': 'en-GB,en;q=0.9',
+      'referer': 'https://fantasy.premierleague.com/',
+      'origin': 'https://fantasy.premierleague.com',
+      'x-requested-with': 'XMLHttpRequest',
+    }) },
+  { name: 'browser-noref', headers: () => ({
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'accept': 'application/json, text/plain, */*',
+      'accept-language': 'en-GB,en;q=0.9',
+    }) },
+  { name: 'simple', headers: () => ({ 'user-agent': 'Mozilla/5.0 (fplrock netlify function)' }) },
+  { name: 'bare',   headers: () => ({}) },
 ];
 
-const BASE = 'https://fantasy.premierleague.com/api/';
+// Sticky across requests on a warm instance, so the probe cost is paid once.
+let WORKING = null;
 
-export default async (req, context) => {
-  // The bundle is stable for minutes; entry data changes during a gameweek, so
-  // the two modes cannot share a cache policy.
-  const bundleHeaders = {
+// Fetch an FPL url, walking the profiles until one is accepted. Returns the
+// response plus a per-attempt log, so a failure explains itself instead of
+// surfacing as a bare 403 in the UI.
+async function fplFetch(path) {
+  const order = WORKING
+    ? [PROFILES.find(p => p.name === WORKING), ...PROFILES.filter(p => p.name !== WORKING)]
+    : PROFILES;
+  const attempts = [];
+  for (const prof of order) {
+    if (!prof) continue;
+    try {
+      const res = await fetch(FPL + path, { headers: prof.headers() });
+      if (res.ok) { WORKING = prof.name; return { res, via: prof.name, attempts }; }
+      let body = '';
+      try { body = (await res.text()).slice(0, 180); } catch (e) {}
+      attempts.push({ profile: prof.name, status: res.status, body });
+    } catch (e) {
+      attempts.push({ profile: prof.name, error: String((e && e.message) || e) });
+    }
+  }
+  return { res: null, via: null, attempts };
+}
+
+// Only endpoints the app actually uses. This keeps the function from being
+// repurposed as an open proxy, and blocks traversal out of the FPL api root.
+const ALLOWED = [
+  /^bootstrap-static\/$/,
+  /^fixtures\/$/,
+  /^entry\/\d+\/$/,
+  /^entry\/\d+\/history\/$/,
+  /^entry\/\d+\/event\/\d+\/picks\/$/,
+  /^element-summary\/\d+\/$/,
+  /^event\/\d+\/live\/$/,
+  /^leagues-classic\/\d+\/standings\/(\?page_standings=\d+)?$/,
+];
+
+export default async (req) => {
+  const HEADERS = {
     'content-type': 'application/json',
     'access-control-allow-origin': '*',
     'cache-control': 'public, max-age=0',
     'netlify-cdn-cache-control': 'public, s-maxage=600, stale-while-revalidate=3600',
   };
-  const pathHeaders = {
-    'content-type': 'application/json',
-    'access-control-allow-origin': '*',
-    'cache-control': 'public, max-age=0',
-    'netlify-cdn-cache-control': 'public, s-maxage=60, stale-while-revalidate=300',
-  };
+  const fail = (msg, status, extra) => new Response(
+    JSON.stringify(Object.assign({ build: BUILD, error: msg }, extra || {})),
+    { status, headers: HEADERS }
+  );
 
-  let path = '';
+  let path = null;
+  try { path = new URL(req.url).searchParams.get('path'); } catch (e) {}
+
   try {
-    path = new URL(req.url).searchParams.get('path') || '';
-  } catch (e) {
-    return fail(400, 'bad request url', bundleHeaders);
-  }
+    /* ── passthrough mode ── */
+    if (path) {
+      if (path.indexOf('..') > -1 || /^https?:/i.test(path))
+        return fail('path rejected', 400);
+      if (!ALLOWED.some(re => re.test(path)))
+        return fail('path not allowed: ' + path, 400);
 
-  return path
-    ? servePath(path, pathHeaders)
-    : serveBundle(bundleHeaders);
+      const got = await fplFetch(path);
+      if (!got.res) return fail('refused by FPL', 502, { diagnostics: got.attempts, path });
+
+      const text = await got.res.text();
+      return new Response(text, {
+        status: 200,
+        headers: Object.assign({}, HEADERS, {
+          // Picks and standings move during a gameweek, so they are cached far
+          // more briefly than the bundle.
+          'netlify-cdn-cache-control': 'public, s-maxage=120, stale-while-revalidate=600',
+        }),
+      });
+    }
+
+    /* ── bundle mode ── */
+    const [bs, fx] = await Promise.all([
+      fplFetch('bootstrap-static/'),
+      fplFetch('fixtures/'),
+    ]);
+    if (!bs.res) return fail('bootstrap refused by FPL', 502, { diagnostics: bs.attempts });
+    if (!fx.res) return fail('fixtures refused by FPL', 502, { diagnostics: fx.attempts });
+
+    const bootstrap = await bs.res.json();
+    const fixtures = await fx.res.json();
+
+    if (!bootstrap || !Array.isArray(bootstrap.elements) || !bootstrap.elements.length)
+      return fail('bootstrap payload malformed', 502);
+
+    return new Response(JSON.stringify({
+      build: BUILD,
+      via: bs.via,
+      fetched_at: new Date().toISOString(),
+      bootstrap,
+      fixtures: Array.isArray(fixtures) ? fixtures : [],
+    }), { status: 200, headers: HEADERS });
+
+  } catch (err) {
+    return fail(String((err && err.message) || err), 502);
+  }
 };
-
-/* ── passthrough mode ───────────────────────────────────────────────── */
-async function servePath(path, HEADERS) {
-  if (path.includes('..') || path.includes('//') || /^[a-z]+:/i.test(path))
-    return fail(400, 'illegal path', HEADERS);
-
-  const clean = path.replace(/^\/+/, '');
-  if (!ALLOWED.some(p => clean.startsWith(p)))
-    return fail(403, 'path not allowed: ' + clean, HEADERS);
-
-  const result = await fetchJson(BASE + clean);
-  if (result.ok) return new Response(result.text, { status: 200, headers: HEADERS });
-
-  return fail(
-    result.status >= 400 ? result.status : 502,
-    'upstream returned ' + (result.status || 'no response') +
-      (result.snippet ? ' \u2014 ' + result.snippet : ' with an empty body'),
-    HEADERS,
-    { path: clean }
-  );
-}
-
-/* ── bundle mode ────────────────────────────────────────────────────── */
-async function serveBundle(HEADERS) {
-  const [bs, fx] = await Promise.all([
-    fetchJson(BASE + 'bootstrap-static/'),
-    fetchJson(BASE + 'fixtures/'),
-  ]);
-
-  if (!bs.ok) return fail(bs.status >= 400 ? bs.status : 502,
-    'bootstrap: upstream returned ' + (bs.status || 'no response'), HEADERS);
-  if (!fx.ok) return fail(fx.status >= 400 ? fx.status : 502,
-    'fixtures: upstream returned ' + (fx.status || 'no response'), HEADERS);
-
-  let bootstrap, fixtures;
-  try {
-    bootstrap = JSON.parse(bs.text);
-    fixtures = JSON.parse(fx.text);
-  } catch (e) {
-    return fail(502, 'could not parse upstream payload', HEADERS);
-  }
-
-  if (!bootstrap || !Array.isArray(bootstrap.elements) || !bootstrap.elements.length)
-    return fail(502, 'bootstrap payload malformed', HEADERS);
-
-  return new Response(JSON.stringify({
-    build: BUILD,
-    fetched_at: new Date().toISOString(),
-    bootstrap,
-    fixtures: Array.isArray(fixtures) ? fixtures : [],
-  }), { status: 200, headers: HEADERS });
-}
-
-/* ── shared fetch ───────────────────────────────────────────────────── */
-// Reads the body as text before parsing. Calling res.json() directly is what
-// produced "Unexpected end of JSON input" with no trace of the real status:
-// FPL returns an empty body when it throttles a datacenter IP. One retry
-// clears most of that; more just burns the function's time budget.
-async function fetchJson(url) {
-  let last = { status: 0, text: '' };
-
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt) await new Promise(r => setTimeout(r, 600));
-
-    let res;
-    try {
-      res = await fetch(url, { headers: UA });
-    } catch (e) {
-      last = { status: 502, text: 'fetch threw: ' + (e && e.message || e) };
-      continue;
-    }
-
-    const text = await res.text();
-    last = { status: res.status, text };
-
-    if (!res.ok) {
-      if (res.status !== 429 && res.status < 500) break; // 4xx will not improve
-      continue;
-    }
-    if (!text || !text.trim()) continue;                 // empty 200 = throttled
-
-    try { JSON.parse(text); }
-    catch (e) { continue; }                              // truncated or HTML
-
-    return { ok: true, status: res.status, text };
-  }
-
-  return {
-    ok: false,
-    status: last.status,
-    snippet: (last.text || '').slice(0, 200),
-  };
-}
-
-function fail(status, message, headers, extra) {
-  return new Response(
-    JSON.stringify(Object.assign({ build: BUILD, error: message }, extra || {})),
-    { status, headers }
-  );
-}
