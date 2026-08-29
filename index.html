@@ -1118,7 +1118,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29d';
+const APP_BUILD = 'app-2026-08-29e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4930,6 +4930,9 @@ function lgSquadCard(row,other,live){
     const set=starters.filter(pk=>meta(pk[0]).pos===lbl);
     return set.length?'<div class="lg-sqgrp">'+esc(lbl)+'</div>'+set.map(line).join(''):'';
   };
+  // Order taken from POSN rather than written out, so the squad card cannot
+  // drift from the position strings the rest of the app uses.
+  const order=[POSN[1],POSN[2],POSN[3],POSN[4]];
   const uniq=other?row.picks.filter(pk=>!otherSet[pk[0]]).length:0;
   const isMe=String(row.entry)===String(LG.entryId);
   const boosted=String(row.chip||'').toLowerCase()==='bboost';
@@ -4943,7 +4946,7 @@ function lgSquadCard(row,other,live){
     +  '<span>'+esc(t('lgGwCol'))+' <b>'+(row.gwp==null?'\u2014':row.gwp)+'</b></span>'
     +  '<span>'+esc(t('lgTotalCol')).toUpperCase()+' <b>'+(row.tot==null?'\u2014':row.tot)+'</b></span>'
     +  (other?'<span>'+esc(t('lgDiffs'))+' <b>'+uniq+'</b></span>':'')+'</div></div>'
-    +grp('GK')+grp('DEF')+grp('MID')+grp('FWD')
+    +order.map(grp).join('')
     +'<div class="lg-sqbench"><div class="lg-sqgrp">'+esc(t('lgBenchWord'))
     +  (boosted?' \u2014 '+esc(t('lgBoosted')):'')+'</div>'
     +  bench.map(line).join('')+'</div></div>';
