@@ -740,6 +740,90 @@ textarea:focus{border-color:var(--accent)}
   .xistats{gap:18px}
   .masthead{padding:28px 0 18px}
 }
+/* ─── MY LEAGUES ───────────────────────────────────────── */
+.lg-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;
+  border-bottom:1px solid var(--line);transition:background .15s;user-select:none}
+.lg-row:last-of-type{border-bottom:none}
+.lg-row:hover{background:rgba(232,228,220,.03)}
+.lg-row[aria-expanded="true"]{background:var(--accent-soft);border-bottom-color:var(--accent)}
+.lg-caret{font-size:11px;color:var(--dim);transition:transform .18s;flex:none;width:10px}
+.lg-row[aria-expanded="true"] .lg-caret{transform:rotate(90deg);color:var(--accent)}
+.lg-name{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+  color:var(--dim);display:block;margin-top:2px}
+.lg-rank{font-family:'IBM Plex Mono',monospace;font-size:15px;flex:none;text-align:right}
+.lg-ord{font-size:10px}
+.lg-move{font-family:'IBM Plex Mono',monospace;font-size:10.5px;flex:none;width:38px;text-align:right}
+.lg-up{color:var(--good)}.lg-down{color:var(--bad)}.lg-flat{color:var(--dim)}
+
+.lg-body{border-bottom:1px solid var(--line);background:var(--panel2)}
+.lg-body:last-of-type{border-bottom:none}
+.lg-bar{padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line)}
+.lg-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  color:var(--dim);margin-right:auto}
+.lg-modes{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
+.lg-sec{padding:14px 16px 4px}
+.lg-err{padding:14px 16px;font-size:12.5px;color:var(--bad)}
+
+.lg-me{background:var(--accent-soft)!important}
+.lg-me td{color:var(--accent)}
+.lg-tag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.14em;
+  border:1px solid var(--accent);color:var(--accent);padding:1px 5px;border-radius:2px;margin-left:6px}
+
+.lg-obar{position:relative;display:block;height:4px;width:64px;background:rgba(232,228,220,.14);
+  border-radius:2px;margin-top:4px;overflow:hidden}
+.lg-obar i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:2px}
+.lg-tick{color:var(--good)}
+.lg-cross{color:var(--dim)}
+
+th.lg-sort{cursor:pointer}
+th.lg-sort:hover{color:var(--accent)}
+th.lg-sort[aria-sort]{color:var(--accent)}
+th.lg-sort[aria-sort="descending"]::after{content:' ↓'}
+th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
+
+.lg-search{padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  border-bottom:1px solid var(--line)}
+.lg-search input{flex:1;min-width:170px;font-family:'IBM Plex Mono',monospace;font-size:12px;
+  padding:8px 10px;border:1px solid var(--line2);border-radius:2px;background:transparent;color:var(--paper)}
+.lg-hits{max-height:210px;overflow-y:auto;border-bottom:1px solid var(--line)}
+.lg-hit{padding:9px 16px;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:13px;
+  border-bottom:1px solid var(--line);transition:background .12s}
+.lg-hit:last-child{border-bottom:none}
+.lg-hit:hover{background:rgba(232,228,220,.04)}
+.lg-hit[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.lg-hit-n{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.lg-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line)}
+.lg-col{background:var(--panel2);padding:14px 16px;min-height:110px}
+.lg-colh{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between;gap:8px}
+.lg-colh b{color:var(--accent);font-weight:600;font-size:13px}
+.lg-list{list-style:none;font-size:12.5px}
+.lg-list li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.lg-list li:last-child{border-bottom:none}
+.lg-list li i{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);font-style:normal}
+.lg-empty{font-size:12px;color:var(--dim);font-style:italic;padding:6px 0}
+
+.lg-caprow{padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+.lg-caprow:last-child{border-bottom:none}
+.lg-caprow:hover{background:rgba(232,228,220,.03)}
+.lg-captop{display:flex;align-items:baseline;gap:10px}
+.lg-capnm{flex:1;font-size:13.5px}
+.lg-capn{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)}
+.lg-cappc{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);width:42px;text-align:right}
+.lg-capbar{height:5px;background:rgba(232,228,220,.14);border-radius:2px;margin-top:7px;overflow:hidden}
+.lg-capbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.lg-capbar i.vice{background:rgba(217,164,65,.4)}
+.lg-capwho{display:none;margin-top:10px;font-size:12px;color:var(--dim);line-height:1.7}
+.lg-caprow.open .lg-capwho{display:block}
+.lg-hint{font-size:11.5px;color:var(--dim);padding:12px 16px;line-height:1.6;font-style:italic}
+.lg-chip{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
+  border:1px solid var(--accent);color:var(--accent);padding:1px 4px;border-radius:2px;margin-left:5px}
+@media(max-width:560px){
+  .lg-name{font-size:13.5px}
+}
+
 </style>
 </head>
 <body>
@@ -807,6 +891,7 @@ textarea:focus{border-color:var(--accent)}
   <div class="tabs" role="tablist" id="tabs" hidden>
     <button class="tab" role="tab" aria-selected="true" data-view="picks" data-i18n="tabPicks">Picks</button>
     <button class="tab" role="tab" aria-selected="false" data-view="myteam" data-i18n="tabMyTeam">My Team</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="leagues" data-i18n="tabLeagues">My Leagues</button>
     <button class="tab" role="tab" aria-selected="false" data-view="xi" data-i18n="tabXI">Best XI</button>
     <button class="tab" role="tab" aria-selected="false" data-view="table" data-i18n="tabTable">All players</button>
     <button class="tab" role="tab" aria-selected="false" data-view="plan" data-i18n="tabPlan">Season plan</button>
@@ -835,13 +920,24 @@ textarea:focus{border-color:var(--accent)}
           <button class="btn-small" id="gwPrev" data-i18n="mtPrev">← Prev</button>
           <button class="btn-small" id="gwNext" data-i18n="mtNext">Next →</button>
           <span id="gwStatus" style="font-size:12px;color:var(--dim);margin-left:auto"></span>
+          <button class="btn-small" id="changeIdBtn" style="border-color:var(--accent);color:var(--accent)" data-i18n="mtChangeId">Change ID</button>
           <!-- gwStatus now carries only transient loading/error text, not a GW counter -->
         </div>
         <div id="teamBody"></div>
       </div>
     </div>
   </div>
-  
+
+  <div class="view" id="view-leagues">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title" data-i18n="tabLeagues">My Leagues</div>
+        <div class="panel-meta" id="lgMeta"></div>
+      </div>
+      <div id="lgList"></div>
+    </div>
+  </div>
+
   <div class="view" id="view-xi">
     <!-- WEIGHTS IN XI TAB -->
     <div class="panel">
@@ -969,7 +1065,7 @@ textarea:focus{border-color:var(--accent)}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-28g';
+const APP_BUILD = 'app-2026-08-29a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1007,6 +1103,25 @@ const I18N={
     pBalanced:'Balanced', pForm:'Form', pFixtures:'Fixtures', pThreat:'Threat', pDefensive:'Defensive', pDifferential:'Differential',
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
     tabMyTeam:'My Team', myTeam:'My Team',
+    tabLeagues:'My Leagues', mtChangeId:'Change ID',
+    lgNoTeam:'Load your team on the My Team tab first — your leagues come from your FPL ID.',
+    lgNone:'No user-created leagues found for this ID. Global leagues are left out on purpose: a 50-team slice off the top of a million-entry table says nothing useful about ownership.',
+    lgLeaguesWord:'leagues', lgTeamsWord:'teams', lgPrivate:'Private classic', lgPublic:'Public classic',
+    lgLoading:'Loading…', lgTop:'Top', lgMoreAvail:'more available', lgFetched:'fetched',
+    lgFailed:'picks unavailable', lgLoadNext:'Load next 50', lgRefresh:'Refresh',
+    lgErr:'Could not load league', lgEmpty:'No standings returned for this league and gameweek.',
+    lgModeOwn:'Standings & ownership', lgModePlayer:'Player lookup', lgModeCap:'Captains',
+    lgStandings:'Standings', lgOwnership:'Ownership across the league',
+    lgRk:'Rk', lgManager:'Manager', lgTeamCol:'Team', lgGwCol:'GW', lgTotalCol:'Total', lgYouTag:'YOU',
+    lgOwned:'Owned', lgEO:'EO', lgBenched:'Benched', lgCapt:'Capt', lgYou:'You', lgOnBench:'(bench)',
+    lgEONote:'EO is effective ownership: the mean multiplier across rival teams, so a bench player counts 0, a captain 2 and a triple captain 3. Your own squad sits outside the denominators and shows in the You column instead, so it never skews the figures.',
+    lgSearchPh:'Search player…', lgNoMatch:'No player matches that.', lgOwnedBy:'owned by',
+    lgStartedBy:'Started by', lgBenchedBy:'Benched by', lgCaptainedBy:'Captained by', lgViceBy:'Vice-captain',
+    lgNobodyStarted:'Nobody started them.', lgNobodyBenched:'Nobody benched them.',
+    lgNobodyCapped:'Nobody captained them.', lgNobodyViced:'Nobody has them as vice.',
+    lgMore:'more', lgNobody:'nobody',
+    lgBenchNote:'Benched means picked at position 12 to 15 at the deadline. It is read from position rather than multiplier, so Bench Boost does not distort it, and it is unaffected by auto-subs. The number beside each manager is their league rank.',
+    lgCapNote:'Solid bar is captain, faded bar is vice. Tap a row for the names. A captain nobody else has is the differential worth knowing about before the deadline.',
     tabPicks:'Picks', tabXI:'Best XI', tabTable:'All players', tabPlan:'Season plan', tabDiag:'Diagnostics',
     allPlayers:'All players', searchPh:'Player or club', searchAria:'Search players',
     allPos:'All positions', posGK:'Goalkeeper', posDF:'Defender', posMD:'Midfielder', posFW:'Forward',
@@ -1154,6 +1269,25 @@ const I18N={
     pBalanced:'Equilibrado', pForm:'Forma', pFixtures:'Calendario', pThreat:'Amenaza', pDefensive:'Defensivo', pDifferential:'Diferencial',
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
+    tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
+    lgNoTeam:'Carga tu equipo en la pestaña Mi equipo — tus ligas vienen de tu ID de FPL.',
+    lgNone:'No se han encontrado ligas creadas por usuarios para este ID. Las ligas globales se excluyen a propósito: 50 equipos del principio de una tabla de un millón no dicen nada útil sobre la propiedad.',
+    lgLeaguesWord:'ligas', lgTeamsWord:'equipos', lgPrivate:'Clásica privada', lgPublic:'Clásica pública',
+    lgLoading:'Cargando…', lgTop:'Top', lgMoreAvail:'hay más', lgFetched:'actualizado',
+    lgFailed:'sin alineación', lgLoadNext:'Cargar 50 más', lgRefresh:'Actualizar',
+    lgErr:'No se pudo cargar la liga', lgEmpty:'No hay clasificación para esta liga y jornada.',
+    lgModeOwn:'Clasificación y propiedad', lgModePlayer:'Buscar jugador', lgModeCap:'Capitanes',
+    lgStandings:'Clasificación', lgOwnership:'Propiedad en la liga',
+    lgRk:'Pos', lgManager:'Mánager', lgTeamCol:'Equipo', lgGwCol:'J', lgTotalCol:'Total', lgYouTag:'TÚ',
+    lgOwned:'Propiedad', lgEO:'PE', lgBenched:'Banquillo', lgCapt:'Cap', lgYou:'Tú', lgOnBench:'(banq.)',
+    lgEONote:'PE es la propiedad efectiva: el multiplicador medio entre los equipos rivales, así que un suplente cuenta 0, un capitán 2 y un triple capitán 3. Tu propio equipo queda fuera del cálculo y aparece en la columna Tú, para que nunca distorsione las cifras.',
+    lgSearchPh:'Buscar jugador…', lgNoMatch:'Ningún jugador coincide.', lgOwnedBy:'lo tienen',
+    lgStartedBy:'Alineado por', lgBenchedBy:'Al banquillo por', lgCaptainedBy:'Capitán para', lgViceBy:'Subcapitán',
+    lgNobodyStarted:'Nadie lo alineó.', lgNobodyBenched:'Nadie lo sentó.',
+    lgNobodyCapped:'Nadie lo puso de capitán.', lgNobodyViced:'Nadie lo tiene de subcapitán.',
+    lgMore:'más', lgNobody:'nadie',
+    lgBenchNote:'Banquillo significa elegido en la posición 12 a 15 al cierre. Se lee de la posición y no del multiplicador, así que el Bench Boost no lo distorsiona, y no le afectan los cambios automáticos. El número junto a cada mánager es su posición en la liga.',
+    lgCapNote:'La barra sólida son capitanes, la tenue subcapitanes. Toca una fila para ver los nombres. Un capitán que no tiene nadie más es el diferencial que conviene conocer antes del cierre.',
     tabPicks:'Selecciones', tabXI:'Mejor XI', tabTable:'Jugadores', tabPlan:'Plan de temporada', tabDiag:'Diagnóstico',
     allPlayers:'Todos los jugadores', searchPh:'Jugador o club', searchAria:'Buscar jugadores',
     allPos:'Todas las posiciones', posGK:'Portero', posDF:'Defensa', posMD:'Centrocampista', posFW:'Delantero',
@@ -1288,6 +1422,7 @@ function setLang(l){
   document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===l)));
   if(typeof players!=='undefined'&&players.length){renderWeights();renderAll();}
   else{renderWeights();paintState();}
+  if(typeof renderLeagues==='function')renderLeagues();
 }
 
 function setTheme(theme){
@@ -1995,6 +2130,10 @@ async function loadUserTeam(fplId){
     $('teamMeta').textContent='';
     renderUserTeam();
     
+    // Hand the leagues off to the My Leagues tab. They arrive on the entry
+    // response we already have, so opening that tab costs no extra request.
+    lgAdopt(entry,currentGW,fplId);
+
     // Save FPL ID to localStorage
     localStorage.setItem('fplRockId',fplId);
     
@@ -4125,6 +4264,437 @@ document.querySelectorAll('th.sortable').forEach(th=>{
     sortList(); page=1; renderTable();
   });
 });
+
+/* ══ MY LEAGUES ════════════════════════════════════════════
+   Leagues come from the entry response already fetched by loadUserTeam, so
+   opening the tab costs nothing. Standings and picks are fetched per league,
+   one 50-manager page per request, only when a league is opened.
+
+   Ownership is computed over rival teams only — your own squad sits outside
+   the denominators so it cannot skew the read. The ✓ column is the comparison.
+*/
+
+const LG = {
+  list:null,          // filtered classic leagues from entry.leagues
+  raw:null,           // unfiltered, kept for the console dump
+  entryId:null,
+  gw:null,
+  open:{},            // leagueId -> bool
+  mode:{},            // leagueId -> 'own' | 'player' | 'cap'
+  sel:{},             // leagueId -> element id being looked up
+  sort:{},            // leagueId -> sort key
+  data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
+  busy:{},            // leagueId:page -> bool
+  err:{},             // leagueId -> message
+};
+
+// Global leagues (Overall, country, region, price bracket) are excluded: a
+// 50-team slice off the top of a twelve-million-entry table says nothing about
+// ownership. Private and public user-created leagues both stay in.
+//
+// admin_entry is the structural test — every user-created league has a creator,
+// the global ones do not. league_type 'x' (private) is the secondary check.
+function lgIsUserLeague(l){
+  return (l && (l.admin_entry !== null && l.admin_entry !== undefined)) || (l && l.league_type === 'x');
+}
+
+// Called by loadUserTeam once the entry response is in.
+function lgAdopt(entry, gw, fplId){
+  const raw = (entry && entry.leagues && Array.isArray(entry.leagues.classic))
+            ? entry.leagues.classic : [];
+  LG.raw = raw;
+  LG.list = raw.filter(lgIsUserLeague);
+  LG.entryId = String(fplId);
+  LG.gw = gw;
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.data={}; LG.busy={}; LG.err={};
+
+  // Verification dump — confirms the filter against real data rather than
+  // an assumption about what FPL puts in these fields.
+  try{
+    console.log('%cLeagues — raw classic list ('+raw.length+' total, '+LG.list.length+' kept)',
+                'color:#d9a441;font-weight:bold');
+    console.table(raw.map(l=>({
+      id:l.id, name:l.name, league_type:l.league_type,
+      admin_entry:l.admin_entry, your_rank:l.entry_rank, kept:lgIsUserLeague(l)
+    })));
+  }catch(e){}
+
+  renderLeagues();
+}
+
+function lgClear(){
+  LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.data={}; LG.busy={}; LG.err={};
+  renderLeagues();
+}
+
+// Short codes for the standings table. The long labels already live in
+// CHIP_LABELS; a table cell needs two characters, not fourteen.
+const LG_CHIP={'3xc':'TC','bboost':'BB','freehit':'FH','wildcard':'WC','manager':'AM'};
+function lgChip(c){ return c?(LG_CHIP[String(c).toLowerCase()]||String(c).toUpperCase()):''; }
+
+/* ── fetching ─────────────────────────────────────────── */
+async function lgFetchPage(lid, page, bust){
+  const key = lid+':'+page;
+  if(LG.busy[key]) return;
+  LG.busy[key]=true; LG.err[lid]=null;
+  renderLeagues();
+  try{
+    const url='/api/league?id='+encodeURIComponent(lid)
+             +'&gw='+LG.gw+'&page='+page
+             +'&me='+encodeURIComponent(LG.entryId)
+             +(bust?('&t='+Date.now()):'');
+    const res=await fetch(url, bust?{cache:'no-store'}:undefined);
+    let j=null;
+    try{ j=await res.json(); }catch(e){ throw new Error('bad response from /api/league'); }
+    if(!res.ok || j.error) throw new Error(j&&j.error ? j.error : ('status '+res.status));
+
+    const d = LG.data[lid] || (LG.data[lid]={rows:[],pages:[],hasNext:false,fetchedAt:null,index:null,me:null});
+    // drop any previous copy of this page, then merge the fresh rows in
+    d.rows = d.rows.filter(r=>r._page!==page)
+                   .concat((j.rows||[]).map(r=>{ r._page=page; return r; }));
+    d.rows.sort((a,b)=>a.rank-b.rank);
+    if(d.pages.indexOf(page)<0) d.pages.push(page);
+    d.pages.sort((a,b)=>a-b);
+    d.hasNext = !!j.hasNext;
+    d.fetchedAt = new Date();
+    d.failed = j.failed||0;
+    if(j.me) d.me=j.me;
+    d.index=null;                       // force a rebuild
+    if(!j.rows || !j.rows.length) LG.err[lid]=t('lgEmpty');
+  }catch(e){
+    LG.err[lid]=e.message;
+  }
+  LG.busy[key]=false;
+  renderLeagues();
+}
+
+function lgRefresh(lid){
+  const d=LG.data[lid];
+  if(!d) return lgFetchPage(lid,1,true);
+  d.pages.slice().forEach(p=>lgFetchPage(lid,p,true));
+}
+
+/* ── indexing ─────────────────────────────────────────── */
+// Runs over whatever pages are currently loaded. Cheap enough (rows × 15) that
+// there is no reason to update it incrementally when a new page arrives.
+function lgIndex(lid){
+  const d=LG.data[lid];
+  if(!d) return null;
+  if(d.index) return d.index;
+
+  const by={};
+  const meId=String(LG.entryId);
+  const rivals=d.rows.filter(r=>String(r.entry)!==meId && r.picks && r.picks.length);
+
+  const touch=el=>{
+    if(!by[el]){
+      const p=(typeof players!=='undefined'&&players.length)?players.find(x=>x.id===el):null;
+      by[el]={ el:el, p:p||null,
+               name:p?p.name:('#'+el), pos:p?p.pos:'—', club:p?p.club:'',
+               owners:[], bench:[], caps:[], vices:[], eo:0 };
+    }
+    return by[el];
+  };
+
+  rivals.forEach(r=>{
+    r.picks.forEach(pk=>{
+      const el=pk[0], position=pk[1], multiplier=pk[2], isCap=!!pk[3], isVice=!!pk[4];
+      const b=touch(el);
+      b.owners.push(r);
+      // Benched is read from position, not multiplier. Under Bench Boost a
+      // bench player has multiplier 1, so multiplier===0 would miss them.
+      if(position>11) b.bench.push(r);
+      // The multiplier already carries bench 0, captain 2, triple captain 3
+      // and Bench Boost 1, so effective ownership is just its mean.
+      b.eo += multiplier;
+      if(isCap) b.caps.push(r);
+      if(isVice) b.vices.push(r);
+    });
+  });
+
+  const n=rivals.length||1;
+  const list=Object.keys(by).map(k=>by[k]);
+  list.forEach(b=>{ b.eo=b.eo/n; b.pc=b.owners.length/n; });
+
+  const myRow=d.rows.find(r=>String(r.entry)===meId) || d.me || null;
+  const mine={};
+  if(myRow&&myRow.picks) myRow.picks.forEach(pk=>{ mine[pk[0]]=pk[1]>11?'b':'s'; });
+
+  d.index={ by:by, list:list, n:n, mine:mine, myRow:myRow, rivals:rivals };
+  return d.index;
+}
+
+/* ── rendering ────────────────────────────────────────── */
+function lgOrd(n){
+  const s=n%100;
+  if(s>=11&&s<=13) return 'th';
+  return ({1:'st',2:'nd',3:'rd'})[n%10]||'th';
+}
+function lgMove(now,last){
+  if(!last||!now||now===last) return '<span class="lg-flat">–</span>';
+  if(now<last) return '<span class="lg-up">▲'+(last-now)+'</span>';
+  return '<span class="lg-down">▼'+(now-last)+'</span>';
+}
+function lgClock(d){
+  if(!d) return '';
+  const p=n=>(n<10?'0':'')+n;
+  return p(d.getHours())+':'+p(d.getMinutes());
+}
+// Player name that opens the existing history modal via the delegated handler.
+function lgPName(b){
+  if(!b.p) return esc(b.name);
+  return '<span class="phist" style="cursor:pointer" data-pid="'+b.p.id
+       +'" data-pname="'+encodeURIComponent(b.p.name)+'">'+esc(b.name)+'</span>';
+}
+
+function renderLeagues(){
+  const host=$('lgList'), meta=$('lgMeta');
+  if(!host) return;
+
+  if(!LG.list){
+    if(meta)meta.textContent='';
+    host.innerHTML='<div class="lg-hint">'+esc(t('lgNoTeam'))+'</div>';
+    return;
+  }
+  if(!LG.list.length){
+    if(meta)meta.textContent='';
+    host.innerHTML='<div class="lg-hint">'+esc(t('lgNone'))+'</div>';
+    return;
+  }
+  if(meta) meta.textContent=LG.list.length+' '+t('lgLeaguesWord').toUpperCase()+' · GW'+LG.gw;
+
+  host.innerHTML=LG.list.map(l=>{
+    const isOpen=!!LG.open[l.id];
+    const rank=l.entry_rank, last=l.entry_last_rank;
+    return '<div class="lg-row" role="button" tabindex="0" aria-expanded="'+isOpen+'" data-lgrow="'+l.id+'">'
+      +'<span class="lg-caret">▶</span>'
+      +'<span class="lg-name">'+esc(l.name)
+      +  '<span class="lg-sub">'+esc(l.league_type==='x'?t('lgPrivate'):t('lgPublic'))+'</span></span>'
+      +'<span class="lg-rank">'+(rank||'—')+(rank?'<span class="lg-ord">'+lgOrd(rank)+'</span>':'')+'</span>'
+      +'<span class="lg-move">'+lgMove(rank,last)+'</span>'
+      +'</div>'
+      +(isOpen?'<div class="lg-body">'+lgBody(l)+'</div>':'');
+  }).join('');
+}
+
+function lgBody(l){
+  const lid=l.id, d=LG.data[lid], m=LG.mode[lid]||'own';
+  const loading=Object.keys(LG.busy).some(k=>k.indexOf(lid+':')===0&&LG.busy[k]);
+
+  let bar='<div class="lg-bar"><span class="lg-cap">';
+  if(loading) bar+=esc(t('lgLoading'));
+  else if(!d) bar+=esc(t('lgLoading'));
+  else bar+= (d.hasNext ? (t('lgTop')+' '+d.rows.length+' · '+t('lgMoreAvail'))
+                        : (d.rows.length+' '+t('lgTeamsWord')))
+           + ' · GW'+LG.gw
+           + (d.fetchedAt?(' · '+t('lgFetched')+' '+lgClock(d.fetchedAt)):'')
+           + (d.failed?(' · '+d.failed+' '+t('lgFailed')):'');
+  bar+='</span>';
+  if(d&&d.hasNext) bar+='<button class="btn-small" data-lgmore="'+lid+'">'+esc(t('lgLoadNext'))+'</button>';
+  if(d) bar+='<button class="btn-small" data-lgrefresh="'+lid+'">↻ '+esc(t('lgRefresh'))+'</button>';
+  bar+='</div>';
+
+  if(LG.err[lid]) return bar+'<div class="lg-err">'+esc(t('lgErr'))+': '+esc(LG.err[lid])+'</div>';
+  if(loading&&!d)  return bar;
+  if(!d)           return bar;
+  if(!d.rows.length) return bar+'<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+
+  const modes=[['own',t('lgModeOwn')],['player',t('lgModePlayer')],['cap',t('lgModeCap')]];
+  const strip='<div class="lg-modes">'+modes.map(x=>
+    '<button class="preset" aria-pressed="'+(m===x[0])+'" data-lgmode="'+x[0]+'" data-lgid="'+lid+'">'
+    +esc(x[1])+'</button>').join('')+'</div>';
+
+  return bar+strip+(m==='own'?lgPaneOwn(lid):m==='player'?lgPanePlayer(lid):lgPaneCap(lid));
+}
+
+/* mode 1 — standings + ownership grid */
+function lgPaneOwn(lid){
+  const d=LG.data[lid], ix=lgIndex(lid);
+  const meId=String(LG.entryId);
+
+  const standings='<div class="tscroll"><table><thead><tr>'
+    +'<th>'+esc(t('lgRk'))+'</th><th></th><th>'+esc(t('lgManager'))+'</th>'
+    +'<th>'+esc(t('lgTeamCol'))+'</th><th>'+esc(t('lgGwCol'))+'</th><th>'+esc(t('lgTotalCol'))+'</th>'
+    +'</tr></thead><tbody>'
+    +d.rows.map(r=>{
+      const isMe=String(r.entry)===meId;
+      return '<tr'+(isMe?' class="lg-me"':'')+'>'
+        +'<td class="mono">'+r.rank+'</td>'
+        +'<td class="mono">'+lgMove(r.rank,r.last)+'</td>'
+        +'<td>'+esc(r.mgr)+(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
+        +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')+'</td>'
+        +'<td>'+esc(r.team)+'</td>'
+        +'<td class="mono">'+(r.gwp==null?'—':r.gwp)+'</td>'
+        +'<td class="mono">'+(r.tot==null?'—':r.tot)+'</td></tr>';
+    }).join('')
+    +'</tbody></table></div>';
+
+  const key=LG.sort[lid]||'owners';
+  const sorted=ix.list.slice().sort((a,b)=>{
+    if(key==='owners') return b.owners.length-a.owners.length || b.eo-a.eo;
+    if(key==='eo')     return b.eo-a.eo;
+    if(key==='bench')  return b.bench.length-a.bench.length;
+    if(key==='caps')   return b.caps.length-a.caps.length;
+    return String(a.name).localeCompare(String(b.name));
+  });
+  const th=(k,label)=>'<th class="lg-sort"'+(key===k?' aria-sort="descending"':'')
+    +' data-lgsort="'+k+'" data-lgid="'+lid+'">'+esc(label)+'</th>';
+
+  const grid='<div class="tscroll"><table><thead><tr>'
+    +'<th>'+esc(t('thPlayer'))+'</th><th></th>'
+    +th('owners',t('lgOwned'))+th('eo',t('lgEO'))
+    +th('bench',t('lgBenched'))+th('caps',t('lgCapt'))
+    +'<th>'+esc(t('lgYou'))+'</th></tr></thead><tbody>'
+    +sorted.map(b=>{
+      const pc=Math.round(b.pc*100);
+      const mineState=ix.mine[b.el];
+      return '<tr>'
+        +'<td>'+lgPName(b)+' <span class="mono" style="color:var(--dim);font-size:10.5px">'+esc(b.club)+'</span></td>'
+        +'<td><span class="pos">'+esc(b.pos)+'</span></td>'
+        +'<td class="mono">'+b.owners.length+'/'+ix.n+' '+pc+'%'
+        +  '<span class="lg-obar"><i style="width:'+pc+'%"></i></span></td>'
+        +'<td class="mono" style="color:var(--accent)">'+b.eo.toFixed(2)+'</td>'
+        +'<td class="mono">'+b.bench.length+'</td>'
+        +'<td class="mono">'+b.caps.length+'</td>'
+        +'<td>'+(mineState?'<span class="lg-tick">✓'+(mineState==='b'?' '+esc(t('lgOnBench')):'')+'</span>'
+                          :'<span class="lg-cross">–</span>')+'</td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>'
+    +'<div class="lg-hint">'+esc(t('lgEONote'))+'</div>';
+
+  return '<div class="lg-sec"><span class="lg-cap">'+esc(t('lgStandings')).toUpperCase()+'</span></div>'
+    +standings
+    +'<div class="lg-sec" style="border-top:1px solid var(--line)"><span class="lg-cap">'
+    +esc(t('lgOwnership')).toUpperCase()+'</span></div>'
+    +grid;
+}
+
+/* mode 2 — player lookup */
+function lgPanePlayer(lid){
+  const ix=lgIndex(lid);
+  if(!ix.list.length) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+
+  const ranked=ix.list.slice().sort((a,b)=>b.owners.length-a.owners.length);
+  const cur=LG.sel[lid]!=null ? LG.sel[lid] : ranked[0].el;
+  const b=ix.by[cur]||ranked[0];
+  const q=(LG.q&&LG.q[lid])||'';
+  const hits=(q?ranked.filter(x=>String(x.name).toLowerCase().indexOf(q.toLowerCase())>-1
+                                ||String(x.club).toLowerCase().indexOf(q.toLowerCase())>-1)
+              :ranked).slice(0,40);
+
+  const chips=hits.map(o=>'<div class="lg-hit" aria-selected="'+(o.el===b.el)+'" '
+    +'data-lgpick="'+o.el+'" data-lgid="'+lid+'">'
+    +'<span class="pos">'+esc(o.pos)+'</span>'
+    +'<span style="flex:1">'+esc(o.name)+'</span>'
+    +'<span class="lg-hit-n">'+o.owners.length+'</span></div>').join('')
+    ||'<div class="lg-empty" style="padding:12px 16px">'+esc(t('lgNoMatch'))+'</div>';
+
+  const col=(title,rows,empty)=>'<div class="lg-col">'
+    +'<div class="lg-colh"><span>'+esc(title)+'</span><b>'+rows.length+'</b></div>'
+    +(rows.length
+      ? '<ul class="lg-list">'+rows.slice(0,12).map(r=>'<li><span>'+esc(r.mgr)+'</span><i>'+r.rank+'</i></li>').join('')
+        +(rows.length>12?'<li><i>+'+(rows.length-12)+' '+esc(t('lgMore'))+'</i></li>':'')
+        +'</ul>'
+      : '<div class="lg-empty">'+esc(empty)+'</div>')
+    +'</div>';
+
+  const benchSet={}; b.bench.forEach(r=>benchSet[r.entry]=1);
+  const started=b.owners.filter(r=>!benchSet[r.entry]);
+
+  return '<div class="lg-search">'
+    +'<input type="text" data-lgq="'+lid+'" value="'+esc(q)+'" placeholder="'+esc(t('lgSearchPh'))+'" aria-label="'+esc(t('lgSearchPh'))+'">'
+    +'</div>'
+    +'<div class="lg-hits">'+chips+'</div>'
+    +'<div class="lg-bar" style="border-top:none"><span class="lg-cap">'
+    +  esc(String(b.name).toUpperCase())+' · '+esc(b.club)
+    +  ' · '+esc(t('lgOwnedBy'))+' '+b.owners.length+'/'+ix.n
+    +  ' · EO '+b.eo.toFixed(2)+'</span></div>'
+    +'<div class="lg-cols">'
+    +  col(t('lgStartedBy'),started,t('lgNobodyStarted'))
+    +  col(t('lgBenchedBy'),b.bench,t('lgNobodyBenched'))
+    +  col(t('lgCaptainedBy'),b.caps,t('lgNobodyCapped'))
+    +  col(t('lgViceBy'),b.vices,t('lgNobodyViced'))
+    +'</div>'
+    +'<div class="lg-hint">'+esc(t('lgBenchNote'))+'</div>';
+}
+
+/* mode 3 — captain distribution */
+function lgPaneCap(lid){
+  const ix=lgIndex(lid);
+  const list=ix.list.filter(b=>b.caps.length||b.vices.length)
+                    .sort((a,b)=>b.caps.length-a.caps.length||b.vices.length-a.vices.length);
+  if(!list.length) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+  const max=Math.max.apply(null,list.map(b=>b.caps.length).concat([1]));
+
+  return list.map((b,i)=>'<div class="lg-caprow'+(i===0?' open':'')+'" data-lgcap="'+b.el+'">'
+    +'<div class="lg-captop"><span class="pos">'+esc(b.pos)+'</span>'
+    +  '<span class="lg-capnm">'+esc(b.name)
+    +    ' <span class="mono" style="color:var(--dim);font-size:10.5px">'+esc(b.club)+'</span></span>'
+    +  '<span class="lg-capn">'+b.caps.length+' C</span>'
+    +  '<span class="lg-cappc">'+Math.round(b.caps.length/ix.n*100)+'%</span></div>'
+    +'<div class="lg-capbar"><i style="width:'+Math.round(b.caps.length/max*100)+'%"></i></div>'
+    +(b.vices.length?'<div class="lg-capbar" style="margin-top:3px"><i class="vice" style="width:'
+      +Math.round(b.vices.length/max*100)+'%"></i></div>':'')
+    +'<div class="lg-capwho">'
+    +  '<b style="font-weight:400;color:var(--accent)">'+esc(t('lgCaptainedBy'))+' — </b>'
+    +  (b.caps.length?b.caps.map(r=>esc(r.mgr)).join(', '):esc(t('lgNobody')))
+    +  (b.vices.length?'<br><b style="font-weight:400;color:var(--accent)">'+esc(t('lgViceBy'))
+        +' — </b>'+b.vices.map(r=>esc(r.mgr)).join(', '):'')
+    +'</div></div>').join('')
+    +'<div class="lg-hint">'+esc(t('lgCapNote'))+'</div>';
+}
+
+/* ── events (delegated, so re-rendered markup keeps working) ── */
+document.addEventListener('click',e=>{
+  const row=e.target.closest('[data-lgrow]');
+  if(row&&!e.target.closest('[data-lgmore],[data-lgrefresh]')){
+    const lid=Number(row.dataset.lgrow);
+    LG.open[lid]=!LG.open[lid];
+    renderLeagues();
+    if(LG.open[lid]&&!LG.data[lid]) lgFetchPage(lid,1,false);
+    return;
+  }
+  const more=e.target.closest('[data-lgmore]');
+  if(more){
+    e.stopPropagation();
+    const lid=Number(more.dataset.lgmore), d=LG.data[lid];
+    lgFetchPage(lid,(d?Math.max.apply(null,d.pages):0)+1,false);
+    return;
+  }
+  const ref=e.target.closest('[data-lgrefresh]');
+  if(ref){ e.stopPropagation(); lgRefresh(Number(ref.dataset.lgrefresh)); return; }
+
+  const md=e.target.closest('[data-lgmode]');
+  if(md){ e.stopPropagation(); LG.mode[Number(md.dataset.lgid)]=md.dataset.lgmode; renderLeagues(); return; }
+
+  const so=e.target.closest('[data-lgsort]');
+  if(so){ e.stopPropagation(); LG.sort[Number(so.dataset.lgid)]=so.dataset.lgsort; renderLeagues(); return; }
+
+  const pk=e.target.closest('[data-lgpick]');
+  if(pk){ e.stopPropagation(); LG.sel[Number(pk.dataset.lgid)]=Number(pk.dataset.lgpick); renderLeagues(); return; }
+
+  const cp=e.target.closest('[data-lgcap]');
+  if(cp){ e.stopPropagation(); cp.classList.toggle('open'); return; }
+});
+
+document.addEventListener('keydown',e=>{
+  const row=e.target.closest&&e.target.closest('[data-lgrow]');
+  if(row&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); row.click(); }
+});
+
+// Search box: keep focus and caret across the re-render.
+document.addEventListener('input',e=>{
+  const q=e.target.closest('[data-lgq]');
+  if(!q) return;
+  const lid=Number(q.dataset.lgq), pos=q.selectionStart;
+  LG.q=LG.q||{}; LG.q[lid]=q.value;
+  renderLeagues();
+  const again=document.querySelector('[data-lgq="'+lid+'"]');
+  if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
+});
+
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(o=>o.setAttribute('aria-selected','false'));
@@ -4234,8 +4804,19 @@ document.addEventListener('click',e=>{
     localStorage.removeItem('fplRockId');
     $('teamInput').hidden=false;
     $('teamDisplay').hidden=true;
+    lgClear();
     $('teamLoadStatus').textContent=t('mtIdCleared');
     setTimeout(()=>{$('teamLoadStatus').textContent=''},2000);
+  }
+
+  // Change ID — reopen the entry field over the loaded team, pre-filled. The
+  // leagues go with the old ID, so they are dropped straight away rather than
+  // sitting there stale until the new team finishes loading.
+  if(e.target===$('changeIdBtn')){
+    $('teamInput').hidden=false;
+    lgClear();
+    const box=$('fplId');
+    if(box){ box.value=localStorage.getItem('fplRockId')||box.value; box.focus(); box.select(); }
   }
   if(e.target===$('gwPrev')){
     changeGameweek(parseInt($('gwSelect').value,10)-1);
