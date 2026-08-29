@@ -15,9 +15,58 @@
 
 export const config = { path: '/api/league' };
 
-const BUILD = 'league-v2';
+const BUILD = 'league-v3';
 const FPL = 'https://fantasy.premierleague.com/api/';
-const UA = { 'user-agent': 'Mozilla/5.0 (fplrock league)' };
+// FPL answers bootstrap-static to almost anything, but guards the league
+// endpoints harder — a bare user-agent gets a 403 from their edge. Rather than
+// guess which headers it wants, try progressively more browser-like profiles
+// and remember whichever one worked for the life of the instance.
+const PROFILES = [
+  { name: 'browser', headers: (id) => ({
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'accept': 'application/json, text/plain, */*',
+      'accept-language': 'en-GB,en;q=0.9',
+      'referer': 'https://fantasy.premierleague.com/leagues/' + id + '/standings/c',
+      'origin': 'https://fantasy.premierleague.com',
+      'x-requested-with': 'XMLHttpRequest',
+    }) },
+  { name: 'browser-noref', headers: () => ({
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'accept': 'application/json, text/plain, */*',
+      'accept-language': 'en-GB,en;q=0.9',
+    }) },
+  { name: 'simple', headers: () => ({ 'user-agent': 'Mozilla/5.0 (fplrock league)' }) },
+  { name: 'bare',   headers: () => ({}) },
+];
+
+// Sticky across requests on a warm instance, so we pay the probe cost once.
+let WORKING = null;
+
+// Fetch a FPL url, walking the profiles until one is accepted. Returns the
+// response plus a per-attempt log so a failure explains itself instead of
+// surfacing as a bare 403 in the UI.
+async function fplFetch(path, ctx) {
+  const url = FPL + path;
+  const order = WORKING
+    ? [PROFILES.find(p => p.name === WORKING), ...PROFILES.filter(p => p.name !== WORKING)]
+    : PROFILES;
+  const attempts = [];
+  for (const prof of order) {
+    if (!prof) continue;
+    try {
+      const res = await fetch(url, { headers: prof.headers(ctx) });
+      if (res.ok) { WORKING = prof.name; return { res, via: prof.name, attempts }; }
+      let snippet = '';
+      try { snippet = (await res.text()).slice(0, 180); } catch (e) {}
+      attempts.push({ profile: prof.name, status: res.status, body: snippet });
+    } catch (e) {
+      attempts.push({ profile: prof.name, error: String((e && e.message) || e) });
+    }
+  }
+  return { res: null, via: null, attempts };
+}
 
 // How many picks requests are in flight at once. Six is deliberate: fifty
 // sequential requests would blow the function timeout, and a fifty-wide burst
@@ -57,12 +106,17 @@ export default async (req) => {
   const started = Date.now();
 
   try {
-    const stRes = await fetch(
-      FPL + 'leagues-classic/' + encodeURIComponent(id) + '/standings/?page_standings=' + page,
-      { headers: UA }
-    );
-    if (!stRes.ok) throw new Error('standings ' + stRes.status);
-    const st = await stRes.json();
+    const got = await fplFetch(
+      'leagues-classic/' + encodeURIComponent(id) + '/standings/?page_standings=' + page, id);
+    if (!got.res) {
+      // Every profile was refused. Hand the whole log back so the cause is
+      // visible rather than hidden behind a status code.
+      return json({
+        build: BUILD, error: 'standings refused by FPL',
+        diagnostics: got.attempts,
+      }, HEADERS, 502);
+    }
+    const st = await got.res.json();
 
     const results = (st.standings && Array.isArray(st.standings.results)) ? st.standings.results : [];
     const hasNext = !!(st.standings && st.standings.has_next);
@@ -101,6 +155,7 @@ export default async (req) => {
       leagueId: Number(id),
       name: (st.league && st.league.name) || '',
       gw, page, hasNext,
+      via: got.via,
       count: rows.length,
       failed: rows.filter(r => !r.ok).length,
       rows,
@@ -119,9 +174,9 @@ export default async (req) => {
 // not, because Bench Boost gives bench players a multiplier of 1.
 async function getPicks(entry, gw) {
   try {
-    const r = await fetch(FPL + 'entry/' + entry + '/event/' + gw + '/picks/', { headers: UA });
-    if (!r.ok) return null;
-    const j = await r.json();
+    const got = await fplFetch('entry/' + entry + '/event/' + gw + '/picks/', entry);
+    if (!got.res) return null;
+    const j = await got.res.json();
     if (!j || !Array.isArray(j.picks)) return null;
     return {
       chip: j.active_chip || null,
