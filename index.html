@@ -876,6 +876,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 .lg-sqp.diff::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
 @media(max-width:700px){ .lg-traygrid.two{grid-template-columns:1fr} }
 
+.lg-diag{margin-top:8px;font-size:11.5px;color:var(--dim);font-style:italic;line-height:1.6}
 </style>
 </head>
 <body>
@@ -1117,7 +1118,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29c';
+const APP_BUILD = 'app-2026-08-29d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1157,6 +1158,8 @@ const I18N={
     tabMyTeam:'My Team', myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
     lgTapCompare:'tap up to two to compare squads',
+    lgErrShort:'could not load', lgRetry:'Try again',
+    lgDiagNote:'Every header profile was refused. The console has the full list of what was tried and what FPL sent back.',
     lgTrayEmpty:'Tap a manager above to see their squad. Tap a second to compare — a third replaces the first.',
     lgComparing:'Comparing two squads', lgOneSquad:'One squad',
     lgShared:'shared', lgDifferent:'different', lgClear:'Clear', lgDiffs:'DIFFS',
@@ -1332,6 +1335,8 @@ const I18N={
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
     lgTapCompare:'toca hasta dos para comparar plantillas',
+    lgErrShort:'no se pudo cargar', lgRetry:'Reintentar',
+    lgDiagNote:'Se rechazaron todos los perfiles de cabeceras. La consola tiene la lista completa de lo que se intentó y lo que respondió FPL.',
     lgTrayEmpty:'Toca un mánager arriba para ver su plantilla. Toca un segundo para comparar — el tercero sustituye al primero.',
     lgComparing:'Comparando dos plantillas', lgOneSquad:'Una plantilla',
     lgShared:'en común', lgDifferent:'distintos', lgClear:'Limpiar', lgDiffs:'DIF',
@@ -4358,6 +4363,8 @@ const LG = {
   live:null,          // {gw,pts,mins} from event/{gw}/live/, shared across leagues
   livePending:null,
   liveErr:null,
+  diag:{},            // leagueId -> header profiles FPL refused, for the console
+  via:null,           // which profile FPL actually accepted
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
   busy:{},            // leagueId:page -> bool
   err:{},             // leagueId -> message
@@ -4422,7 +4429,19 @@ async function lgFetchPage(lid, page, bust){
     const res=await fetch(url, bust?{cache:'no-store'}:undefined);
     let j=null;
     try{ j=await res.json(); }catch(e){ throw new Error('bad response from /api/league'); }
-    if(!res.ok || j.error) throw new Error(j&&j.error ? j.error : ('status '+res.status));
+    if(!res.ok || j.error){
+      if(j&&j.diagnostics){
+        // Log every header profile FPL refused, so the cause is inspectable
+        // rather than guessed at from a status code.
+        try{
+          console.log('%cLeague '+lid+' refused by FPL — profiles tried:','color:#e5657a;font-weight:bold');
+          console.table(j.diagnostics);
+        }catch(err){}
+        LG.diag[lid]=j.diagnostics;
+      }
+      throw new Error(j&&j.error ? j.error : ('status '+res.status));
+    }
+    if(j.via) LG.via=j.via;
 
     const d = LG.data[lid] || (LG.data[lid]={rows:[],pages:[],hasNext:false,fetchedAt:null,index:null,me:null});
     // drop any previous copy of this page, then merge the fresh rows in
@@ -4579,8 +4598,8 @@ function lgBody(l){
   const loading=Object.keys(LG.busy).some(k=>k.indexOf(lid+':')===0&&LG.busy[k]);
 
   let bar='<div class="lg-bar"><span class="lg-cap">';
-  if(loading) bar+=esc(t('lgLoading'));
-  else if(!d) bar+=esc(t('lgLoading'));
+  if(LG.err[lid]) bar+=esc(t('lgErrShort'));
+  else if(loading||!d) bar+=esc(t('lgLoading'));
   else bar+= (d.hasNext ? (t('lgTop')+' '+d.rows.length+' · '+t('lgMoreAvail'))
                         : (d.rows.length+' '+t('lgTeamsWord')))
            + ' · GW'+LG.gw
@@ -4591,7 +4610,14 @@ function lgBody(l){
   if(d) bar+='<button class="btn-small" data-lgrefresh="'+lid+'">↻ '+esc(t('lgRefresh'))+'</button>';
   bar+='</div>';
 
-  if(LG.err[lid]) return bar+'<div class="lg-err">'+esc(t('lgErr'))+': '+esc(LG.err[lid])+'</div>';
+  if(LG.err[lid]){
+    return bar
+      +'<div class="lg-err">'+esc(t('lgErr'))+': '+esc(LG.err[lid])
+      +(LG.diag[lid]?'<div class="lg-diag">'+esc(t('lgDiagNote'))+'</div>':'')
+      +'</div>'
+      +'<div class="lg-bar" style="border-top:1px solid var(--line)">'
+      +'<button class="btn-small" data-lgretry="'+lid+'">'+esc(t('lgRetry'))+'</button></div>';
+  }
   if(loading&&!d)  return bar;
   if(!d)           return bar;
   if(!d.rows.length) return bar+'<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
@@ -4956,6 +4982,15 @@ document.addEventListener('click',e=>{
     if(at>-1) cur.splice(at,1);
     else { cur.push(entry); if(cur.length>2) cur.shift(); }
     renderLeagues();
+    return;
+  }
+
+  const rt=e.target.closest('[data-lgretry]');
+  if(rt){
+    e.stopPropagation();
+    const lid=Number(rt.dataset.lgretry);
+    LG.err[lid]=null; LG.diag[lid]=null;
+    lgFetchPage(lid,1,true);
     return;
   }
 
