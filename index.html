@@ -749,8 +749,8 @@ textarea:focus{border-color:var(--accent)}
 .lg-caret{font-size:11px;color:var(--dim);transition:transform .18s;flex:none;width:10px}
 .lg-row[aria-expanded="true"] .lg-caret{transform:rotate(90deg);color:var(--accent)}
 .lg-name{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lg-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
-  color:var(--dim);display:block;margin-top:2px}
+.lg-grouphead{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--ink)}
+.lg-grouphead+.lg-grouphead,.lg-row+.lg-grouphead{border-top:1px solid var(--line2)}
 .lg-rank{font-family:'IBM Plex Mono',monospace;font-size:15px;flex:none;text-align:right}
 .lg-ord{font-size:10px}
 .lg-move{font-family:'IBM Plex Mono',monospace;font-size:10.5px;flex:none;width:38px;text-align:right}
@@ -1065,7 +1065,7 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29a';
+const APP_BUILD = 'app-2026-08-29b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4282,7 +4282,8 @@ const LG = {
   open:{},            // leagueId -> bool
   mode:{},            // leagueId -> 'own' | 'player' | 'cap'
   sel:{},             // leagueId -> element id being looked up
-  sort:{},            // leagueId -> sort key
+  sort:{},            // leagueId -> ownership grid sort key
+  stand:{},           // leagueId -> {key,asc} for the standings table
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
   busy:{},            // leagueId:page -> bool
   err:{},             // leagueId -> message
@@ -4306,7 +4307,7 @@ function lgAdopt(entry, gw, fplId){
   LG.list = raw.filter(lgIsUserLeague);
   LG.entryId = String(fplId);
   LG.gw = gw;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.data={}; LG.busy={}; LG.err={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.data={}; LG.busy={}; LG.err={};
 
   // Verification dump — confirms the filter against real data rather than
   // an assumption about what FPL puts in these fields.
@@ -4324,7 +4325,7 @@ function lgAdopt(entry, gw, fplId){
 
 function lgClear(){
   LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.data={}; LG.busy={}; LG.err={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.data={}; LG.busy={}; LG.err={};
   renderLeagues();
 }
 
@@ -4464,18 +4465,39 @@ function renderLeagues(){
   }
   if(meta) meta.textContent=LG.list.length+' '+t('lgLeaguesWord').toUpperCase()+' · GW'+LG.gw;
 
-  host.innerHTML=LG.list.map(l=>{
-    const isOpen=!!LG.open[l.id];
-    const rank=l.entry_rank, last=l.entry_last_rank;
-    return '<div class="lg-row" role="button" tabindex="0" aria-expanded="'+isOpen+'" data-lgrow="'+l.id+'">'
-      +'<span class="lg-caret">▶</span>'
-      +'<span class="lg-name">'+esc(l.name)
-      +  '<span class="lg-sub">'+esc(l.league_type==='x'?t('lgPrivate'):t('lgPublic'))+'</span></span>'
-      +'<span class="lg-rank">'+(rank||'—')+(rank?'<span class="lg-ord">'+lgOrd(rank)+'</span>':'')+'</span>'
-      +'<span class="lg-move">'+lgMove(rank,last)+'</span>'
-      +'</div>'
-      +(isOpen?'<div class="lg-body">'+lgBody(l)+'</div>':'');
-  }).join('');
+  // One section per league type. Within a section the leagues are ordered by
+  // where you sit in them, best first, so the ones you are winning come first.
+  // A league with no rank yet (joined this week) sorts to the bottom.
+  const byMyRank=(a,b)=>{
+    const ra=a.entry_rank||Infinity, rb=b.entry_rank||Infinity;
+    return ra-rb || String(a.name||'').localeCompare(String(b.name||''));
+  };
+  const groups=[
+    {label:t('lgPrivate'), items:LG.list.filter(l=>l.league_type==='x').sort(byMyRank)},
+    {label:t('lgPublic'),  items:LG.list.filter(l=>l.league_type!=='x').sort(byMyRank)}
+  ].filter(g=>g.items.length);
+
+  // A lone heading over every league you have labels nothing, so it only
+  // appears once there is actually more than one type to tell apart.
+  const heads=groups.length>1;
+
+  host.innerHTML=groups.map(g=>
+    (heads?'<div class="lg-grouphead"><span class="lg-cap">'+esc(g.label).toUpperCase()
+          +' · '+g.items.length+'</span></div>':'')
+    +g.items.map(lgLeagueRow).join('')
+  ).join('');
+}
+
+function lgLeagueRow(l){
+  const isOpen=!!LG.open[l.id];
+  const rank=l.entry_rank, last=l.entry_last_rank;
+  return '<div class="lg-row" role="button" tabindex="0" aria-expanded="'+isOpen+'" data-lgrow="'+l.id+'">'
+    +'<span class="lg-caret">\u25B6</span>'
+    +'<span class="lg-name">'+esc(l.name)+'</span>'
+    +'<span class="lg-rank">'+(rank||'\u2014')+(rank?'<span class="lg-ord">'+lgOrd(rank)+'</span>':'')+'</span>'
+    +'<span class="lg-move">'+lgMove(rank,last)+'</span>'
+    +'</div>'
+    +(isOpen?'<div class="lg-body">'+lgBody(l)+'</div>':'');
 }
 
 function lgBody(l){
@@ -4513,11 +4535,28 @@ function lgPaneOwn(lid){
   const d=LG.data[lid], ix=lgIndex(lid);
   const meId=String(LG.entryId);
 
+  // Standings sort. Rank ascending is the default because that is the league
+  // table; GW and Total open descending, since on those the big number wins.
+  const st=LG.stand[lid]||{key:'rank',asc:true};
+  const sortedRows=d.rows.slice().sort((a,b)=>{
+    const va=a[st.key], vb=b[st.key];
+    // A manager whose picks or points did not come back sinks to the bottom
+    // either way round — flipping the direction should not float them to the
+    // top of the table on a missing value.
+    if(va==null&&vb==null) return a.rank-b.rank;
+    if(va==null) return 1;
+    if(vb==null) return -1;
+    return st.asc?(va-vb):(vb-va);
+  });
+  const sth=(k,label)=>'<th class="lg-sort"'
+    +(st.key===k?(' aria-sort="'+(st.asc?'ascending':'descending')+'"'):'')
+    +' data-lgstand="'+k+'" data-lgid="'+lid+'">'+esc(label)+'</th>';
+
   const standings='<div class="tscroll"><table><thead><tr>'
-    +'<th>'+esc(t('lgRk'))+'</th><th></th><th>'+esc(t('lgManager'))+'</th>'
-    +'<th>'+esc(t('lgTeamCol'))+'</th><th>'+esc(t('lgGwCol'))+'</th><th>'+esc(t('lgTotalCol'))+'</th>'
+    +sth('rank',t('lgRk'))+'<th></th><th>'+esc(t('lgManager'))+'</th>'
+    +'<th>'+esc(t('lgTeamCol'))+'</th>'+sth('gwp',t('lgGwCol'))+sth('tot',t('lgTotalCol'))
     +'</tr></thead><tbody>'
-    +d.rows.map(r=>{
+    +sortedRows.map(r=>{
       const isMe=String(r.entry)===meId;
       return '<tr'+(isMe?' class="lg-me"':'')+'>'
         +'<td class="mono">'+r.rank+'</td>'
@@ -4525,8 +4564,8 @@ function lgPaneOwn(lid){
         +'<td>'+esc(r.mgr)+(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
         +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')+'</td>'
         +'<td>'+esc(r.team)+'</td>'
-        +'<td class="mono">'+(r.gwp==null?'—':r.gwp)+'</td>'
-        +'<td class="mono">'+(r.tot==null?'—':r.tot)+'</td></tr>';
+        +'<td class="mono">'+(r.gwp==null?'\u2014':r.gwp)+'</td>'
+        +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td></tr>';
     }).join('')
     +'</tbody></table></div>';
 
@@ -4668,6 +4707,17 @@ document.addEventListener('click',e=>{
 
   const md=e.target.closest('[data-lgmode]');
   if(md){ e.stopPropagation(); LG.mode[Number(md.dataset.lgid)]=md.dataset.lgmode; renderLeagues(); return; }
+
+  const sd=e.target.closest('[data-lgstand]');
+  if(sd){
+    e.stopPropagation();
+    const lid=Number(sd.dataset.lgid), k=sd.dataset.lgstand;
+    const cur=LG.stand[lid]||{key:'rank',asc:true};
+    // same column toggles direction; a new column opens in its natural one
+    LG.stand[lid]=(cur.key===k)?{key:k,asc:!cur.asc}:{key:k,asc:(k==='rank')};
+    renderLeagues();
+    return;
+  }
 
   const so=e.target.closest('[data-lgsort]');
   if(so){ e.stopPropagation(); LG.sort[Number(so.dataset.lgid)]=so.dataset.lgsort; renderLeagues(); return; }
