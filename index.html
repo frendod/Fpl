@@ -1177,7 +1177,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30e';
+const APP_BUILD = 'app-2026-08-30f';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1222,6 +1222,14 @@ const I18N={
     lgChipGwNote:'Chips active this gameweek, taken from the picks already loaded. Season history for an individual manager shows on their squad card in the comparison tray.',
     lgChipLoading:'Loading chip history\u2026',
     lgChipHistErr:'Chip history unavailable.',
+    lgJumpMine:'Jump to my page', lgPageWord:'page',
+    lgSeasonTitle:'SEASON SO FAR', lgSeasonLoad:'Load season chip usage',
+    lgSeasonPrompt:'SEASON USAGE READS EVERY MANAGER\u2019S HISTORY \u2014 ONE REQUEST EACH',
+    lgSeasonLoading:'Reading each manager\u2019s season history\u2026',
+    lgSeasonNote:'Every chip played by the managers on the pages you have loaded.',
+    lgSeasonMerged:'Entries marked * are active this gameweek and taken from the picks, because a chip played mid-gameweek does not always reach the history endpoint yet.',
+    lgChipManagers:'MANAGERS READ', lgChipFailed:'UNAVAILABLE',
+    lgChipNoneYet:'No chips played yet by anyone on the loaded pages.',
     lgChipAvail:'Available',
     lgChipOther:'Also played in the other half of the season:',
     lgTapCompare:'tap up to two to compare squads',
@@ -1409,6 +1417,14 @@ const I18N={
     lgChipGwNote:'Comodines activos esta jornada, a partir de las alineaciones ya cargadas. El historial de temporada de cada m\u00e1nager aparece en su plantilla en la bandeja de comparaci\u00f3n.',
     lgChipLoading:'Cargando historial de comodines\u2026',
     lgChipHistErr:'Historial de comodines no disponible.',
+    lgJumpMine:'Ir a mi p\u00e1gina', lgPageWord:'p\u00e1gina',
+    lgSeasonTitle:'TEMPORADA HASTA AHORA', lgSeasonLoad:'Cargar uso de comodines',
+    lgSeasonPrompt:'EL USO DE TEMPORADA LEE EL HISTORIAL DE CADA M\u00c1NAGER \u2014 UNA PETICI\u00d3N POR CABEZA',
+    lgSeasonLoading:'Leyendo el historial de cada m\u00e1nager\u2026',
+    lgSeasonNote:'Todos los comodines jugados por los m\u00e1nagers de las p\u00e1ginas cargadas.',
+    lgSeasonMerged:'Las entradas con * est\u00e1n activas esta jornada y salen de las alineaciones, porque un comod\u00edn jugado a mitad de jornada no siempre llega todav\u00eda al historial.',
+    lgChipManagers:'M\u00c1NAGERS LE\u00cdDOS', lgChipFailed:'NO DISPONIBLES',
+    lgChipNoneYet:'Nadie ha jugado un comod\u00edn todav\u00eda en las p\u00e1ginas cargadas.',
     lgChipAvail:'Disponible',
     lgChipOther:'Tambi\u00e9n jugado en la otra mitad de la temporada:',
     lgTapCompare:'toca hasta dos para comparar plantillas',
@@ -4557,6 +4573,8 @@ const LG = {
   liveErr:null,
   hist:{},            // entryId -> [[chip,gw]], only for squads open in the tray
   histBusy:{},
+  season:{},          // leagueId -> whole-league chip history, loaded on request
+  seasonBusy:{}, seasonErr:{},
   diag:{},            // leagueId -> header profiles FPL refused, for the console
   via:null,           // which profile FPL actually accepted
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
@@ -4582,7 +4600,7 @@ function lgAdopt(entry, gw, fplId){
   LG.list = raw.filter(lgIsUserLeague);
   LG.entryId = String(fplId);
   LG.gw = gw;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={};
 
   // Verification dump — confirms the filter against real data rather than
   // an assumption about what FPL puts in these fields.
@@ -4600,7 +4618,7 @@ function lgAdopt(entry, gw, fplId){
 
 function lgClear(){
   LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={};
   renderLeagues();
 }
 
@@ -4610,6 +4628,16 @@ const LG_CHIP={'3xc':'TC','bboost':'BB','freehit':'FH','wildcard':'WC','manager'
 function lgChip(c){ return c?(LG_CHIP[String(c).toLowerCase()]||String(c).toUpperCase()):''; }
 
 /* ── fetching ─────────────────────────────────────────── */
+// Which standings page holds this manager. FPL paginates 50 to a page and
+// entry_rank is the rank the leagues list already gave us, so no request is
+// needed to work this out.
+const LG_PAGE_SIZE=50;
+function lgMyPage(lid){
+  const l=(LG.list||[]).find(x=>String(x.id)===String(lid));
+  const r=l&&l.entry_rank;
+  return (r&&r>0)?Math.ceil(r/LG_PAGE_SIZE):1;
+}
+
 async function lgFetchPage(lid, page, bust){
   const key = lid+':'+page;
   if(LG.busy[key]) return;
@@ -4801,6 +4829,12 @@ function lgBody(l){
            + (d.failed?(' · '+d.failed+' '+t('lgFailed')):'');
   bar+='</span>';
   if(d&&d.hasNext) bar+='<button class="btn-small" data-lgmore="'+lid+'">'+esc(t('lgLoadNext'))+'</button>';
+  // In a league of thousands, page one is not your neighbourhood. entry_rank
+  // gives the page you are actually on, 50 managers to a page.
+  const myPage=lgMyPage(lid);
+  if(myPage>1 && !(d&&d.pages&&d.pages.indexOf(myPage)>-1))
+    bar+='<button class="btn-small" data-lgmypage="'+lid+'">'
+      +esc(t('lgJumpMine'))+' · '+esc(t('lgPageWord'))+' '+myPage+'</button>';
   if(d) bar+='<button class="btn-small" data-lgrefresh="'+lid+'">↻ '+esc(t('lgRefresh'))+'</button>';
   bar+='</div>';
 
@@ -5055,6 +5089,111 @@ function lgChipStrip(entry){
   }).join('')+'</div>';
 }
 
+/* Season-long chip usage for everyone on the loaded pages. This is one request
+   per manager, so it is never automatic — the pane above is free, this is not. */
+function lgFetchSeason(lid, bust){
+  if(LG.seasonBusy[lid]) return;
+  const d=LG.data[lid];
+  const pages=(d&&d.pages&&d.pages.length)?d.pages.slice():[1];
+  LG.seasonBusy[lid]=true; LG.seasonErr[lid]=null;
+  renderLeagues();
+  Promise.all(pages.map(pg=>
+    fetch('/api/league?id='+encodeURIComponent(lid)+'&gw='+LG.gw
+         +'&page='+pg+'&mode=chips'+(bust?'&t='+Date.now():''))
+      .then(r=>r.json().then(j=>({r:r,j:j})))
+      .then(x=>{
+        if(!x.r.ok||x.j.error){
+          if(x.j&&x.j.diagnostics) fplDiag(x.j,'League '+lid+' chips');
+          throw new Error(x.j&&x.j.error?x.j.error:('status '+x.r.status));
+        }
+        return x.j;
+      })
+  ))
+  .then(parts=>{
+    const rows=[]; let failed=0;
+    parts.forEach(pt=>{ (pt.rows||[]).forEach(r=>rows.push(r)); failed+=(pt.failed||0); });
+    LG.season[lid]={rows:rows, failed:failed, pages:pages.slice()};
+  })
+  .catch(e=>{ LG.seasonErr[lid]=e.message; })
+  .then(()=>{ LG.seasonBusy[lid]=false; renderLeagues(); });
+}
+
+/* Merge season history with what the standings already know about this
+   gameweek. A chip played in a gameweek still in progress does not reliably
+   appear in entry/{id}/history/ yet — that is exactly the case where the
+   standings badge said Bench Boost and the history said nothing. */
+function lgSeasonIndex(lid){
+  const se=LG.season[lid];
+  if(!se) return null;
+  const d=LG.data[lid];
+  const liveChip={};
+  if(d) (d.rows||[]).forEach(r=>{ if(r.chip) liveChip[String(r.entry)]=String(r.chip).toLowerCase(); });
+
+  const ok=se.rows.filter(r=>r.ok);
+  const by={}; let merged=0;
+  ok.forEach(r=>{
+    const seen={};
+    (r.chips||[]).forEach(c=>{
+      const name=String(c[0]).toLowerCase();
+      seen[name+'@'+c[1]]=1;
+      (by[name]=by[name]||[]).push({mgr:r.mgr, rank:r.rank, gw:c[1]});
+    });
+    const now=liveChip[String(r.entry)];
+    if(now && !seen[now+'@'+LG.gw]){
+      (by[now]=by[now]||[]).push({mgr:r.mgr, rank:r.rank, gw:LG.gw, live:true});
+      merged++;
+    }
+  });
+  Object.keys(by).forEach(k=>by[k].sort((a,b)=>(a.gw||0)-(b.gw||0)||(a.rank||0)-(b.rank||0)));
+  return {by:by, n:ok.length, failed:se.rows.length-ok.length, merged:merged};
+}
+
+function lgSeasonBlock(lid){
+  if(LG.seasonErr[lid])
+    return '<div class="lg-err">'+esc(t('lgErr'))+': '+esc(LG.seasonErr[lid])+'</div>'
+      +'<div class="lg-bar"><button class="btn-small" data-lgseason="'+lid+'">'
+      +esc(t('lgRetry'))+'</button></div>';
+  if(LG.seasonBusy[lid])
+    return '<div class="lg-hint">'+esc(t('lgSeasonLoading'))+'</div>';
+  if(!LG.season[lid])
+    return '<div class="lg-bar" style="border-top:1px solid var(--line2)">'
+      +'<span class="lg-cap">'+esc(t('lgSeasonPrompt'))+'</span>'
+      +'<button class="btn-small" data-lgseason="'+lid+'">'+esc(t('lgSeasonLoad'))+'</button></div>';
+
+  const ix=lgSeasonIndex(lid);
+  if(!ix||!ix.n) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+
+  const codes=lgSeasonChips().filter(c=>ix.by[c]&&ix.by[c].length)
+    .concat(Object.keys(ix.by).filter(c=>lgSeasonChips().indexOf(c)<0));
+  const head='<div class="lg-bar" style="border-top:1px solid var(--line2)">'
+    +'<span class="lg-cap">'+esc(t('lgSeasonTitle'))+' \u00b7 '+ix.n+' '
+    +esc(t('lgChipManagers'))+(ix.failed?' \u00b7 '+ix.failed+' '+esc(t('lgChipFailed')):'')+'</span>'
+    +'<button class="btn-small" data-lgseason="'+lid+'">'+esc(t('lgRefresh'))+'</button></div>';
+
+  if(!codes.length)
+    return head+'<div class="lg-hint">'+esc(t('lgChipNoneYet'))+'</div>';
+
+  const max=Math.max.apply(null, codes.map(c=>ix.by[c].length).concat([1]));
+  const rows=codes.map(c=>{
+    const uses=ix.by[c];
+    const mgrs={}; uses.forEach(u=>mgrs[u.mgr]=1);
+    return '<div class="lg-caprow" data-lgchip="season-'+esc(c)+'">'
+      +'<div class="lg-captop"><span class="pos">'+esc(lgChip(c))+'</span>'
+      +  '<span class="lg-capnm">'+esc(CHIP_LABELS[c]||c)+'</span>'
+      +  '<span class="lg-capn">'+uses.length+' \u00d7</span>'
+      +  '<span class="lg-cappc">'+Math.round(Object.keys(mgrs).length/ix.n*100)+'%</span></div>'
+      +'<div class="lg-capbar"><i style="width:'+Math.round(uses.length/max*100)+'%"></i></div>'
+      +'<div class="lg-capwho">'
+      +  uses.map(u=>esc(u.mgr)+' <span class="mono" style="color:var(--dim)">GW'
+          +(u.gw==null?'?':u.gw)+(u.live?'*':'')+'</span>').join(', ')
+      +'</div></div>';
+  }).join('');
+
+  return head+rows
+    +'<div class="lg-hint">'+esc(t('lgSeasonNote'))
+    +(ix.merged?' '+esc(t('lgSeasonMerged')):'')+'</div>';
+}
+
 /* Chips in play this gameweek, straight off the standings rows. */
 function lgPaneChips(lid){
   const d=LG.data[lid];
@@ -5075,7 +5214,8 @@ function lgPaneChips(lid){
     +playing+'/'+rows.length+' '+esc(t('lgChipPlaying'))+'</span></div>';
 
   if(!codes.length)
-    return bar+'<div class="lg-hint">'+esc(t('lgChipNoneGw'))+'</div>';
+    return bar+'<div class="lg-hint">'+esc(t('lgChipNoneGw'))+'</div>'
+      +lgSeasonBlock(lid);
 
   const max=Math.max.apply(null, codes.map(c=>by[c].length).concat([1]));
   const list=codes.map((c,i)=>
@@ -5091,7 +5231,8 @@ function lgPaneChips(lid){
           +(r.gwp==null?'':r.gwp+' pts')+'</span>').join(', ')
     +'</div></div>').join('');
 
-  return bar+list+'<div class="lg-hint">'+esc(t('lgChipGwNote'))+'</div>';
+  return bar+list+'<div class="lg-hint">'+esc(t('lgChipGwNote'))+'</div>'
+    +lgSeasonBlock(lid);
 }
 
 function lgPaneCap(lid){
@@ -5291,6 +5432,23 @@ document.addEventListener('click',e=>{
     if(LG.open[lid]&&!LG.data[lid]) lgFetchPage(lid,1,false);
     return;
   }
+  const mp=e.target.closest('[data-lgmypage]');
+  if(mp){
+    e.stopPropagation();
+    const lid=Number(mp.dataset.lgmypage);
+    lgFetchPage(lid, lgMyPage(lid), false);
+    return;
+  }
+
+  const sb=e.target.closest('[data-lgseason]');
+  if(sb){
+    e.stopPropagation();
+    const lid=Number(sb.dataset.lgseason);
+    LG.season[lid]=null; LG.seasonErr[lid]=null;
+    lgFetchSeason(lid,true);
+    return;
+  }
+
   const more=e.target.closest('[data-lgmore]');
   if(more){
     e.stopPropagation();
