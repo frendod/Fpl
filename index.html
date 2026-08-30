@@ -1177,7 +1177,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30f';
+const APP_BUILD = 'app-2026-08-30g';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1218,10 +1218,12 @@ const I18N={
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
     lgModeChip:'Chips',
     lgChipPlaying:'PLAYING A CHIP',
-    lgChipNoneGw:'Nobody on this page is playing a chip this gameweek.',
+    lgChipNoneGw:'No chips played.',
     lgChipGwNote:'Chips active this gameweek, taken from the picks already loaded. Season history for an individual manager shows on their squad card in the comparison tray.',
     lgChipLoading:'Loading chip history\u2026',
     lgChipHistErr:'Chip history unavailable.',
+    lgChipPartial:'LOADED PAGES ONLY', lgChipWhole:'WHOLE LEAGUE',
+    lgChipLoadRest:'Load the rest', lgChipLoadingRest:'Loading\u2026',
     lgJumpMine:'Jump to my page', lgPageWord:'page',
     lgSeasonTitle:'SEASON SO FAR', lgSeasonLoad:'Load season chip usage',
     lgSeasonPrompt:'SEASON USAGE READS EVERY MANAGER\u2019S HISTORY \u2014 ONE REQUEST EACH',
@@ -1413,10 +1415,12 @@ const I18N={
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
     lgModeChip:'Comodines',
     lgChipPlaying:'JUGANDO UN COMOD\u00cdN',
-    lgChipNoneGw:'Nadie en esta p\u00e1gina juega un comod\u00edn esta jornada.',
+    lgChipNoneGw:'Sin comodines jugados.',
     lgChipGwNote:'Comodines activos esta jornada, a partir de las alineaciones ya cargadas. El historial de temporada de cada m\u00e1nager aparece en su plantilla en la bandeja de comparaci\u00f3n.',
     lgChipLoading:'Cargando historial de comodines\u2026',
     lgChipHistErr:'Historial de comodines no disponible.',
+    lgChipPartial:'SOLO P\u00c1GINAS CARGADAS', lgChipWhole:'LIGA COMPLETA',
+    lgChipLoadRest:'Cargar el resto', lgChipLoadingRest:'Cargando\u2026',
     lgJumpMine:'Ir a mi p\u00e1gina', lgPageWord:'p\u00e1gina',
     lgSeasonTitle:'TEMPORADA HASTA AHORA', lgSeasonLoad:'Cargar uso de comodines',
     lgSeasonPrompt:'EL USO DE TEMPORADA LEE EL HISTORIAL DE CADA M\u00c1NAGER \u2014 UNA PETICI\u00d3N POR CABEZA',
@@ -4575,6 +4579,7 @@ const LG = {
   histBusy:{},
   season:{},          // leagueId -> whole-league chip history, loaded on request
   seasonBusy:{}, seasonErr:{},
+  allBusy:{},         // leagueId -> walking the remaining standings pages
   diag:{},            // leagueId -> header profiles FPL refused, for the console
   via:null,           // which profile FPL actually accepted
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
@@ -4600,7 +4605,7 @@ function lgAdopt(entry, gw, fplId){
   LG.list = raw.filter(lgIsUserLeague);
   LG.entryId = String(fplId);
   LG.gw = gw;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={}; LG.allBusy={};
 
   // Verification dump — confirms the filter against real data rather than
   // an assumption about what FPL puts in these fields.
@@ -4618,7 +4623,7 @@ function lgAdopt(entry, gw, fplId){
 
 function lgClear(){
   LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={}; LG.season={}; LG.seasonBusy={}; LG.seasonErr={}; LG.allBusy={};
   renderLeagues();
 }
 
@@ -4683,6 +4688,30 @@ async function lgFetchPage(lid, page, bust){
   }
   LG.busy[key]=false;
   renderLeagues();
+}
+
+/* Chips for the current gameweek live on the picks response, and picks come a
+   page at a time. So covering a league bigger than 50 means walking the pages.
+   Sequential on purpose: each page is already 50 requests fanned out inside the
+   function, and firing pages in parallel would multiply that against FPL.
+   Capped per press so a league of thousands cannot start hundreds of calls. */
+const LG_PAGE_BURST=10;
+async function lgLoadAll(lid){
+  if(LG.allBusy[lid]) return;
+  LG.allBusy[lid]=true;
+  renderLeagues();
+  try{
+    for(let i=0;i<LG_PAGE_BURST;i++){
+      const d=LG.data[lid];
+      if(!d || !d.hasNext) break;
+      const next=Math.max.apply(null, d.pages)+1;
+      await lgFetchPage(lid, next, false);
+      if(LG.err[lid]) break;
+    }
+  }finally{
+    LG.allBusy[lid]=false;
+    renderLeagues();
+  }
 }
 
 function lgRefresh(lid){
@@ -5210,8 +5239,14 @@ function lgPaneChips(lid){
   const codes=Object.keys(by).sort((a,b)=>by[b].length-by[a].length||a.localeCompare(b));
   const playing=codes.reduce((n,c)=>n+by[c].length,0);
 
-  const bar='<div class="lg-bar"><span class="lg-cap">GW'+LG.gw+' \u00b7 '
-    +playing+'/'+rows.length+' '+esc(t('lgChipPlaying'))+'</span></div>';
+  const partial=!!(d.hasNext);
+  let bar='<div class="lg-bar"><span class="lg-cap">GW'+LG.gw+' \u00b7 '
+    +playing+'/'+rows.length+' '+esc(t('lgChipPlaying'))
+    +(partial?' \u00b7 '+esc(t('lgChipPartial')):' \u00b7 '+esc(t('lgChipWhole')))+'</span>';
+  if(partial)
+    bar+='<button class="btn-small" data-lgloadall="'+lid+'">'
+      +esc(LG.allBusy[lid]?t('lgChipLoadingRest'):t('lgChipLoadRest'))+'</button>';
+  bar+='</div>';
 
   if(!codes.length)
     return bar+'<div class="lg-hint">'+esc(t('lgChipNoneGw'))+'</div>'
@@ -5432,6 +5467,9 @@ document.addEventListener('click',e=>{
     if(LG.open[lid]&&!LG.data[lid]) lgFetchPage(lid,1,false);
     return;
   }
+  const la=e.target.closest('[data-lgloadall]');
+  if(la){ e.stopPropagation(); lgLoadAll(Number(la.dataset.lgloadall)); return; }
+
   const mp=e.target.closest('[data-lgmypage]');
   if(mp){
     e.stopPropagation();
