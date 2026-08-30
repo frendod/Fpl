@@ -394,17 +394,76 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .xistat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .xistat b{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400}
+/* Pitch green sampled from a real broadcast frame: rgb(117,181,34).
+   Black text on it measures ~8.4:1 contrast, so all pitch text is pinned
+   black/near-black rather than inheriting --paper/--dim/--dimmer, which
+   resolve to #ffffff on both dark themes. */
+/* MARKINGS.
+
+   Anchored to the rows, not to the box. The pitch is a variable height that
+   depends on formation and card content, so any marking positioned as a
+   fraction of that height drifts. Instead the goal line hangs off the GKP
+   row and the halfway line off the FWD row, both offset by 21px - half of
+   the 42.2px disc (68% of the 62px .pcard cap) - so a disc centre always
+   lands exactly on its line.
+
+   z-index:0 on .pitch opens a stacking context so the z-index:-1 pseudo
+   elements paint above the pitch background but behind the cards.
+
+   The goal end is one SVG at a FIXED 200px height: the goal line sits at
+   5.27/34 of it = 31px, so the element is pulled up 10px to put that line
+   on the disc centre. Fixed height keeps that offset true at any width.
+   The centre circle is a fixed-px CSS circle rather than SVG, which is what
+   guarantees it stays round - an earlier version stretched an SVG and the
+   circle rode up into the GKP. */
 .pitch{
-  background:#d4edda;border:1px solid rgba(0,0,0,.14);border-radius:3px;
-  padding:26px 12px;margin-bottom:22px;position:relative;overflow:hidden;
+  background-color:#75B522;
+  background-image:
+    repeating-linear-gradient(180deg,
+      rgba(255,255,255,.055) 0 46px,
+      rgba(0,0,0,.05) 46px 92px);
+  border:2px solid rgba(255,255,255,.45);
+  border-top-color:transparent;
+  border-radius:3px;
+  padding:14px 12px 26px;margin-bottom:22px;
+  position:relative;z-index:0;overflow:hidden;
 }
-.pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
-  background:rgba(0,0,0,.14);transform:translateX(-50%)}
-/* Pitch is light green in every theme, so text inside it is pinned dark
-   rather than inheriting --paper/--dimmer, which go white on dark themes. */
-.pitch .pcname{color:#10151c}
-.pitch .pcsub{color:#3c4652}
-.pitch .pcnote{color:#3c4652}
+/* The old vertical divider is not a real pitch marking - these replace it. */
+.pitch::before{content:none}
+
+/* Goal end, drawn off the GKP row. */
+.pitch .prow-xi:first-child::before{
+  content:'';position:absolute;z-index:-1;
+  left:-12px;right:-12px;top:-10px;height:200px;
+  background-repeat:no-repeat;background-size:100% 100%;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 68 34' preserveAspectRatio='none'%3E %3Cg fill='none' stroke='rgba(255,255,255,.45)' stroke-width='.38'%3E %3Crect x='30.34' y='2.27' width='7.32' height='3'/%3E %3Cline x1='0' y1='5.27' x2='68' y2='5.27'/%3E %3Crect x='24.84' y='5.27' width='18.32' height='5.5'/%3E %3Crect x='13.84' y='5.27' width='40.32' height='16.5'/%3E %3Cpath d='M26.69 21.77A9.15 9.15 0 0 0 41.31 21.77'/%3E %3Cpath d='M1.4 5.27A1 1 0 0 1 .4 6.27'/%3E %3Cpath d='M67.6 6.27A1 1 0 0 1 66.6 5.27'/%3E %3C/g%3E %3Ccircle cx='34' cy='16.27' r='.34' fill='rgba(255,255,255,.45)'/%3E %3C/svg%3E");
+}
+/* Halfway line, on the FWD disc centre. */
+.pitch .prow-xi:last-child::before{
+  content:'';position:absolute;z-index:-1;
+  left:-12px;right:-12px;top:21px;height:2px;
+  background:rgba(255,255,255,.45);
+}
+/* Centre circle. Fixed px, both axes, no percentage / aspect-ratio /
+   transform - all three of which left room for the box to be resolved
+   against the wrong thing, which is how the last version ended up several
+   hundred px tall and reaching the keeper. A 110px square with a 50%
+   radius can only ever be a 110px circle. Centre sits at 21px (the FWD
+   disc centre), so the box starts 55px above that. */
+.pitch .prow-xi:last-child::after{
+  content:'';position:absolute;z-index:-1;
+  left:calc(50% - 55px);top:-34px;
+  width:110px;height:110px;box-sizing:border-box;
+  border:2px solid rgba(255,255,255,.45);border-radius:50%;
+}
+/* The note slot is only filled for autosubs. Left at min-height it adds
+   8px plus a 3px gap of dead space under every disc. */
+.pcnote:empty{display:none}
+.pitch .pcname{color:#000000;font-weight:700}
+.pitch .pcsub{color:#0d1a00;font-weight:700}
+.pitch .pcnote{color:#0d1a00;font-weight:700}
+.pitch .fdr-blank{border-color:rgba(0,0,0,.4)}
+.pitch .fixbox.fdr-blank{color:#0d1a00}
 /* Pitch sizing is percentage-of-row, not viewport-derived. A row never
    holds more than 5 cards, so 5 x 19.2% + 4 x 1% gap = 100% exactly.
    Percentages resolve against .prow-xi, so the same rule fits any
@@ -434,11 +493,11 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:13px;
   font-weight:700;position:relative;border:1px solid;flex:0 0 auto;
-  background:#ffffff;border-color:rgba(0,0,0,.18);color:#000000;
+  background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;
 }
 .pdisc{font-size:clamp(9px,21cqw,13px);font-weight:700}
 .pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
-  background:#ffffff;border-color:rgba(0,0,0,.18);color:#000000;font-weight:700}
+  background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;font-weight:700}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
@@ -1181,7 +1240,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30i';
+const APP_BUILD = 'app-2026-08-30n';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
