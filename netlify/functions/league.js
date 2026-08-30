@@ -11,11 +11,14 @@
 //   page  — standings page, 50 managers each (default 1)
 //   me    — your entry id, so your own picks come back even if you are
 //           outside this page. Excluded from the ownership denominators.
+//   mode  — 'picks' (default) or 'chips'. Chips walks entry/{id}/history/
+//           instead of the picks endpoint, because active_chip only ever
+//           reports the current gameweek and season usage needs the history.
 //   t     — cache buster, sent by the Refresh button. Ignored otherwise.
 
 export const config = { path: '/api/league' };
 
-const BUILD = 'league-v3';
+const BUILD = 'league-v4';
 const FPL = 'https://fantasy.premierleague.com/api/';
 // FPL answers bootstrap-static to almost anything, but guards the league
 // endpoints harder — a bare user-agent gets a 403 from their edge. Rather than
@@ -89,13 +92,14 @@ export default async (req) => {
     'netlify-cdn-cache-control': 'public, s-maxage=300, stale-while-revalidate=1800',
   };
 
-  let id, gw, page, me;
+  let id, gw, page, me, mode;
   try {
     const u = new URL(req.url);
     id = u.searchParams.get('id');
     gw = parseInt(u.searchParams.get('gw') || '0', 10);
     page = Math.max(1, parseInt(u.searchParams.get('page') || '1', 10));
     me = u.searchParams.get('me') || null;
+    mode = u.searchParams.get('mode') === 'chips' ? 'chips' : 'picks';
   } catch (e) {
     return json({ build: BUILD, error: 'bad url' }, HEADERS, 400);
   }
@@ -120,6 +124,33 @@ export default async (req) => {
 
     const results = (st.standings && Array.isArray(st.standings.results)) ? st.standings.results : [];
     const hasNext = !!(st.standings && st.standings.has_next);
+
+    /* ── chips mode ──
+       A second fan-out the same size as the picks one, so it is only run when
+       the app actually asks for it. */
+    if (mode === 'chips') {
+      const hist = await mapLimit(results, CONCURRENCY, async (r) => {
+        if (Date.now() - started > BUDGET_MS) return null;
+        return getChips(r.entry);
+      });
+      const crows = results.map((r, i) => ({
+        entry: r.entry,
+        mgr: r.player_name || '',
+        team: r.entry_name || '',
+        rank: r.rank,
+        chips: hist[i] || [],
+        ok: !!hist[i],
+      }));
+      return json({
+        ok: true, build: BUILD, mode: 'chips',
+        leagueId: Number(id), name: (st.league && st.league.name) || '',
+        gw, page, hasNext, via: got.via,
+        count: crows.length,
+        failed: crows.filter(r => !r.ok).length,
+        rows: crows,
+        ms: Date.now() - started,
+      }, HEADERS);
+    }
 
     // Fan out the picks.
     const fetched = await mapLimit(results, CONCURRENCY, async (r) => {
@@ -192,6 +223,23 @@ async function getPicks(entry, gw) {
         p.is_vice_captain ? 1 : 0,
       ]),
     };
+  } catch (e) {
+    return null;
+  }
+}
+
+// Every chip a manager has played this season, as [name, gameweek].
+// entry/{id}/history/ carries the whole season in one call, which is why chips
+// come from here rather than from the per-gameweek picks endpoint.
+async function getChips(entry) {
+  try {
+    const got = await fplFetch('entry/' + entry + '/history/', entry);
+    if (!got.res) return null;
+    const j = await got.res.json();
+    if (!j || !Array.isArray(j.chips)) return null;
+    return j.chips
+      .filter(c => c && c.name)
+      .map(c => [String(c.name).toLowerCase(), c.event]);
   } catch (e) {
     return null;
   }
