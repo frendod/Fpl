@@ -1152,7 +1152,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-29i';
+const APP_BUILD = 'app-2026-08-30c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1191,13 +1191,13 @@ const I18N={
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
     tabMyTeam:'My Team', myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
-    lgTapCompare:'tap up to two to compare squads',
     lgModeChip:'Chips',
     lgChipLoading:'Reading each manager\u2019s season history\u2026',
     lgChipManagers:'MANAGERS READ', lgChipFailed:'UNAVAILABLE',
     lgChipUsedBy:'Used by', lgChipUnused:'Not yet played by anyone:',
     lgChipNoneYet:'Nobody in this league has played a chip yet.',
     lgChipNote:'Chip usage across the whole season so far, not just this gameweek. The percentage is the share of managers who have played that chip at least once; the count is total uses, which can be higher because the wildcard is granted twice a season. Tap a chip to show or hide the names.',
+    lgTapCompare:'tap up to two to compare squads',
     mtFxTitle:'Fixtures', mtFxNone:'No fixtures scheduled for this gameweek.',
     mtFxTbc:'TBC', mtFxTbcDate:'Date to be confirmed', mtFxFt:'FT', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
     lgErrShort:'could not load', lgRetry:'Try again',
@@ -1376,13 +1376,13 @@ const I18N={
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
-    lgTapCompare:'toca hasta dos para comparar plantillas',
     lgModeChip:'Comodines',
     lgChipLoading:'Leyendo el historial de cada m\u00e1nager\u2026',
     lgChipManagers:'M\u00c1NAGERS LE\u00cdDOS', lgChipFailed:'NO DISPONIBLES',
     lgChipUsedBy:'Usado por', lgChipUnused:'Todav\u00eda no lo ha jugado nadie:',
     lgChipNoneYet:'Nadie en esta liga ha jugado un comod\u00edn todav\u00eda.',
     lgChipNote:'Uso de comodines en toda la temporada, no solo en esta jornada. El porcentaje es la proporci\u00f3n de m\u00e1nagers que han jugado ese comod\u00edn al menos una vez; el n\u00famero es el total de usos, que puede ser mayor porque el wildcard se concede dos veces por temporada. Toca un comod\u00edn para mostrar u ocultar los nombres.',
+    lgTapCompare:'toca hasta dos para comparar plantillas',
     mtFxTitle:'Partidos', mtFxNone:'No hay partidos en esta jornada.',
     mtFxTbc:'POR CONF.', mtFxTbcDate:'Fecha por confirmar', mtFxFt:'FIN', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
     lgErrShort:'no se pudo cargar', lgRetry:'Reintentar',
@@ -4425,6 +4425,13 @@ async function load(){
   // data loaded successfully — hide the data-source section entirely (it only
   // matters when auto-load fails and the user needs to paste manually)
   const dsrc=$('dataSource'); if(dsrc)dsrc.hidden=true;
+
+  // Auto-load the saved team once the bundle is in. ensureTeamLoaded was only
+  // ever reached from a tab click, so on a fresh page load — which opens on
+  // Picks — the team stayed unloaded until the user went to My Team himself.
+  // It cannot run any earlier than this: loadUserTeam needs the player list.
+  // Passing no view means a missing ID does not yank the user off Picks.
+  ensureTeamLoaded(null);
 }
 
 function loadPasted(){
@@ -5309,12 +5316,61 @@ document.addEventListener('input',e=>{
   if(again){ again.focus(); try{ again.setSelectionRange(pos,pos); }catch(err){} }
 });
 
+/* Switch tabs without triggering any of the per-tab side effects. Kept separate
+   from the click handler so the ID prompt can move the user to My Team without
+   re-entering ensureTeamLoaded and looping. */
+function activateTab(view){
+  const btn=document.querySelector('.tab[data-view="'+view+'"]');
+  const pane=$('view-'+view);
+  if(!btn||!pane)return;
+  document.querySelectorAll('.tab').forEach(o=>o.setAttribute('aria-selected','false'));
+  btn.setAttribute('aria-selected','true');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  pane.classList.add('on');
+}
+
+/* My Team and My Leagues both hang off the one FPL ID — the leagues arrive on
+   the same entry response the team does. So opening either tab loads the team
+   if an ID is already on file, and asks for one if it is not, rather than
+   showing an empty tab. The entry field lives in the My Team view, so a
+   Leagues click with no ID saved lands there. */
+let teamAutoLoading=false;
+function ensureTeamLoaded(view){
+  if(userTeam&&userTeam.entryId)return;   // already loaded this session
+  if(teamAutoLoading)return;              // a load is already in flight
+  let saved=null;
+  try{ saved=localStorage.getItem('fplRockId'); }catch(e){}
+  if(saved&&saved.trim()){
+    const box=$('fplId');
+    if(box&&!box.value)box.value=saved;
+    teamAutoLoading=true;
+    Promise.resolve(loadUserTeam(saved.trim()))
+      .catch(()=>{})
+      .then(()=>{teamAutoLoading=false});
+    return;
+  }
+  requestTeamId(view);
+}
+
+function requestTeamId(view){
+  // view === null means this came from the startup auto-load rather than from
+  // the user opening a tab. Nothing to prompt for in that case: leave them on
+  // whatever they were looking at instead of stealing focus into the ID box.
+  if(view==null)return;
+  if(view==='leagues')activateTab('myteam');
+  const ti=$('teamInput'); if(ti)ti.hidden=false;
+  const td=$('teamDisplay'); if(td)td.hidden=true;
+  const status=$('teamLoadStatus');
+  if(status){ status.textContent=t('mtEnterId'); status.style.color='var(--dim)'; }
+  const box=$('fplId');
+  if(box){ box.focus(); box.select(); }
+}
+
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(o=>o.setAttribute('aria-selected','false'));
-    t.setAttribute('aria-selected','true');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
-    $('view-'+t.dataset.view).classList.add('on');
+    const view=t.dataset.view;
+    activateTab(view);
+    if(view==='myteam'||view==='leagues')ensureTeamLoaded(view);
   });
 });
 
@@ -5416,6 +5472,10 @@ document.addEventListener('click',e=>{
   if(e.target===$('clearFplBtn')){
     $('fplId').value='';
     localStorage.removeItem('fplRockId');
+    // entryId is what ensureTeamLoaded reads to decide a team is already in
+    // hand. Leaving it set after a clear would make the next My Team or
+    // My Leagues click silently do nothing instead of asking for an ID.
+    userTeam={picks:null,gw:1};
     $('teamInput').hidden=false;
     $('teamDisplay').hidden=true;
     lgClear();
