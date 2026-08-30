@@ -911,6 +911,31 @@ tbody tr.dead td:first-child{padding-left:26px}
   .mt-fxscore,.mt-fxtime{flex:0 0 48px}
 }
 
+/* ─── CHIP STRIP UNDER A SQUAD CARD ────────────────────── */
+.lg-chipstrip{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;
+  padding:10px 12px;border-bottom:1px solid var(--line2)}
+.lg-chipstrip.loading{display:block;font-size:11px;color:var(--dim);font-style:italic}
+.lg-chipcell{text-align:center;min-width:0}
+.lg-chipdot{display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:50%;border:1px solid var(--line2);
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
+  color:var(--dim);letter-spacing:.04em}
+.lg-chipcell.used .lg-chipdot{background:var(--accent);border-color:var(--accent);
+  color:var(--ink)}
+.lg-chipname{display:block;font-size:9.5px;margin-top:4px;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-chipcell.used .lg-chipname{color:var(--paper)}
+.lg-chipprev{display:block;font-family:'IBM Plex Mono',monospace;font-size:8px;
+  color:var(--dim);margin-top:1px;opacity:.75}
+.lg-chipstate{display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;
+  letter-spacing:.04em;color:var(--dim);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-chipcell.used .lg-chipstate{color:var(--accent)}
+@media(max-width:700px){
+  .lg-chipstrip{gap:4px;padding:9px 8px}
+  .lg-chipname{font-size:8.5px}
+}
+
 </style>
 </head>
 <body>
@@ -1152,7 +1177,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30c';
+const APP_BUILD = 'app-2026-08-30e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1192,11 +1217,13 @@ const I18N={
     tabMyTeam:'My Team', myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
     lgModeChip:'Chips',
-    lgChipLoading:'Reading each manager\u2019s season history\u2026',
-    lgChipManagers:'MANAGERS READ', lgChipFailed:'UNAVAILABLE',
-    lgChipUsedBy:'Used by', lgChipUnused:'Not yet played by anyone:',
-    lgChipNoneYet:'Nobody in this league has played a chip yet.',
-    lgChipNote:'Chip usage across the whole season so far, not just this gameweek. The percentage is the share of managers who have played that chip at least once; the count is total uses, which can be higher because the wildcard is granted twice a season. Tap a chip to show or hide the names.',
+    lgChipPlaying:'PLAYING A CHIP',
+    lgChipNoneGw:'Nobody on this page is playing a chip this gameweek.',
+    lgChipGwNote:'Chips active this gameweek, taken from the picks already loaded. Season history for an individual manager shows on their squad card in the comparison tray.',
+    lgChipLoading:'Loading chip history\u2026',
+    lgChipHistErr:'Chip history unavailable.',
+    lgChipAvail:'Available',
+    lgChipOther:'Also played in the other half of the season:',
     lgTapCompare:'tap up to two to compare squads',
     mtFxTitle:'Fixtures', mtFxNone:'No fixtures scheduled for this gameweek.',
     mtFxTbc:'TBC', mtFxTbcDate:'Date to be confirmed', mtFxFt:'FT', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
@@ -1377,11 +1404,13 @@ const I18N={
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
     lgModeChip:'Comodines',
-    lgChipLoading:'Leyendo el historial de cada m\u00e1nager\u2026',
-    lgChipManagers:'M\u00c1NAGERS LE\u00cdDOS', lgChipFailed:'NO DISPONIBLES',
-    lgChipUsedBy:'Usado por', lgChipUnused:'Todav\u00eda no lo ha jugado nadie:',
-    lgChipNoneYet:'Nadie en esta liga ha jugado un comod\u00edn todav\u00eda.',
-    lgChipNote:'Uso de comodines en toda la temporada, no solo en esta jornada. El porcentaje es la proporci\u00f3n de m\u00e1nagers que han jugado ese comod\u00edn al menos una vez; el n\u00famero es el total de usos, que puede ser mayor porque el wildcard se concede dos veces por temporada. Toca un comod\u00edn para mostrar u ocultar los nombres.',
+    lgChipPlaying:'JUGANDO UN COMOD\u00cdN',
+    lgChipNoneGw:'Nadie en esta p\u00e1gina juega un comod\u00edn esta jornada.',
+    lgChipGwNote:'Comodines activos esta jornada, a partir de las alineaciones ya cargadas. El historial de temporada de cada m\u00e1nager aparece en su plantilla en la bandeja de comparaci\u00f3n.',
+    lgChipLoading:'Cargando historial de comodines\u2026',
+    lgChipHistErr:'Historial de comodines no disponible.',
+    lgChipAvail:'Disponible',
+    lgChipOther:'Tambi\u00e9n jugado en la otra mitad de la temporada:',
     lgTapCompare:'toca hasta dos para comparar plantillas',
     mtFxTitle:'Partidos', mtFxNone:'No hay partidos en esta jornada.',
     mtFxTbc:'POR CONF.', mtFxTbcDate:'Fecha por confirmar', mtFxFt:'FIN', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
@@ -4526,8 +4555,8 @@ const LG = {
   live:null,          // {gw,pts,mins} from event/{gw}/live/, shared across leagues
   livePending:null,
   liveErr:null,
-  chips:{},           // leagueId -> season chip usage, fetched only on demand
-  chipBusy:{}, chipErr:{},
+  hist:{},            // entryId -> [[chip,gw]], only for squads open in the tray
+  histBusy:{},
   diag:{},            // leagueId -> header profiles FPL refused, for the console
   via:null,           // which profile FPL actually accepted
   data:{},            // leagueId -> {rows,pages,hasNext,fetchedAt,index,me}
@@ -4553,7 +4582,7 @@ function lgAdopt(entry, gw, fplId){
   LG.list = raw.filter(lgIsUserLeague);
   LG.entryId = String(fplId);
   LG.gw = gw;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.chips={}; LG.chipBusy={}; LG.chipErr={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={};
 
   // Verification dump — confirms the filter against real data rather than
   // an assumption about what FPL puts in these fields.
@@ -4571,7 +4600,7 @@ function lgAdopt(entry, gw, fplId){
 
 function lgClear(){
   LG.list=null; LG.raw=null; LG.entryId=null; LG.gw=null;
-  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.chips={}; LG.chipBusy={}; LG.chipErr={};
+  LG.open={}; LG.mode={}; LG.sel={}; LG.sort={}; LG.stand={}; LG.pick={}; LG.data={}; LG.busy={}; LG.err={}; LG.hist={}; LG.histBusy={};
   renderLeagues();
 }
 
@@ -4937,100 +4966,132 @@ function lgPanePlayer(lid){
 /* mode 3 — captain distribution */
 
 /* ── chips ────────────────────────────────────────────────
-   active_chip on a picks row only ever reports the current gameweek, so
-   season-to-date usage needs entry/{id}/history/. That is a second fan-out the
-   same size as the picks one, so it is fetched only when this tab is opened. */
-function lgFetchChips(lid, bust){
-  if(LG.chipBusy[lid]) return;
-  LG.chipBusy[lid]=true; LG.chipErr[lid]=null;
-  renderLeagues();
-  const url='/api/league?id='+encodeURIComponent(lid)+'&gw='+LG.gw
-    +'&page=1&mode=chips'+(bust?'&t='+Date.now():'');
-  fetch(url)
+   Two separate questions, answered from two different places.
+
+   What is in play THIS gameweek comes free: active_chip already rides along on
+   every standings row, so the pane below costs no extra request.
+
+   A manager's season history needs entry/{id}/history/, which is one request
+   per manager. That is only ever fetched for a squad actually open in the
+   tray — never for the whole league. */
+function lgHistory(entry){
+  const k=String(entry);
+  if(LG.hist[k]||LG.histBusy[k]) return;
+  LG.histBusy[k]=true;
+  fetch('/api/fpl?path='+encodeURIComponent('entry/'+k+'/history/'))
     .then(r=>r.json().then(j=>({r:r,j:j})))
     .then(x=>{
       if(!x.r.ok||x.j.error){
-        if(x.j&&x.j.diagnostics) fplDiag(x.j,'League '+lid+' chips');
+        if(x.j&&x.j.diagnostics) fplDiag(x.j,'History '+k);
         throw new Error(x.j&&x.j.error?x.j.error:('status '+x.r.status));
       }
-      LG.chips[lid]=x.j;
+      LG.hist[k]=(Array.isArray(x.j.chips)?x.j.chips:[])
+        .filter(c=>c&&c.name)
+        .map(c=>[String(c.name).toLowerCase(), c.event]);
     })
-    .catch(e=>{ LG.chipErr[lid]=e.message; })
-    .then(()=>{ LG.chipBusy[lid]=false; renderLeagues(); });
+    .catch(e=>{ LG.hist[k]='err'; })
+    .then(()=>{ LG.histBusy[k]=false; renderLeagues(); });
 }
 
-// Chip order is taken from LG_CHIP so it cannot drift from the codes used in
-// the standings table.
-function lgChipIndex(lid){
-  const d=LG.chips[lid];
-  if(!d) return null;
-  const rows=(d.rows||[]).filter(r=>r.ok);
-  const by={};
-  Object.keys(LG_CHIP).forEach(k=>{ by[k]={code:k, uses:[], mgrs:{}}; });
-  rows.forEach(r=>{
-    (r.chips||[]).forEach(c=>{
-      const name=String(c[0]).toLowerCase();
-      if(!by[name]) by[name]={code:name, uses:[], mgrs:{}};
-      by[name].uses.push({mgr:r.mgr, entry:r.entry, gw:c[1]});
-      by[name].mgrs[r.entry]=1;
-    });
+// Chips that exist this season. Read from bootstrap when FPL supplies it, so
+// the strip follows a rule change without a code edit — the Assistant Manager
+// chip was dropped after 2024/25 and hardcoding the list is how you end up
+// rendering a chip nobody has. LG_CHIP and CHIP_LABELS stay complete, because
+// they decode any chip string that turns up, including retired ones.
+const LG_CHIP_ORDER=['wildcard','3xc','bboost','freehit'];
+function lgSeasonChips(){
+  let names=null;
+  try{
+    if(bootstrap&&Array.isArray(bootstrap.chips)&&bootstrap.chips.length){
+      names=[];
+      bootstrap.chips.forEach(c=>{
+        const n=String((c&&c.name)||'').toLowerCase();
+        if(n&&names.indexOf(n)<0)names.push(n);
+      });
+    }
+  }catch(e){}
+  if(!names||!names.length) names=LG_CHIP_ORDER.slice();
+  return names.slice().sort((a,b)=>{
+    const ia=LG_CHIP_ORDER.indexOf(a), ib=LG_CHIP_ORDER.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
   });
-  const list=Object.keys(by).map(k=>{
-    const b=by[k];
-    b.managers=Object.keys(b.mgrs).length;
-    // Uses can exceed managers: the wildcard is granted twice a season, so one
-    // manager legitimately appears in it more than once.
-    b.uses.sort((x,y)=>(x.gw||0)-(y.gw||0));
-    return b;
-  }).sort((a,b)=>b.uses.length-a.uses.length||a.code.localeCompare(b.code));
-  return {list:list, n:rows.length, failed:(d.rows||[]).length-rows.length};
 }
 
-function lgPaneChips(lid){
-  if(LG.chipErr[lid])
-    return '<div class="lg-err">'+esc(t('lgErr'))+': '+esc(LG.chipErr[lid])+'</div>'
-      +'<div class="lg-bar" style="border-top:1px solid var(--line)">'
-      +'<button class="btn-small" data-lgchipretry="'+lid+'">'+esc(t('lgRetry'))+'</button></div>';
-  if(LG.chipBusy[lid]) return '<div class="lg-hint">'+esc(t('lgChipLoading'))+'</div>';
-  if(!LG.chips[lid]){
-    lgFetchChips(lid,false);
-    return '<div class="lg-hint">'+esc(t('lgChipLoading'))+'</div>';
+// The first set of chips expires at the Gameweek 19 deadline and cannot be
+// carried over, so a chip spent in the first half is available again in the
+// second. Status is therefore per half, not per season.
+const LG_HALF_END=19;
+function lgHalf(gw){ return (gw==null||gw<=LG_HALF_END)?1:2; }
+
+// The chip strip under a squad card.
+function lgChipStrip(entry){
+  const k=String(entry);
+  if(LG.histBusy[k]||!LG.hist[k]){
+    lgHistory(k);
+    return '<div class="lg-chipstrip loading">'+esc(t('lgChipLoading'))+'</div>';
   }
+  if(LG.hist[k]==='err')
+    return '<div class="lg-chipstrip loading">'+esc(t('lgChipHistErr'))+'</div>';
 
-  const ix=lgChipIndex(lid);
-  if(!ix||!ix.n) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+  const used={};
+  LG.hist[k].forEach(c=>{ (used[c[0]]=used[c[0]]||[]).push(c[1]); });
+  const nowHalf=lgHalf(LG.gw);
 
-  const played=ix.list.filter(b=>b.uses.length);
-  const unplayed=ix.list.filter(b=>!b.uses.length);
-  const max=Math.max.apply(null, ix.list.map(b=>b.uses.length).concat([1]));
+  return '<div class="lg-chipstrip">'+lgSeasonChips().map(code=>{
+    const gws=(used[code]||[]).filter(g=>g!=null);
+    const thisHalf=gws.filter(g=>lgHalf(g)===nowHalf);
+    const otherHalf=gws.filter(g=>lgHalf(g)!==nowHalf);
+    const spent=thisHalf.length>0;
+    const label=spent?thisHalf.map(g=>'GW'+g).join(', '):t('lgChipAvail');
+    return '<div class="lg-chipcell'+(spent?' used':'')+'"'
+      +(otherHalf.length?' title="'+esc(t('lgChipOther'))+' '
+        +otherHalf.map(g=>'GW'+g).join(', ')+'"':'')+'>'
+      +'<span class="lg-chipdot">'+esc(LG_CHIP[code]||code.toUpperCase())+'</span>'
+      +'<span class="lg-chipname">'+esc(CHIP_LABELS[code]||code)+'</span>'
+      +'<span class="lg-chipstate">'+esc(label)+'</span>'
+      +(otherHalf.length?'<span class="lg-chipprev">'
+        +otherHalf.map(g=>'GW'+g).join(', ')+'</span>':'')
+      +'</div>';
+  }).join('')+'</div>';
+}
 
-  const bar='<div class="lg-bar"><span class="lg-cap">'
-    +ix.n+' '+esc(t('lgChipManagers'))
-    +(ix.failed?' \u00b7 '+ix.failed+' '+esc(t('lgChipFailed')):'')+'</span>'
-    +'<button class="btn-small" data-lgchipretry="'+lid+'">'+esc(t('lgRefresh'))+'</button></div>';
+/* Chips in play this gameweek, straight off the standings rows. */
+function lgPaneChips(lid){
+  const d=LG.data[lid];
+  if(!d) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
+  const rows=(d.rows||[]).filter(r=>r.ok);
+  if(!rows.length) return '<div class="lg-hint">'+esc(t('lgEmpty'))+'</div>';
 
-  if(!played.length)
-    return bar+'<div class="lg-hint">'+esc(t('lgChipNoneYet'))+'</div>';
+  const by={};
+  rows.forEach(r=>{
+    if(!r.chip) return;
+    const c=String(r.chip).toLowerCase();
+    (by[c]=by[c]||[]).push(r);
+  });
+  const codes=Object.keys(by).sort((a,b)=>by[b].length-by[a].length||a.localeCompare(b));
+  const playing=codes.reduce((n,c)=>n+by[c].length,0);
 
-  const rows=played.map((b,i)=>
-    '<div class="lg-caprow'+(i===0?' open':'')+'" data-lgchip="'+esc(b.code)+'">'
-    +'<div class="lg-captop"><span class="pos">'+esc(lgChip(b.code))+'</span>'
-    +  '<span class="lg-capnm">'+esc(CHIP_LABELS[b.code]||b.code)+'</span>'
-    +  '<span class="lg-capn">'+b.uses.length+' \u00d7</span>'
-    +  '<span class="lg-cappc">'+Math.round(b.managers/ix.n*100)+'%</span></div>'
-    +'<div class="lg-capbar"><i style="width:'+Math.round(b.uses.length/max*100)+'%"></i></div>'
+  const bar='<div class="lg-bar"><span class="lg-cap">GW'+LG.gw+' \u00b7 '
+    +playing+'/'+rows.length+' '+esc(t('lgChipPlaying'))+'</span></div>';
+
+  if(!codes.length)
+    return bar+'<div class="lg-hint">'+esc(t('lgChipNoneGw'))+'</div>';
+
+  const max=Math.max.apply(null, codes.map(c=>by[c].length).concat([1]));
+  const list=codes.map((c,i)=>
+    '<div class="lg-caprow open" data-lgchip="'+esc(c)+'">'
+    +'<div class="lg-captop"><span class="pos">'+esc(lgChip(c))+'</span>'
+    +  '<span class="lg-capnm">'+esc(CHIP_LABELS[c]||c)+'</span>'
+    +  '<span class="lg-capn">'+by[c].length+'</span>'
+    +  '<span class="lg-cappc">'+Math.round(by[c].length/rows.length*100)+'%</span></div>'
+    +'<div class="lg-capbar"><i style="width:'+Math.round(by[c].length/max*100)+'%"></i></div>'
     +'<div class="lg-capwho">'
-    +  '<b style="font-weight:400;color:var(--accent)">'+esc(t('lgChipUsedBy'))+' \u2014 </b>'
-    +  b.uses.map(u=>esc(u.mgr)+' <span class="mono" style="color:var(--dim)">GW'
-        +(u.gw==null?'?':u.gw)+'</span>').join(', ')
+    +  by[c].sort((x,y)=>(x.rank||0)-(y.rank||0))
+        .map(r=>esc(r.mgr)+' <span class="mono" style="color:var(--dim)">'
+          +(r.gwp==null?'':r.gwp+' pts')+'</span>').join(', ')
     +'</div></div>').join('');
 
-  const rest=unplayed.length
-    ? '<div class="lg-hint">'+esc(t('lgChipUnused'))+' '
-      +unplayed.map(b=>esc(CHIP_LABELS[b.code]||b.code)).join(', ')+'.</div>'
-    : '';
-
-  return bar+rows+rest+'<div class="lg-hint">'+esc(t('lgChipNote'))+'</div>';
+  return bar+list+'<div class="lg-hint">'+esc(t('lgChipGwNote'))+'</div>';
 }
 
 function lgPaneCap(lid){
@@ -5213,6 +5274,7 @@ function lgSquadCard(row,other,live){
     +  '<span>'+esc(t('lgGwCol'))+' <b>'+(row.gwp==null?'\u2014':row.gwp)+'</b></span>'
     +  '<span>'+esc(t('lgTotalCol')).toUpperCase()+' <b>'+(row.tot==null?'\u2014':row.tot)+'</b></span>'
     +  (other?'<span>'+esc(t('lgDiffs'))+' <b>'+uniq+'</b></span>':'')+'</div></div>'
+    +lgChipStrip(row.entry)
     +order.map(grp).join('')
     +'<div class="lg-sqbench"><div class="lg-sqgrp">'+esc(t('lgBenchWord'))
     +  (boosted?' \u2014 '+esc(t('lgBoosted')):'')+'</div>'
@@ -5261,15 +5323,6 @@ document.addEventListener('click',e=>{
     const lid=Number(rt.dataset.lgretry);
     LG.err[lid]=null; LG.diag[lid]=null;
     lgFetchPage(lid,1,true);
-    return;
-  }
-
-  const cr=e.target.closest('[data-lgchipretry]');
-  if(cr){
-    e.stopPropagation();
-    const lid=Number(cr.dataset.lgchipretry);
-    LG.chips[lid]=null; LG.chipErr[lid]=null;
-    lgFetchChips(lid,true);
     return;
   }
 
