@@ -4132,8 +4132,8 @@ document.querySelectorAll('.tab').forEach(t=>{
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
     $('view-'+t.dataset.view).classList.add('on');
     
-    // Auto-load team if ID is saved and tab is myteam or leagues
-    if((t.dataset.view==='myteam' || t.dataset.view==='leagues')){
+    // Auto-load team if ID is saved and tab is myteam
+    if(t.dataset.view==='myteam'){
       const saved=localStorage.getItem('fplRockId');
       if(saved){
         loadUserTeam(saved);
