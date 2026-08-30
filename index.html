@@ -307,7 +307,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
   font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 8px;
   border:1px solid var(--line2);border-radius:2px;background:transparent;color:var(--paper);
 }
-.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:14px 20px;background:#d4edda;border-radius:8px}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:14px 20px}
 .team-card{
   padding:12px;border:1px solid var(--line2);border-radius:2px;background:transparent;text-align:center;
   transition:all .15s;
@@ -395,11 +395,16 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .xistat b{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400}
 .pitch{
-  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  background:#d4edda;border:1px solid rgba(0,0,0,.14);border-radius:3px;
   padding:26px 12px;margin-bottom:22px;position:relative;overflow:hidden;
 }
 .pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
-  background:var(--line);transform:translateX(-50%)}
+  background:rgba(0,0,0,.14);transform:translateX(-50%)}
+/* Pitch is light green in every theme, so text inside it is pinned dark
+   rather than inheriting --paper/--dimmer, which go white on dark themes. */
+.pitch .pcname{color:#10151c}
+.pitch .pcsub{color:#3c4652}
+.pitch .pcnote{color:#3c4652}
 /* Pitch sizing is percentage-of-row, not viewport-derived. A row never
    holds more than 5 cards, so 5 x 19.2% + 4 x 1% gap = 100% exactly.
    Percentages resolve against .prow-xi, so the same rule fits any
@@ -428,14 +433,12 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   width:68%;aspect-ratio:1/1;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:13px;
-  font-weight:600;position:relative;border:1px solid;flex:0 0 auto;
-  background:#ffffff;border-color:#ffffff;color:#000000;
+  font-weight:700;position:relative;border:1px solid;flex:0 0 auto;
+  background:#ffffff;border-color:rgba(0,0,0,.18);color:#000000;
 }
-.pdisc{font-size:clamp(9px,21cqw,13px)}
-.pdisc.GKP{background:#ffffff;border-color:#ffffff;color:#000000}
-.pdisc.DEF{background:#ffffff;border-color:#ffffff;color:#000000}
-.pdisc.MID{background:#ffffff;border-color:#ffffff;color:#000000}
-.pdisc.FWD{background:#ffffff;border-color:#ffffff;color:#000000}
+.pdisc{font-size:clamp(9px,21cqw,13px);font-weight:700}
+.pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
+  background:#ffffff;border-color:rgba(0,0,0,.18);color:#000000;font-weight:700}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
@@ -1178,7 +1181,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30h';
+const APP_BUILD = 'app-2026-08-30i';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
