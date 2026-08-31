@@ -936,6 +936,8 @@ tbody tr.dead td:first-child{padding-left:26px}
   .lg-chipname{font-size:8.5px}
 }
 
+.mt-fetched{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;
+  color:var(--dim);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1032,6 +1034,8 @@ tbody tr.dead td:first-child{padding-left:26px}
           <button class="btn-small" id="gwPrev" data-i18n="mtPrev">← Prev</button>
           <button class="btn-small" id="gwNext" data-i18n="mtNext">Next →</button>
           <span id="gwStatus" style="font-size:12px;color:var(--dim);margin-left:auto"></span>
+          <button class="btn-small" id="refreshTeamBtn" data-i18n="mtRefresh">Refresh</button>
+          <span id="mtFetched" class="mt-fetched"></span>
           <button class="btn-small" id="changeIdBtn" style="border-color:var(--accent);color:var(--accent)" data-i18n="mtChangeId">Change ID</button>
           <!-- gwStatus now carries only transient loading/error text, not a GW counter -->
         </div>
@@ -1177,7 +1181,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30h';
+const APP_BUILD = 'app-2026-08-30i';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1235,6 +1239,7 @@ const I18N={
     lgChipAvail:'Available',
     lgChipOther:'Also played in the other half of the season:',
     lgTapCompare:'tap up to two to compare squads',
+    mtRefresh:'\u21bb Refresh', mtFetchedAt:'FETCHED',
     mtFxTitle:'Fixtures', mtFxNone:'No fixtures scheduled for this gameweek.',
     mtFxTbc:'TBC', mtFxTbcDate:'Date to be confirmed', mtFxFt:'FT', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
     lgErrShort:'could not load', lgRetry:'Try again',
@@ -1432,6 +1437,7 @@ const I18N={
     lgChipAvail:'Disponible',
     lgChipOther:'Tambi\u00e9n jugado en la otra mitad de la temporada:',
     lgTapCompare:'toca hasta dos para comparar plantillas',
+    mtRefresh:'\u21bb Actualizar', mtFetchedAt:'ACTUALIZADO',
     mtFxTitle:'Partidos', mtFxNone:'No hay partidos en esta jornada.',
     mtFxTbc:'POR CONF.', mtFxTbcDate:'Fecha por confirmar', mtFxFt:'FIN', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
     lgErrShort:'no se pudo cargar', lgRetry:'Reintentar',
@@ -2218,7 +2224,7 @@ function fplDiag(j,label){
   }catch(e){}
 }
 
-async function loadUserTeam(fplId){
+async function loadUserTeam(fplId, bust){
   const status=$('teamLoadStatus');
   if(!fplId||fplId.trim()===''){
     status.textContent=t('mtNeedId');
@@ -2230,12 +2236,17 @@ async function loadUserTeam(fplId){
     status.style.color='var(--dim)';
     console.log('FPL ID:',fplId);
     
+    // The proxy caches passthrough responses at the CDN for two minutes, which
+    // is right for normal use and wrong for a refresh — a forced refresh has to
+    // get past it or the button does nothing during a live gameweek.
     const proxyBase='/api/fpl?path=';
+    const bustQS=bust?('&t='+Date.now()):'';
+    const opts=bust?{cache:'no-store'}:undefined;
     
     // Fetch entry details (player name, etc)
     console.log('\n--- Fetching Entry Details ---');
     const entryUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/');
-    const entryRes=await fetch(entryUrl);
+    const entryRes=await fetch(entryUrl+bustQS,opts);
     if(!entryRes.ok) throw new Error('Could not load entry (status '+entryRes.status+')');
     const entry=await entryRes.json();
     console.log('Entry team name:',entry.name,'| manager:',entry.player_first_name);
@@ -2243,7 +2254,7 @@ async function loadUserTeam(fplId){
     // Fetch history (current GW and past seasons)
     console.log('\n--- Fetching History ---');
     const histUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/history/');
-    const histRes=await fetch(histUrl);
+    const histRes=await fetch(histUrl+bustQS,opts);
     if(!histRes.ok) throw new Error('Could not load history (status '+histRes.status+')');
     const hist=await histRes.json();
     
@@ -2271,7 +2282,7 @@ async function loadUserTeam(fplId){
     // Fetch picks
     console.log('\n--- Fetching Picks ---');
     const picksUrl=proxyBase+encodeURIComponent('entry/'+fplId+'/event/'+currentGW+'/picks/');
-    const picksRes=await fetch(picksUrl);
+    const picksRes=await fetch(picksUrl+bustQS,opts);
     if(!picksRes.ok) throw new Error('Could not load picks (status '+picksRes.status+')');
     const picksData=await picksRes.json();
     
@@ -2295,6 +2306,7 @@ async function loadUserTeam(fplId){
       picks:picksData.picks,
       gw:currentGW,
       entryId:fplId,
+      fetchedAt:new Date(),
       basePicks:picksData.picks,
       isFuture:false,
       username:entry.player_first_name,
@@ -2687,6 +2699,10 @@ function renderUserTeam(){
     +mtFixtures(userTeam.gw, teamsMap);
 
   $('teamBody').innerHTML=html;
+
+  const stamp=$('mtFetched');
+  if(stamp) stamp.textContent = userTeam.fetchedAt
+    ? t('mtFetchedAt')+' '+lgClock(userTeam.fetchedAt) : '';
 
   if(!userTeam.isFuture)populateGWScores(picks);
 }
@@ -5600,8 +5616,27 @@ function activateTab(view){
    showing an empty tab. The entry field lives in the My Team view, so a
    Leagues click with no ID saved lands there. */
 let teamAutoLoading=false;
+// Opening the tab refreshes, because during a live gameweek the points on
+// screen go stale within minutes. Throttled so flicking between tabs does not
+// re-run the fetch every time; the Refresh button ignores this and always goes.
+const MT_STALE_MS=30000;
+function mtIsStale(){
+  if(!userTeam||!userTeam.fetchedAt) return true;
+  return (Date.now()-userTeam.fetchedAt.getTime())>MT_STALE_MS;
+}
+function refreshUserTeam(){
+  const id=(userTeam&&userTeam.entryId)||(function(){
+    try{ return localStorage.getItem('fplRockId'); }catch(e){ return null; }
+  })();
+  if(id) loadUserTeam(String(id), true);
+}
+
 function ensureTeamLoaded(view){
-  if(userTeam&&userTeam.entryId)return;   // already loaded this session
+  if(userTeam&&userTeam.entryId){
+    // Already loaded — reload only if it has gone stale.
+    if(view!=null&&mtIsStale()) loadUserTeam(String(userTeam.entryId), true);
+    return;
+  }   // already loaded this session
   if(teamAutoLoading)return;              // a load is already in flight
   let saved=null;
   try{ saved=localStorage.getItem('fplRockId'); }catch(e){}
@@ -5751,6 +5786,10 @@ document.addEventListener('click',e=>{
   // Change ID — reopen the entry field over the loaded team, pre-filled. The
   // leagues go with the old ID, so they are dropped straight away rather than
   // sitting there stale until the new team finishes loading.
+  if(e.target===$('refreshTeamBtn')){
+    refreshUserTeam();
+    return;
+  }
   if(e.target===$('changeIdBtn')){
     $('teamInput').hidden=false;
     lgClear();
