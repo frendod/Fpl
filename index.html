@@ -394,76 +394,12 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .xistat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
 .xistat b{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400}
-/* Pitch green sampled from a real broadcast frame: rgb(117,181,34).
-   Black text on it measures ~8.4:1 contrast, so all pitch text is pinned
-   black/near-black rather than inheriting --paper/--dim/--dimmer, which
-   resolve to #ffffff on both dark themes. */
-/* MARKINGS.
-
-   Anchored to the rows, not to the box. The pitch is a variable height that
-   depends on formation and card content, so any marking positioned as a
-   fraction of that height drifts. Instead the goal line hangs off the GKP
-   row and the halfway line off the FWD row, both offset by 21px - half of
-   the 42.2px disc (68% of the 62px .pcard cap) - so a disc centre always
-   lands exactly on its line.
-
-   z-index:0 on .pitch opens a stacking context so the z-index:-1 pseudo
-   elements paint above the pitch background but behind the cards.
-
-   The goal end is one SVG at a FIXED 200px height: the goal line sits at
-   5.27/34 of it = 31px, so the element is pulled up 10px to put that line
-   on the disc centre. Fixed height keeps that offset true at any width.
-   The centre circle is a fixed-px CSS circle rather than SVG, which is what
-   guarantees it stays round - an earlier version stretched an SVG and the
-   circle rode up into the GKP. */
 .pitch{
-  background-color:#75B522;
-  background-image:
-    repeating-linear-gradient(180deg,
-      rgba(255,255,255,.055) 0 46px,
-      rgba(0,0,0,.05) 46px 92px);
-  border:2px solid rgba(255,255,255,.45);
-  border-top-color:transparent;
-  border-radius:3px;
-  padding:14px 12px 26px;margin-bottom:22px;
-  position:relative;z-index:0;overflow:hidden;
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  padding:26px 12px;margin-bottom:22px;position:relative;overflow:hidden;
 }
-/* The old vertical divider is not a real pitch marking - these replace it. */
-.pitch::before{content:none}
-
-/* Goal end, drawn off the GKP row. */
-.pitch .prow-xi:first-child::before{
-  content:'';position:absolute;z-index:-1;
-  left:-12px;right:-12px;top:-10px;height:200px;
-  background-repeat:no-repeat;background-size:100% 100%;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 68 34' preserveAspectRatio='none'%3E %3Cg fill='none' stroke='rgba(255,255,255,.45)' stroke-width='.38'%3E %3Crect x='30.34' y='2.27' width='7.32' height='3'/%3E %3Cline x1='0' y1='5.27' x2='68' y2='5.27'/%3E %3Crect x='24.84' y='5.27' width='18.32' height='5.5'/%3E %3Crect x='13.84' y='5.27' width='40.32' height='16.5'/%3E %3Cpath d='M26.69 21.77A9.15 9.15 0 0 0 41.31 21.77'/%3E %3Cpath d='M1.4 5.27A1 1 0 0 1 .4 6.27'/%3E %3Cpath d='M67.6 6.27A1 1 0 0 1 66.6 5.27'/%3E %3C/g%3E %3Ccircle cx='34' cy='16.27' r='.34' fill='rgba(255,255,255,.45)'/%3E %3C/svg%3E");
-}
-/* Halfway line, on the FWD disc centre. */
-.pitch .prow-xi:last-child::before{
-  content:'';position:absolute;z-index:-1;
-  left:-12px;right:-12px;top:21px;height:2px;
-  background:rgba(255,255,255,.45);
-}
-/* Centre circle. Fixed px, both axes, no percentage / aspect-ratio /
-   transform - all three of which left room for the box to be resolved
-   against the wrong thing, which is how the last version ended up several
-   hundred px tall and reaching the keeper. A 110px square with a 50%
-   radius can only ever be a 110px circle. Centre sits at 21px (the FWD
-   disc centre), so the box starts 55px above that. */
-.pitch .prow-xi:last-child::after{
-  content:'';position:absolute;z-index:-1;
-  left:calc(50% - 55px);top:-34px;
-  width:110px;height:110px;box-sizing:border-box;
-  border:2px solid rgba(255,255,255,.45);border-radius:50%;
-}
-/* The note slot is only filled for autosubs. Left at min-height it adds
-   8px plus a 3px gap of dead space under every disc. */
-.pcnote:empty{display:none}
-.pitch .pcname{color:#000000;font-weight:700}
-.pitch .pcsub{color:#0d1a00;font-weight:700}
-.pitch .pcnote{color:#0d1a00;font-weight:700}
-.pitch .fdr-blank{border-color:rgba(0,0,0,.4)}
-.pitch .fixbox.fdr-blank{color:#0d1a00}
+.pitch::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:var(--line);transform:translateX(-50%)}
 /* Pitch sizing is percentage-of-row, not viewport-derived. A row never
    holds more than 5 cards, so 5 x 19.2% + 4 x 1% gap = 100% exactly.
    Percentages resolve against .prow-xi, so the same rule fits any
@@ -492,12 +428,13 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   width:68%;aspect-ratio:1/1;
   border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:13px;
-  font-weight:700;position:relative;border:1px solid;flex:0 0 auto;
-  background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;
+  font-weight:600;position:relative;border:1px solid;flex:0 0 auto;
 }
-.pdisc{font-size:clamp(9px,21cqw,13px);font-weight:700}
-.pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
-  background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;font-weight:700}
+.pdisc{font-size:clamp(9px,21cqw,13px)}
+.pdisc.GKP{background:rgba(217,164,65,.16);border-color:rgba(217,164,65,.5);color:var(--prior)}
+.pdisc.DEF{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5);color:var(--live)}
+.pdisc.MID{background:rgba(78,201,160,.16);border-color:rgba(78,201,160,.5);color:var(--good)}
+.pdisc.FWD{background:rgba(229,101,122,.16);border-color:rgba(229,101,122,.5);color:var(--bad)}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
@@ -887,43 +824,6 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
   .lg-name{font-size:13.5px}
 }
 
-/* ─── STANDINGS TABLE, NARROW SCREENS ──────────────────────
-   Fixed layout so the two points columns are always drawn at their
-   declared width. Long manager / team names clip with an ellipsis
-   instead of pushing GW and TOTAL off the right edge. */
-table.lg-stand{table-layout:fixed}
-table.lg-stand th,table.lg-stand td{overflow:hidden;text-overflow:ellipsis}
-table.lg-stand th:nth-child(1),table.lg-stand td:nth-child(1){width:60px}
-table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){width:46px}
-table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){width:24%}
-table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:60px}
-table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:68px}
-
-.lg-mgrwrap{display:flex;align-items:center;gap:6px;min-width:0}
-.lg-mgrname{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lg-mgrwrap .lg-tag,.lg-mgrwrap .lg-chip{margin-left:0;flex:0 0 auto}
-/* Team name folded under the manager once its own column is dropped. */
-.lg-mgrteam{display:none}
-
-@media(max-width:620px){
-  table.lg-stand th,table.lg-stand td{padding-left:8px;padding-right:8px}
-  table.lg-stand tbody tr.lg-pickrow td:first-child,
-  table.lg-stand tbody tr.dead td:first-child{padding-left:22px}
-  table.lg-stand tbody tr.lg-pickrow td:first-child::before{left:6px}
-  table.lg-stand th:nth-child(1),table.lg-stand td:nth-child(1){width:48px}
-  table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){width:36px}
-  table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){display:none}
-  table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:46px}
-  table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:54px}
-  .lg-mgrteam{display:block;font-size:10.5px;color:var(--dim);margin-top:2px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lg-me .lg-mgrteam{color:var(--accent)}
-}
-@media(max-width:400px){
-  table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){display:none}
-  table.lg-stand tbody td{font-size:12px}
-}
-
 /* ─── LEAGUE SQUAD TRAY ────────────────────────────────── */
 tbody tr.lg-pickrow{cursor:pointer;transition:background .12s}
 tbody tr.lg-pickrow:hover{background:rgba(232,228,220,.03)}
@@ -1277,7 +1177,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30o';
+const APP_BUILD = 'app-2026-08-30h';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4830,7 +4730,18 @@ function lgIndex(lid){
 
   const by={};
   const meId=String(LG.entryId);
-  const rivals=d.rows.filter(r=>String(r.entry)!==meId && r.picks && r.picks.length);
+  // These are league statistics, so every entry counts — the user's own
+  // included. Leaving it out made the denominator disagree with the team count
+  // in the header, and made a player the user had started read as started by
+  // nobody.
+  const loaded=d.rows.filter(r=>r.picks && r.picks.length);
+  // When the user sits on a page that is not loaded, the function returns their
+  // picks separately as `me`. Without this they would be missing from the very
+  // statistics that are supposed to describe the whole league.
+  const meOff=(d.me && d.me.picks && d.me.picks.length
+               && !loaded.some(r=>String(r.entry)===meId))
+             ? [Object.assign({mgr:t('lgYouTag'), rank:null}, d.me)] : [];
+  const entries=loaded.concat(meOff);
 
   const touch=el=>{
     if(!by[el]){
@@ -4842,7 +4753,7 @@ function lgIndex(lid){
     return by[el];
   };
 
-  rivals.forEach(r=>{
+  entries.forEach(r=>{
     r.picks.forEach(pk=>{
       const el=pk[0], position=pk[1], multiplier=pk[2], isCap=!!pk[3], isVice=!!pk[4];
       const b=touch(el);
@@ -4858,7 +4769,7 @@ function lgIndex(lid){
     });
   });
 
-  const n=rivals.length||1;
+  const n=entries.length||1;
   const list=Object.keys(by).map(k=>by[k]);
   list.forEach(b=>{ b.eo=b.eo/n; b.pc=b.owners.length/n; });
 
@@ -4866,7 +4777,7 @@ function lgIndex(lid){
   const mine={};
   if(myRow&&myRow.picks) myRow.picks.forEach(pk=>{ mine[pk[0]]=pk[1]>11?'b':'s'; });
 
-  d.index={ by:by, list:list, n:n, mine:mine, myRow:myRow, rivals:rivals };
+  d.index={ by:by, list:list, n:n, mine:mine, myRow:myRow, entries:entries };
   return d.index;
 }
 
@@ -5013,7 +4924,7 @@ function lgPaneOwn(lid){
     +(st.key===k?(' aria-sort="'+(st.asc?'ascending':'descending')+'"'):'')
     +' data-lgstand="'+k+'" data-lgid="'+lid+'">'+esc(label)+'</th>';
 
-  const standings='<div class="tscroll"><table class="lg-stand"><thead><tr>'
+  const standings='<div class="tscroll"><table><thead><tr>'
     +sth('rank',t('lgRk'))+'<th></th><th>'+esc(t('lgManager'))+'</th>'
     +'<th>'+esc(t('lgTeamCol'))+'</th>'+sth('gwp',t('lgGwCol'))+sth('tot',t('lgTotalCol'))
     +'</tr></thead><tbody>'
@@ -5025,12 +4936,9 @@ function lgPaneOwn(lid){
       return '<tr class="'+cls+'"'+(dead?'':' data-lgpickrow="'+r.entry+'" data-lgid="'+lid+'"')+'>'
         +'<td class="mono">'+r.rank+'</td>'
         +'<td class="mono">'+lgMove(r.rank,r.last)+'</td>'
-        +'<td><span class="lg-mgrwrap">'
-        +   '<span class="lg-mgrname">'+esc(r.mgr)+'</span>'
-        +   (isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
+        +'<td>'+esc(r.mgr)+(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
         +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')
-        +   (dead?'<span class="lg-chip lg-nopicks">'+esc(t('lgNoPicks'))+'</span>':'')
-        + '</span><span class="lg-mgrteam">'+esc(r.team)+'</span></td>'
+        +   (dead?'<span class="lg-chip lg-nopicks">'+esc(t('lgNoPicks'))+'</span>':'')+'</td>'
         +'<td>'+esc(r.team)+'</td>'
         +'<td class="mono">'+(r.gwp==null?'\u2014':r.gwp)+'</td>'
         +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td></tr>';
@@ -5103,7 +5011,12 @@ function lgPanePlayer(lid){
   const col=(title,rows,empty)=>'<div class="lg-col">'
     +'<div class="lg-colh"><span>'+esc(title)+'</span><b>'+rows.length+'</b></div>'
     +(rows.length
-      ? '<ul class="lg-list">'+rows.slice(0,12).map(r=>'<li><span>'+esc(r.mgr)+'</span><i>'+r.rank+'</i></li>').join('')
+      ? '<ul class="lg-list">'+rows.slice(0,12).map(r=>{
+          const isMe=String(r.entry)===String(LG.entryId);
+          return '<li><span>'+esc(r.mgr)
+            +(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
+            +'</span><i>'+(r.rank==null?'\u2014':'#'+r.rank)+'</i></li>';
+        }).join('')
         +(rows.length>12?'<li><i>+'+(rows.length-12)+' '+esc(t('lgMore'))+'</i></li>':'')
         +'</ul>'
       : '<div class="lg-empty">'+esc(empty)+'</div>')
