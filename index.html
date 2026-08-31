@@ -1121,8 +1121,8 @@ tbody tr.dead td:first-child{padding-left:26px}
         </div>
         <div class="data-status" id="dataStatusToggle" title="Click to expand">
           <div class="data-status-top">
-            <div class="data-status-label" id="i18n-dataStatus">Data loaded</div>
-            <div class="data-status-icon" id="dataStatusIcon">✓</div>
+            <div class="data-status-label" id="i18n-dataStatus">Not loaded</div>
+            <div class="data-status-icon" id="dataStatusIcon">·</div>
           </div>
           <div class="data-status-message" id="dataStatusMessage"></div>
         </div>
@@ -1321,7 +1321,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30p';
+const APP_BUILD = 'app-2026-08-31a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1332,7 +1332,7 @@ const I18N={
     tagline:'Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.',
     engineA:'FPL', engineB:'Model',
     evidenceBlend:'Evidence blend',
-    dataStatus:'Data loaded',
+    dataStatus:'Data loaded', dataStatusIdle:'Not loaded', dataStatusLoading:'Loading',
     notLoaded:'Not loaded', coldStart:'Cold start', warmingUp:'Warming up', liveData:'Live data',
     lastSeason:'Last season', thisSeason:'This season', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'prior '+p+'%', livePct:p=>'live '+p+'%',
@@ -1530,7 +1530,7 @@ const I18N={
     tagline:'Clasifica a cada jugador según evidencia ponderada y luego ajusta por su probabilidad de jugar. Cuánta de esa evidencia procede de esta temporada depende de cuánta temporada se ha disputado.',
     engineA:'Motor de', engineB:'Puntuación',
     evidenceBlend:'Mezcla de evidencia',
-    dataStatus:'Datos cargados',
+    dataStatus:'Datos cargados', dataStatusIdle:'Sin cargar', dataStatusLoading:'Cargando',
     notLoaded:'Sin cargar', coldStart:'Arranque frío', warmingUp:'Calentando', liveData:'Datos actuales',
     lastSeason:'Temp. pasada', thisSeason:'Esta temp.', priorShort:'Temp. pasada', liveShort:'Esta temp.',
     priorPct:p=>'previa '+p+'%', livePct:p=>'actual '+p+'%',
@@ -4430,21 +4430,39 @@ function warn(m){const w=$('warnNote');w.textContent=m;w.hidden=false}
 function clearNotes(){$('errNote').hidden=true;$('warnNote').hidden=true;$('errNote').textContent='';$('warnNote').textContent=''}
 function addWarn(m){const w=$('warnNote');w.textContent=(w.textContent?w.textContent+' ':'')+m;w.hidden=false}
 
-function setDataStatus(m,status='ok'){
+/* The header chip is a state readout, not a caption. It used to be hard-coded
+   to "Data loaded ✓" in the markup and re-set to the same string on every
+   language pass, so a cold start with nothing loaded still claimed success —
+   which is exactly the wrong signal when the page is empty. The current state
+   is held here so the language switcher can re-render it truthfully. */
+let dataStatusKey='dataStatusIdle', dataStatusLevel='idle', dataStatusMsg='';
+
+function setDataStatus(m,status='ok',labelKey){
+  dataStatusMsg=m||'';
+  dataStatusLevel=status;
+  dataStatusKey=labelKey||(status==='error'?'dataStatusIdle'
+                          :status==='loading'?'dataStatusLoading':'dataStatus');
+  paintDataStatus();
+}
+
+function paintDataStatus(){
   const msg=$('dataStatusMessage');
   const icon=$('dataStatusIcon');
-  msg.textContent=m;
-  
-  // Clear all status classes
+  const label=$('i18n-dataStatus');
+  if(!msg||!icon)return;
+  msg.textContent=dataStatusMsg;
+  if(label)label.textContent=t(dataStatusKey);
+
   icon.classList.remove('ok','warn','error');
-  
-  // Set status-specific icon and class
-  if(status==='error'){
+
+  if(dataStatusLevel==='error'){
     icon.textContent='✕';
     icon.classList.add('error');
-  }else if(status==='warn'){
+  }else if(dataStatusLevel==='warn'){
     icon.textContent='●';
     icon.classList.add('warn');
+  }else if(dataStatusLevel==='loading'||dataStatusLevel==='idle'){
+    icon.textContent='·';
   }else{
     icon.textContent='✓';
     icon.classList.add('ok');
@@ -4535,6 +4553,7 @@ async function fetchRepoData(){
 async function load(){
   clearNotes();
   const btn=$('runBtn'); btn.disabled=true; btn.textContent=t('loading');
+  setDataStatus('','loading');
   $('tabs').hidden=false;
   
   // Load saved FPL ID if available
@@ -4578,6 +4597,7 @@ async function load(){
   // nothing worked — offer paste, and SHOW WHY
   if(!bundle){
     err(t('noSource'));
+    setDataStatus(loadTrace.join(' · '),'error');
     $('pickGrid').innerHTML='<div class="note err" style="margin:0">'
       +'<b>Load failed at every source:</b><br>'
       +loadTrace.map(x=>'· '+x).join('<br>')+'</div>';
@@ -5820,7 +5840,9 @@ function applyStaticI18n(){
   set('i18n-engineB','engineB');
   set('i18n-tagline','tagline');
   set('i18n-evidenceBlend','evidenceBlend');
-  set('i18n-dataStatus','dataStatus');
+  // Not set() — the label carries live state, so it is repainted from that
+  // state rather than reset to the "Data loaded" string on every language pass.
+  paintDataStatus();
   set('i18n-pasteData','pasteData');
   // data-i18n attributes
   document.querySelectorAll('[data-i18n]').forEach(el=>{
@@ -5951,7 +5973,9 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').
    for fresher data in the background. First run just waits on load().
 ════════════════════════════════════════════════════════ */
 (async function boot(){
-  const cached=await cacheLoad();
+  let cached=null;
+  try{ cached=await cacheLoad(); }catch(e){ cached=null; }
+
   if(cached&&cached.bootstrap){
     bootstrap=cached.bootstrap; fixtures=cached.fixtures||[];
     state=readState(bootstrap); fields=readFields(bootstrap);
@@ -5962,6 +5986,28 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').
     addWarn(t('openedSaved')(cached.fetched_at?stamp(cached.fetched_at):''));
     // background refresh: only replaces the view if something newer lands
     load().catch(()=>{});
+    return;
+  }
+
+  /* No cache — first visit, cleared site data, a private window, or a browser
+     with IndexedDB blocked. The old code stopped here, which left the page as
+     a masthead over a collapsed Data source panel and nothing else: no tabs,
+     no grid, no error. That reads as a dead site rather than an idle one, and
+     it was the same in every browser because the cache is per-origin and
+     per-profile, not a browser quirk.
+
+     load() already owns the whole fallback chain and paints its own failure
+     state, so the honest cold start is simply to run it. The catch is a
+     backstop for a throw before load() reaches its own error branch — without
+     it the rejection is swallowed by the async IIFE and the page stays blank
+     for the same reason as before. */
+  try{
+    await load();
+  }catch(e){
+    const dsrc=$('dataSource'); if(dsrc){ dsrc.hidden=false; dsrc.open=true; }
+    setDataStatus((e&&e.message)||String(e),'error');
+    err(t('noSource'));
+    const btn=$('runBtn'); if(btn){ btn.disabled=false; btn.textContent=t('loadData'); }
   }
 })();
 </script>
