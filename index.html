@@ -402,21 +402,33 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 
    Anchored to the rows, not to the box. The pitch is a variable height that
    depends on formation and card content, so any marking positioned as a
-   fraction of that height drifts. Instead the goal line hangs off the GKP
-   row and the halfway line off the FWD row, both offset by 21px - half of
-   the 42.2px disc (68% of the 62px .pcard cap) - so a disc centre always
-   lands exactly on its line.
+   fraction of that height drifts.
+
+   The offset used to be a hard-coded 21px - half a disc, assuming the .pcard
+   max-width was the binding constraint. It only ever is on a wide screen. On
+   a phone the card is 19.2% of a narrow row, the disc is far smaller, and
+   every marking landed in the wrong place. So the row is now a size container
+   and --dh is half a disc computed the same way the card is: 34% of whatever
+   min(19.2cqw, cap) actually resolves to. Every marking hangs off --dh, which
+   makes them correct at any width instead of at one width.
 
    z-index:0 on .pitch opens a stacking context so the z-index:-1 pseudo
    elements paint above the pitch background but behind the cards.
 
-   The goal end is one SVG at a FIXED 200px height: the goal line sits at
-   5.27/34 of it = 31px, so the element is pulled up 10px to put that line
-   on the disc centre. Fixed height keeps that offset true at any width.
+   The goal end is one SVG whose viewBox puts the goal line at 5.27/34 of its
+   height, so sizing the element to --dh / (5.27/34) drops that line exactly
+   on the disc centre with no pull-up at all.
    The centre circle is a fixed-px CSS circle rather than SVG, which is what
    guarantees it stays round - an earlier version stretched an SVG and the
-   circle rode up into the GKP. */
+   circle rode up into the GKP. Width and height are now the same single
+   length expression, which is what keeps it round while still scaling. */
 .pitch{
+  /* One place to change card size. --pc-w is what a card actually resolves to
+     at the current width, and every pitch marking is derived from it. */
+  --pc-basis:19.2%;
+  --pc-max:100px;
+  --pc-w:min(19.2cqw, 100px);
+  --dh:calc(var(--pc-w) * .34);   /* half a disc: 68% of the card, halved */
   background-color:#75B522;
   background-image:
     repeating-linear-gradient(180deg,
@@ -431,29 +443,33 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 /* The old vertical divider is not a real pitch marking - these replace it. */
 .pitch::before{content:none}
 
-/* Goal end, drawn off the GKP row. */
-.pitch .prow-xi:first-child::before{
+/* Goal end, drawn off the GKP row. Anchored by class, not by :first-child /
+   :last-child: the substitutes band is now the pitch's last element, so a
+   positional selector would have silently moved the halfway line and the
+   centre circle onto nothing. */
+.pitch .prow-gkp::before{
   content:'';position:absolute;z-index:-1;
-  left:-12px;right:-12px;top:-10px;height:200px;
+  left:-12px;right:-12px;top:0;height:calc(var(--dh) * 6.4516);
   background-repeat:no-repeat;background-size:100% 100%;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 68 34' preserveAspectRatio='none'%3E %3Cg fill='none' stroke='rgba(255,255,255,.45)' stroke-width='.38'%3E %3Crect x='30.34' y='2.27' width='7.32' height='3'/%3E %3Cline x1='0' y1='5.27' x2='68' y2='5.27'/%3E %3Crect x='24.84' y='5.27' width='18.32' height='5.5'/%3E %3Crect x='13.84' y='5.27' width='40.32' height='16.5'/%3E %3Cpath d='M26.69 21.77A9.15 9.15 0 0 0 41.31 21.77'/%3E %3Cpath d='M1.4 5.27A1 1 0 0 1 .4 6.27'/%3E %3Cpath d='M67.6 6.27A1 1 0 0 1 66.6 5.27'/%3E %3C/g%3E %3Ccircle cx='34' cy='16.27' r='.34' fill='rgba(255,255,255,.45)'/%3E %3C/svg%3E");
 }
 /* Halfway line, on the FWD disc centre. */
-.pitch .prow-xi:last-child::before{
+.pitch .prow-fwd::before{
   content:'';position:absolute;z-index:-1;
-  left:-12px;right:-12px;top:21px;height:2px;
+  left:-12px;right:-12px;top:var(--dh);height:2px;
   background:rgba(255,255,255,.45);
 }
-/* Centre circle. Fixed px, both axes, no percentage / aspect-ratio /
-   transform - all three of which left room for the box to be resolved
-   against the wrong thing, which is how the last version ended up several
-   hundred px tall and reaching the keeper. A 110px square with a 50%
-   radius can only ever be a 110px circle. Centre sits at 21px (the FWD
-   disc centre), so the box starts 55px above that. */
-.pitch .prow-xi:last-child::after{
+/* Centre circle. Width and height are the same single length expression and
+   nothing else - no percentage, no aspect-ratio, no transform. All three left
+   room for the box to resolve against the wrong thing, which is how an earlier
+   version ended up several hundred px tall and reaching the keeper. Scaled off
+   the card so it stays in proportion on a phone, and centred on --dh so it sits
+   on the halfway line rather than near it. */
+.pitch .prow-fwd::after{
   content:'';position:absolute;z-index:-1;
-  left:calc(50% - 55px);top:-34px;
-  width:110px;height:110px;box-sizing:border-box;
+  --cc:calc(var(--pc-w) * 1.7);
+  left:calc(50% - var(--cc) / 2);top:calc(var(--dh) - var(--cc) / 2);
+  width:var(--cc);height:var(--cc);box-sizing:border-box;
   border:2px solid rgba(255,255,255,.45);border-radius:50%;
 }
 /* The note slot is only filled for autosubs. Left at min-height it adds
@@ -469,17 +485,64 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
    Percentages resolve against .prow-xi, so the same rule fits any
    container — no need to know the surrounding padding. max-width holds
    the original 62px on desktop. */
-.prow-xi{display:flex;justify-content:center;gap:1%;margin-bottom:17px;flex-wrap:wrap;position:relative}
-.prow-xi:last-child{margin-bottom:0}
-.pcard{display:flex;flex-direction:column;align-items:center;gap:3px;
-  flex:0 1 19.2%;max-width:62px;min-width:0;container-type:inline-size}
-/* Bench: 4 cards at 20% + 3 gaps at 2% = 86%, leaving room for the label. */
-/* Bench: title on its own line, then GK, a small gap, then 3 outfield.
-   4 cards x 22% + separator 4% + 4 gaps x 1% = 96% of the row. */
+.prow-xi{display:flex;justify-content:center;gap:1%;margin-bottom:17px;flex-wrap:wrap;
+  position:relative;container-type:inline-size}
+.prow-fwd{margin-bottom:0}
+/* max-width was 62px, which on a full-width desktop pitch was the binding
+   constraint on every card — 19.2% of ~1120px is ~215px, so the cap decided
+   the size and the cqw-based type never got near its clamp ceiling. The disc
+   read at 13px and the name at 9.5px on a pitch a metre wide. 92px lets the
+   clamps do their job; the markings below are re-anchored to match. */
+.pcard{display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:0 1 var(--pc-basis);max-width:var(--pc-max);min-width:0;container-type:inline-size}
+/* ─── SUBSTITUTES BAND ───────────────────────────────────
+   The bench now sits on the pitch rather than in a dashed box below it, on a
+   duller, darker green so it reads as part of the same surface but a separate
+   zone. The colour is opaque rather than a translucent white wash: a wash let
+   the pitch's mowing stripes carry straight through, which made the band look
+   like more pitch rather than a different area. Opaque also stops the stripes
+   without needing to cancel the background-image. Black text on #66923A is
+   ~5.7:1, so the pinned-black pitch text is still comfortable here.
+
+   Negative margins cancel the pitch's 12px side and 26px bottom padding so the
+   band goes edge to edge; the pitch already clips with overflow:hidden, so it
+   inherits the corner radius for free.
+
+   Each slot carries its own label - GKP, then the outfield subs numbered in
+   the order FPL brings them on - because bench priority is the one thing the
+   card itself cannot show. Slot and card share the 92px cap so a sub is the
+   same size as a starter. */
+.pbench{
+  margin:24px -12px -26px;padding:11px 12px 13px;
+  background:#66923A;
+  border-top:2px solid rgba(255,255,255,.45);
+}
+.pbench-cards{display:flex;justify-content:center;align-items:flex-start;gap:1%;width:100%}
+/* Same basis and cap as a pitch card, so a substitute is drawn at exactly the
+   size of a starter at every width rather than ballooning on a narrow screen. */
+.pbslot{display:flex;flex-direction:column;align-items:center;gap:5px;
+  flex:0 1 var(--pc-basis);max-width:var(--pc-max);min-width:0}
+/* The card fills the slot instead of being capped again, or it would shrink
+   inside a slot that is already at the cap. */
+.pbslot>.pcard{flex:0 0 auto;width:100%;max-width:100%}
+.pbslot-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:#0d1a00;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pbench-title{display:block;text-align:center;margin-top:10px;
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:#0d1a00;font-weight:700;opacity:.75}
+@media(max-width:520px){
+  .pbench{margin:16px -12px -26px;padding:9px 8px 11px}
+  .pbslot{gap:3px}
+  .pbslot-label{font-size:8px;letter-spacing:.04em}
+  .pbench-title{font-size:8px;margin-top:7px}
+}
+
+/* Legacy bench box, still used by nothing on the pitch. */
 .bench-cards{display:flex;justify-content:center;align-items:flex-start;gap:1%;width:100%}
 .benchstrip .pcard{flex:0 1 22%}
 .bench-sep{flex:0 0 4%;align-self:stretch}
-.club-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle;flex:0 0 auto}
+.club-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle;flex:0 0 auto}
 .datasource{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
 .datasource-summary{cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:12px;
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);list-style:none}
@@ -495,7 +558,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   font-weight:700;position:relative;border:1px solid;flex:0 0 auto;
   background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;
 }
-.pdisc{font-size:clamp(9px,21cqw,13px);font-weight:700}
+.pdisc{font-size:clamp(9px,21cqw,17px);font-weight:700}
 .pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
   background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;font-weight:700}
 .capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
@@ -503,10 +566,10 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
 .pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;max-width:100%;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:3px}
-.pcname{font-size:clamp(7.5px,15cqw,9.5px)}
+.pcname{font-size:clamp(7.5px,15cqw,12px)}
 .pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.pcsub{font-size:clamp(6.5px,13.5cqw,8.5px)}
+.pcsub{font-size:clamp(6.5px,13.5cqw,10.5px)}
 .pbadge{
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
@@ -654,7 +717,7 @@ textarea:focus{border-color:var(--accent)}
 .xp-note{padding:6px 20px 8px;font-size:10.5px;line-height:1.35;color:var(--dimmer);border-bottom:1px solid var(--line)}
 .pcnote{font-family:'IBM Plex Mono',monospace;font-size:8px;
   letter-spacing:.06em;color:var(--dim);line-height:1;min-height:8px;text-align:center}
-.pcnote{font-size:clamp(6px,12.5cqw,8px)}
+.pcnote{font-size:clamp(6px,12.5cqw,10px)}
 .pcard.autosub-out{opacity:.5}
 .pcard.autosub-out .pdisc{border-color:var(--dim)!important;filter:grayscale(.7)}
 .pcard.autosub-in .pdisc{box-shadow:0 0 0 2px var(--live)}
@@ -665,12 +728,20 @@ textarea:focus{border-color:var(--accent)}
    inherit whatever width the card has — pitch card or MY TEAM card. */
 .fixrow{display:flex;gap:2px;margin-top:5px;width:100%}
 .fixbox{
-  flex:1 1 0;min-width:0;padding:3px 1px;text-align:center;border-radius:2px;
+  flex:1 1 0;min-width:0;padding:3px 0;text-align:center;border-radius:2px;
   font-family:'IBM Plex Mono',monospace;font-weight:600;line-height:1.25;
   font-size:9px;color:#0d1117;
   overflow:hidden;white-space:nowrap;
+  /* A hairline black edge. The two easy greens sit on a green pitch and the
+     mid grey sits on a dark panel, so without an outline the box merges into
+     whatever is behind it. border-box keeps the border out of the flex width,
+     which also fixes fdr-blank having quietly been 2px wider than its
+     neighbours since it was the only box carrying a border. The horizontal
+     padding goes to 0 to pay for the border on a narrow phone card, where a
+     three-letter club code has barely any room to begin with. */
+  box-sizing:border-box;border:1px solid rgba(0,0,0,.62);
 }
-.fixbox{font-size:clamp(6px,14cqw,9px)}
+.fixbox{font-size:clamp(6px,14cqw,11px)}
 .fixbox.fdr-blank{color:var(--dimmer)}
 .fdr-easy{background:#2ecc71}
 .fdr-easier{background:#27ae60}
@@ -1321,7 +1392,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-31a';
+const APP_BUILD = 'app-2026-08-31d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2820,19 +2891,27 @@ function renderUserTeam(){
       +'</div>';
   }
 
+  // Substitute slots. The label is the one thing the card cannot carry: bench
+  // order decides who comes on first, and it is not derivable from the disc.
+  // Position comes off the player record so it is the canonical POSN string,
+  // never a hand-typed 'GK'.
+  const posOf=p=>{const pl=players.find(x=>x.id===p.element);return pl?pl.pos:''};
+  const slot=(p,label)=>{
+    const c=card(p);
+    return c?'<div class="pbslot"><span class="pbslot-label">'+esc(label)+'</span>'+c+'</div>':'';
+  };
+  const benchSlots=benchGK.map(p=>slot(p,posOf(p)))
+    .concat(benchOut.map((p,i)=>slot(p,(i+1)+'. '+posOf(p)))).join('');
+
   html+='<div style="padding:0 10px 4px">'
     +'<div class="pitch">'
-      +'<div class="prow-xi">'+byPos('GKP').map(card).join('')+'</div>'
+      +'<div class="prow-xi prow-gkp">'+byPos('GKP').map(card).join('')+'</div>'
       +'<div class="prow-xi">'+byPos('DEF').map(card).join('')+'</div>'
       +'<div class="prow-xi">'+byPos('MID').map(card).join('')+'</div>'
-      +'<div class="prow-xi">'+byPos('FWD').map(card).join('')+'</div>'
-    +'</div>'
-    +'<div class="benchstrip">'
-      +'<span class="bench-label">'+t('sqBench')+'</span>'
-      +'<div class="bench-cards">'
-        +benchGK.map(card).join('')
-        +(benchGK.length?'<div class="bench-sep"></div>':'')
-        +benchOut.map(card).join('')
+      +'<div class="prow-xi prow-fwd">'+byPos('FWD').map(card).join('')+'</div>'
+      +'<div class="pbench">'
+        +'<div class="pbench-cards">'+benchSlots+'</div>'
+        +'<span class="pbench-title">'+t('sqBench')+'</span>'
       +'</div>'
     +'</div>'
     +'</div>'
@@ -3394,6 +3473,15 @@ function renderXI(){
   const order={GKP:0,DEF:1,MID:2,FWD:3};
   const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||b.score-a.score);
 
+  // Substitute slots, same shape as MY TEAM: keeper first, then the outfield
+  // subs numbered in bench order. buildXI already returns bench as
+  // [gk, ...outfield], so the order here is the order it chose.
+  const bGk=bench.filter(b=>b.pos==='GKP'), bOut=bench.filter(b=>b.pos!=='GKP');
+  const bslot=(p,label)=>'<div class="pbslot"><span class="pbslot-label">'
+    +esc(label)+'</span>'+disc(p)+'</div>';
+  const benchSlots=bGk.map(p=>bslot(p,p.pos))
+    .concat(bOut.map((p,i)=>bslot(p,(i+1)+'. '+p.pos))).join('');
+
   $('xiBody').innerHTML=
     lockBar
     +'<div class="xistats">'
@@ -3404,17 +3492,13 @@ function renderXI(){
     +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:18px">'+cap.name+(cap.status!=='a'?'<span class="pbadge '+(cap.status==='d'?'doubt':cap.status==='i'?'inj':cap.status==='s'?'inj':cap.status==='u'?'unav':'new')+'" style="margin-left:6px;font-size:10px" title="'+(cap.status==='d'?'Doubt':cap.status==='i'?'Injured':cap.status==='s'?'Suspended':cap.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</b></div>'
     +'</div>'
     +'<div class="pitch">'
-      +'<div class="prow-xi">'+gkX.map(disc).join('')+'</div>'
+      +'<div class="prow-xi prow-gkp">'+gkX.map(disc).join('')+'</div>'
       +'<div class="prow-xi">'+dfX.map(disc).join('')+'</div>'
       +'<div class="prow-xi">'+mdX.map(disc).join('')+'</div>'
-      +'<div class="prow-xi">'+fwX.map(disc).join('')+'</div>'
-    +'</div>'
-    +'<div class="benchstrip">'
-      +'<span class="bench-label">'+t('sqBench')+'</span>'
-      +'<div class="bench-cards">'
-        +bench.filter(b=>b.pos==='GKP').map(disc).join('')
-        +(bench.some(b=>b.pos==='GKP')?'<div class="bench-sep"></div>':'')
-        +bench.filter(b=>b.pos!=='GKP').map(disc).join('')
+      +'<div class="prow-xi prow-fwd">'+fwX.map(disc).join('')+'</div>'
+      +'<div class="pbench">'
+        +'<div class="pbench-cards">'+benchSlots+'</div>'
+        +'<span class="pbench-title">'+t('sqBench')+'</span>'
       +'</div>'
     +'</div>'
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
