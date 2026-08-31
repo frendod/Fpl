@@ -887,6 +887,43 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
   .lg-name{font-size:13.5px}
 }
 
+/* ─── STANDINGS TABLE, NARROW SCREENS ──────────────────────
+   Fixed layout so the two points columns are always drawn at their
+   declared width. Long manager / team names clip with an ellipsis
+   instead of pushing GW and TOTAL off the right edge. */
+table.lg-stand{table-layout:fixed}
+table.lg-stand th,table.lg-stand td{overflow:hidden;text-overflow:ellipsis}
+table.lg-stand th:nth-child(1),table.lg-stand td:nth-child(1){width:60px}
+table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){width:46px}
+table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){width:24%}
+table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:60px}
+table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:68px}
+
+.lg-mgrwrap{display:flex;align-items:center;gap:6px;min-width:0}
+.lg-mgrname{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-mgrwrap .lg-tag,.lg-mgrwrap .lg-chip{margin-left:0;flex:0 0 auto}
+/* Team name folded under the manager once its own column is dropped. */
+.lg-mgrteam{display:none}
+
+@media(max-width:620px){
+  table.lg-stand th,table.lg-stand td{padding-left:8px;padding-right:8px}
+  table.lg-stand tbody tr.lg-pickrow td:first-child,
+  table.lg-stand tbody tr.dead td:first-child{padding-left:22px}
+  table.lg-stand tbody tr.lg-pickrow td:first-child::before{left:6px}
+  table.lg-stand th:nth-child(1),table.lg-stand td:nth-child(1){width:48px}
+  table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){width:36px}
+  table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){display:none}
+  table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:46px}
+  table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:54px}
+  .lg-mgrteam{display:block;font-size:10.5px;color:var(--dim);margin-top:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lg-me .lg-mgrteam{color:var(--accent)}
+}
+@media(max-width:400px){
+  table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){display:none}
+  table.lg-stand tbody td{font-size:12px}
+}
+
 /* ─── LEAGUE SQUAD TRAY ────────────────────────────────── */
 tbody tr.lg-pickrow{cursor:pointer;transition:background .12s}
 tbody tr.lg-pickrow:hover{background:rgba(232,228,220,.03)}
@@ -1240,7 +1277,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-30n';
+const APP_BUILD = 'app-2026-08-30o';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4976,7 +5013,7 @@ function lgPaneOwn(lid){
     +(st.key===k?(' aria-sort="'+(st.asc?'ascending':'descending')+'"'):'')
     +' data-lgstand="'+k+'" data-lgid="'+lid+'">'+esc(label)+'</th>';
 
-  const standings='<div class="tscroll"><table><thead><tr>'
+  const standings='<div class="tscroll"><table class="lg-stand"><thead><tr>'
     +sth('rank',t('lgRk'))+'<th></th><th>'+esc(t('lgManager'))+'</th>'
     +'<th>'+esc(t('lgTeamCol'))+'</th>'+sth('gwp',t('lgGwCol'))+sth('tot',t('lgTotalCol'))
     +'</tr></thead><tbody>'
@@ -4988,9 +5025,12 @@ function lgPaneOwn(lid){
       return '<tr class="'+cls+'"'+(dead?'':' data-lgpickrow="'+r.entry+'" data-lgid="'+lid+'"')+'>'
         +'<td class="mono">'+r.rank+'</td>'
         +'<td class="mono">'+lgMove(r.rank,r.last)+'</td>'
-        +'<td>'+esc(r.mgr)+(isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
+        +'<td><span class="lg-mgrwrap">'
+        +   '<span class="lg-mgrname">'+esc(r.mgr)+'</span>'
+        +   (isMe?'<span class="lg-tag">'+esc(t('lgYouTag'))+'</span>':'')
         +   (r.chip?'<span class="lg-chip">'+esc(lgChip(r.chip))+'</span>':'')
-        +   (dead?'<span class="lg-chip lg-nopicks">'+esc(t('lgNoPicks'))+'</span>':'')+'</td>'
+        +   (dead?'<span class="lg-chip lg-nopicks">'+esc(t('lgNoPicks'))+'</span>':'')
+        + '</span><span class="lg-mgrteam">'+esc(r.team)+'</span></td>'
         +'<td>'+esc(r.team)+'</td>'
         +'<td class="mono">'+(r.gwp==null?'\u2014':r.gwp)+'</td>'
         +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td></tr>';
