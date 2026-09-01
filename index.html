@@ -605,6 +605,20 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
    than size for the longest and leave short names looking lost, the type steps
    down in two bands by character count. The renderer applies the class, so the
    step is deterministic rather than a guess about rendered width. */
+/* The autosub note lives inside the plate and is taken OUT OF FLOW. In flow it
+   was the second thing throwing the rows off: .pcnote:empty is display:none, so
+   a card that had a note was taller than its neighbours and its fixture block
+   sat ~14px lower. Absolute means present or absent costs nothing, and the note
+   takes the price line's place on the one card in a squad that has one, which
+   is the line worth losing when a player has been substituted. The price is
+   hidden with visibility rather than display, so it still reserves its space
+   and the plate height is unchanged whether a note is there or not. */
+.pcinfo .pcnote{
+  position:absolute;left:1px;right:1px;bottom:3px;
+  color:#0d1a00;font-weight:700;line-height:1.25;
+  text-align:center;min-height:0;
+}
+.pcard.autosub-in .pcsub,.pcard.autosub-out .pcsub{visibility:hidden}
 .pcinfo .pcname.long{font-size:clamp(6px,12.6cqw,14px)}
 .pcinfo .pcname.vlong{font-size:clamp(5.5px,10.8cqw,12px);letter-spacing:-.2px}
 
@@ -619,13 +633,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;line-height:1;
   display:flex;align-items:center;justify-content:center;
 }
-/* BEST XI also shows a minutes-played percentage. It cannot share 10 o'clock
-   with the status flag or 1 o'clock with the armband, and the disc's lower
-   edge is now tangent to the plate, so it takes the mid-left instead. */
-.pdisc .pbadge.pctmark{
-  top:50%;left:-6px;transform:translateY(-50%);
-  width:22px;height:22px;font-size:9px;
-}
+
 .pbadge{
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
@@ -777,7 +785,11 @@ textarea:focus{border-color:var(--accent)}
 .pcard.autosub-out{opacity:.5}
 .pcard.autosub-out .pdisc{border-color:var(--dim)!important;filter:grayscale(.7)}
 .pcard.autosub-in .pdisc{box-shadow:0 0 0 2px var(--live)}
-.pcard.autosub-in .pcnote{color:var(--live)}
+/* --live is #ffffff in the dark theme, which was fine when the note sat on
+   green and is invisible now that it sits on a white plate. A fixed green is
+   used instead of a theme token because the plate is white in every theme. */
+.pcard.autosub-in .pcinfo .pcnote{color:#12703a}
+.pcard.autosub-out .pcinfo .pcnote{color:#8a1f1f}
 .capmark.capmark-vc{background:var(--dim);color:var(--ink)}
 
 /* Next-3-fixtures strip. Boxes divide the parent card evenly, so they
@@ -1483,7 +1495,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-31i';
+const APP_BUILD = 'app-2026-08-31k';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2260,6 +2272,17 @@ function getStatusBadge(status){
   return info[LANG==='es'?'es':'en'];
 }
 
+/* Minutes played as a share of the minutes available, 0-100.
+   The clamp is the point. Three call sites had an inlined, UNCLAMPED copy of
+   this sum, and state.gwPlayed counts only FINISHED events - so while a
+   gameweek is still being scored the numerator includes it and the denominator
+   does not, and a player who has started twice reads 200%. Returns null rather
+   than a dash so callers decide how to render "no data yet". */
+function playedPct(p){
+  if(state.gwPlayed===0)return null;
+  return Math.round(clamp((p.minutes||0)/(state.gwPlayed*90),0,1)*100);
+}
+
 function getPlayingPercentage(p){
   if(state.gwPlayed===0)return '—';
   const pct=clamp((p.minutes||0)/(state.gwPlayed*90),0,1);
@@ -2681,12 +2704,17 @@ function getNext3Fixtures(teamId,startGW){
 }
 
 // Get CSS class for FDR color (matches fixture run colors with 5 levels)
-/* Two-band step for the name plate. Character count, not rendered width: the
-   renderer cannot measure text, and a deterministic threshold is easier to
-   reason about than a guess. Thresholds are the tuning knobs if too many names
-   drop to the small size. */
-function nameBand(n){
-  const L=(n||'').length;
+/* One type size for the whole pitch, chosen by the LONGEST name on it.
+   Sizing each name independently was wrong: .pcname is a line box, so a card
+   set at 16.5px is taller than one at 14px, which pushed its plate and its
+   fixture block down and left the rows visibly ragged. Every card in a pitch
+   now gets the same class, so every plate is the same height by construction.
+
+   Character count, not rendered width: the renderer cannot measure text, and a
+   deterministic threshold is easier to reason about than a guess. The two
+   thresholds are the tuning knobs if names drop to the small size too eagerly. */
+function nameBandFor(names){
+  const L=(names||[]).reduce((m,n)=>Math.max(m,(n||'').length),0);
   return L>=12?' vlong':L>=9?' long':'';
 }
 
@@ -2895,6 +2923,13 @@ function renderUserTeam(){
   const benchGK=subs.filter(isGK);
   const benchOut=subs.filter(p=>!isGK(p));
 
+  // Longest name across the whole squad, bench included - the bench sits on the
+  // same pitch, so it has to share the size or the substitute row goes ragged
+  // in the same way the outfield rows did.
+  const nameClass=nameBandFor(picks.map(pk=>{
+    const pl=players.find(x=>x.id===pk.element); return pl?pl.name:'';
+  }));
+
   // One card renderer for pitch and bench alike, mirroring the Best XI disc.
   const card=p=>{
     const player=players.find(pl=>pl.id===p.element);
@@ -2935,10 +2970,10 @@ function renderUserTeam(){
     return '<div class="pcard phist" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
       +'<div class="pdisc '+player.pos+'" style="border-bottom:3px solid '+col+'">'
         +'<span data-gw-score>'+gwScore+'</span>'+capMark+injBadge+'</div>'
-      +'<div class="pcnote" data-note></div>'
       +'<div class="pcinfo">'
-        +'<div class="pcname'+nameBand(player.name)+'">'+player.name+'</div>'
+        +'<div class="pcname'+nameClass+'">'+player.name+'</div>'
         +'<div class="pcsub">£'+player.price.toFixed(1)+'</div>'
+        +'<div class="pcnote" data-note></div>'
       +'</div>'
       +fixBoxes
       +'</div>';
@@ -3511,11 +3546,12 @@ function renderXI(){
   const inXI=id=>xi.some(p=>p.id===id);
   const clubs=Object.keys(clubCount(squad)).length;
 
+  const nameClass=nameBandFor(squad.map(p=>p.name));
+
   const disc=p=>{
     const short=(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name||'';
     const col=clubColor(short);
-    const playingPct=getPlayingPercentage(p);
-    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const pct=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
 
     const next3=getNext3Fixtures(p.teamId);
@@ -3532,11 +3568,14 @@ function renderXI(){
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
-      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')
-      +(pctNum==='—'?'':'<span class="pbadge pctmark '+badgeClass+'">'+pctNum+'</span>')+'</div>'
+      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')+'</div>'
       +'<div class="pcinfo">'
-        +'<div class="pcname'+nameBand(p.name)+'">'+p.name+'</div>'
-        +'<div class="pcsub">£'+p.price.toFixed(1)+'</div>'
+        +'<div class="pcname'+nameClass+'">'+p.name+'</div>'
+        // Minutes share rides on the price line rather than as a third badge.
+        // A badge at mid-left was the only free spot left on the disc and it
+        // sat straight over the leading digits of the score, so a 5.8 read as
+        // "200 .8" - the number it obscured mattered more than the one it added.
+        +'<div class="pcsub">£'+p.price.toFixed(1)+(pct==null?'':' \u00b7 '+pct+'%')+'</div>'
       +'</div>'
       +fixBoxes+'</div>';
   };
@@ -3545,7 +3584,7 @@ function renderXI(){
 
   // squad table row (marks starters vs bench, with a lock star)
   const row=p=>{
-    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const pctNum=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     const statusText=p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'';
     return '<tr class="phist'+(inXI(p.id)?' xi-row':' bench-row')+'" data-pid="'+p.id
@@ -3554,7 +3593,7 @@ function renderXI(){
       +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock">'
         +(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
       +'<td style="display:flex;align-items:center;gap:6px"><span class="club-dot" style="background:'+clubColor((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name)+'"></span><span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
-      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
+      +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
       +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
       +'<td class="mono">'+p.price.toFixed(1)+'</td>'
       +'<td class="sc">'+p.score.toFixed(1)+'</td>'
@@ -3694,13 +3733,13 @@ function renderTable(){
 
   $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
     const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
-    const pctNum=state.gwPlayed===0?'—':Math.round((p.minutes||0)/(state.gwPlayed*90)*100);
+    const pctNum=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
     +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
     +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name
     +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')
-    +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
+    +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
     +'<td class="'+cls+'">'+p.score.toFixed(1)+'</td>'
