@@ -425,10 +425,17 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .pitch{
   /* One place to change card size. --pc-w is what a card actually resolves to
      at the current width, and every pitch marking is derived from it. */
-  --pc-basis:19.2%;
-  --pc-max:100px;
-  --pc-w:min(19.2cqw, 100px);
+  /* The PITCH is capped, not the card. Capping the card meant every width from
+     a small tablet upward drew an identical 118px card with up to 47% of the
+     pitch left as empty green, and the type sat pinned at its clamp ceilings
+     so it could not grow either. Constraining the pitch keeps the card a
+     constant 19.68% of it, so the whole thing scales as one unit and --pc-max
+     is only a backstop. */
+  --pc-basis:19.68%;
+  --pc-max:170px;
+  --pc-w:min(19.68cqw, 170px);
   --dh:calc(var(--pc-w) * .34);   /* half a disc: 68% of the card, halved */
+  max-width:860px;margin-left:auto;margin-right:auto;
   background-color:#75B522;
   background-image:
     repeating-linear-gradient(180deg,
@@ -475,8 +482,6 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 /* The note slot is only filled for autosubs. Left at min-height it adds
    8px plus a 3px gap of dead space under every disc. */
 .pcnote:empty{display:none}
-.pitch .pcname{color:#000000;font-weight:700}
-.pitch .pcsub{color:#0d1a00;font-weight:700}
 .pitch .pcnote{color:#0d1a00;font-weight:700}
 .pitch .fdr-blank{border-color:rgba(0,0,0,.4)}
 .pitch .fixbox.fdr-blank{color:#0d1a00}
@@ -485,7 +490,7 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
    Percentages resolve against .prow-xi, so the same rule fits any
    container — no need to know the surrounding padding. max-width holds
    the original 62px on desktop. */
-.prow-xi{display:flex;justify-content:center;gap:1%;margin-bottom:17px;flex-wrap:wrap;
+.prow-xi{display:flex;justify-content:center;gap:.4%;margin-bottom:8px;flex-wrap:wrap;
   position:relative;container-type:inline-size}
 .prow-fwd{margin-bottom:0}
 /* max-width was 62px, which on a full-width desktop pitch was the binding
@@ -493,7 +498,11 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
    the size and the cqw-based type never got near its clamp ceiling. The disc
    read at 13px and the name at 9.5px on a pitch a metre wide. 92px lets the
    clamps do their job; the markings below are re-anchored to match. */
-.pcard{display:flex;flex-direction:column;align-items:center;gap:4px;
+.pcard{display:flex;flex-direction:column;align-items:center;
+  /* A flex gap is not a margin and cannot be cancelled by a negative margin on
+     one child alone. Held as a variable so .pcinfo and .fixrow can subtract
+     exactly it rather than guess at the number. */
+  --pcard-gap:4px;gap:var(--pcard-gap);
   flex:0 1 var(--pc-basis);max-width:var(--pc-max);min-width:0;container-type:inline-size}
 /* ─── SUBSTITUTES BAND ───────────────────────────────────
    The bench now sits on the pitch rather than in a dashed box below it, on a
@@ -525,11 +534,11 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 /* The card fills the slot instead of being capped again, or it would shrink
    inside a slot that is already at the cap. */
 .pbslot>.pcard{flex:0 0 auto;width:100%;max-width:100%}
-.pbslot-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+.pbslot-label{font-family:'IBM Plex Mono',monospace;font-size:11px;
   letter-spacing:.09em;text-transform:uppercase;color:#0d1a00;font-weight:700;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .pbench-title{display:block;text-align:center;margin-top:10px;
-  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
   text-transform:uppercase;color:#0d1a00;font-weight:700;opacity:.75}
 @media(max-width:520px){
   .pbench{margin:16px -12px -26px;padding:9px 8px 11px}
@@ -558,10 +567,10 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   font-weight:700;position:relative;border:1px solid;flex:0 0 auto;
   background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;
 }
-.pdisc{font-size:clamp(9px,21cqw,17px);font-weight:700}
+.pdisc{font-size:clamp(9px,21cqw,24px);font-weight:700}
 .pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
   background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;font-weight:700}
-.capmark{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
+.capmark{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;
   background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
 .pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
@@ -570,6 +579,53 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .pcsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--dimmer);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .pcsub{font-size:clamp(6.5px,13.5cqw,10.5px)}
+
+/* ─── NAME + PRICE PLATE ─────────────────────────────────
+   Name and price sit on a white plate the same width as the fixture block, so
+   a card reads as one stacked unit rather than three ragged centred lines. The
+   negative top margin cancels the card's column gap so the plate's top edge is
+   tangent to the bottom of the disc.
+
+   The club dot that used to precede the name is gone from pitch cards: it was
+   an inline element in a centred flex row, so it pushed the name off-centre by
+   half its own width plus the gap. Club colour is not lost - the disc carries
+   it as a 3px bottom border. The dot is still used in the squad table, where
+   there is no centring to disturb. */
+.pcinfo{
+  width:96%;margin:calc(-1 * var(--pcard-gap)) auto 0;box-sizing:border-box;
+  background:#ffffff;border:1px solid rgba(0,0,0,.62);border-radius:2px 2px 0 0;
+  padding:3px 2px;position:relative;
+}
+.pcinfo .pcname{color:#000;font-weight:700;margin:0;font-size:clamp(7px,15cqw,16.5px)}
+.pcinfo .pcsub{color:#000;font-weight:700;margin:0;text-align:center;
+  font-size:clamp(6px,12.5cqw,13.5px)}
+
+/* Names do not all fit at one size and no amount of widening changes that:
+   "Calvert-Lewin" is three times the width of "Diop" in the same box. Rather
+   than size for the longest and leave short names looking lost, the type steps
+   down in two bands by character count. The renderer applies the class, so the
+   step is deterministic rather than a guess about rendered width. */
+.pcinfo .pcname.long{font-size:clamp(6px,12.6cqw,14px)}
+.pcinfo .pcname.vlong{font-size:clamp(5.5px,10.8cqw,12px);letter-spacing:-.2px}
+
+/* Status flag rides on the disc at 10 o'clock, mirroring the armband at 1. It
+   sheds three things from the base .pbadge to sit there: the shield clip-path
+   (a clip cuts the border off, and the point is to match the round armband),
+   the inline margin, and position:relative. Status colours carry over. */
+.pdisc .pbadge{
+  position:absolute;top:-4px;left:-4px;margin:0;
+  width:19px;height:19px;border-radius:50%;clip-path:none;
+  border:1.5px solid var(--ink);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+/* BEST XI also shows a minutes-played percentage. It cannot share 10 o'clock
+   with the status flag or 1 o'clock with the armband, and the disc's lower
+   edge is now tangent to the plate, so it takes the mid-left instead. */
+.pdisc .pbadge.pctmark{
+  top:50%;left:-6px;transform:translateY(-50%);
+  width:22px;height:22px;font-size:9px;
+}
 .pbadge{
   width:18px;height:18px;display:flex;align-items:center;justify-content:center;
   font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);
@@ -726,12 +782,40 @@ textarea:focus{border-color:var(--accent)}
 
 /* Next-3-fixtures strip. Boxes divide the parent card evenly, so they
    inherit whatever width the card has — pitch card or MY TEAM card. */
-.fixrow{display:flex;gap:2px;margin-top:5px;width:100%}
+/* The three fixtures belong to one player, so they have to read as a block.
+   They did not: the gap inside a trio was 2px and the gap to the next player's
+   trio was the row's 1% card gap, which on a phone is under 4px. Fifteen boxes
+   across a midfield row ran together as one strip.
+
+   The row gap cannot simply grow - five cards at 19.2% plus four 1% gaps is
+   exactly 100% at narrow widths, so a wider gap wraps the row. So the trio is
+   inset instead: the three butt together as one block, with 6% of dead space
+   at each end.
+   The inset is a percentage, not a fixed px, for two reasons: it keeps the
+   separation proportional on a phone instead of eating a fixed slice of an
+   already narrow card, and it keeps box width a constant fraction of card
+   width, which is what lets .fixbox size its type off the card at all. */
+/* Cancels the card's column gap, then pulls 1px further so the plate's bottom
+   border and the fixtures' top border collapse into one hairline. 96% rather
+   than 88%: separation between players now comes from the reduced row gap, and
+   that 8% was width the names could not afford. */
+.fixrow{display:flex;gap:0;margin:calc(-1px - var(--pcard-gap)) auto 0;width:96%}
+.fixrow .fixbox:first-child{border-radius:0 0 0 2px}
+.fixrow .fixbox:last-child{border-radius:0 0 2px 0}
 .fixbox{
   flex:1 1 0;min-width:0;padding:3px 0;text-align:center;border-radius:2px;
   font-family:'IBM Plex Mono',monospace;font-weight:600;line-height:1.25;
   font-size:9px;color:#0d1117;
   overflow:hidden;white-space:nowrap;
+  /* Type stays sized off the .pcard, not off this box. Making .fixbox its own
+     container does not work: container query units resolve against an
+     element's nearest ANCESTOR container, never against itself, so cqw here
+     would still measure the card while reading as though it measured the box.
+     The card is a valid proxy only because the trio is inset by a percentage
+     rather than a fixed px, which keeps box width a constant fraction of card
+     width. 13cqw leaves a three-character club code room to fit at every size;
+     it was 14cqw, which was a hair too big once the inset appeared. */
+  font-size:clamp(6px,14cqw,15px);
   /* A hairline black edge. The two easy greens sit on a green pitch and the
      mid grey sits on a dark panel, so without an outline the box merges into
      whatever is behind it. border-box keeps the border out of the flex width,
@@ -741,7 +825,14 @@ textarea:focus{border-color:var(--accent)}
      three-letter club code has barely any room to begin with. */
   box-sizing:border-box;border:1px solid rgba(0,0,0,.62);
 }
-.fixbox{font-size:clamp(6px,14cqw,11px)}
+/* The trio reads as a single segmented block. The -1px pulls each box onto its
+   neighbour's border so the join is one hairline rather than two stacked, and
+   only the outer corners keep the radius - rounding every box would leave four
+   little notches down the middle of the block. */
+.fixbox+.fixbox{margin-left:-1px}
+.fixrow .fixbox{border-radius:0}
+.fixrow .fixbox:first-child{border-radius:2px 0 0 2px}
+.fixrow .fixbox:last-child{border-radius:0 2px 2px 0}
 .fixbox.fdr-blank{color:var(--dimmer)}
 .fdr-easy{background:#2ecc71}
 .fdr-easier{background:#27ae60}
@@ -1392,7 +1483,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-31d';
+const APP_BUILD = 'app-2026-08-31i';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2590,6 +2681,15 @@ function getNext3Fixtures(teamId,startGW){
 }
 
 // Get CSS class for FDR color (matches fixture run colors with 5 levels)
+/* Two-band step for the name plate. Character count, not rendered width: the
+   renderer cannot measure text, and a deterministic threshold is easier to
+   reason about than a guess. Thresholds are the tuning knobs if too many names
+   drop to the small size. */
+function nameBand(n){
+  const L=(n||'').length;
+  return L>=12?' vlong':L>=9?' long':'';
+}
+
 function getFDRClass(difficulty){
   // FDR levels: 1=easy (bright green), 2=easier (dark green), 3=even (white), 4=harder (dark red), 5=hard (bright red)
   let baseClass;
@@ -2803,16 +2903,6 @@ function renderUserTeam(){
     const short=teamsMap[player.teamId]||player.club;
     const col=clubColor(short);
 
-    // opponent for the gameweek being viewed
-    let opp='—';
-    if(fixtures&&fixtures.length){
-      const fx=fixtures.find(f=>f.event===userTeam.gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
-      if(fx){
-        const isH=fx.team_h===player.teamId;
-        opp=(teamsMap[isH?fx.team_a:fx.team_h]||'?')+(isH?' H':' A');
-      }
-    }
-
     // A future gameweek has no result, so show expected points rather than
     // a misleading zero. Either way the armband doubles (or triples) the figure
     // shown, so the card matches what the player contributes to the total.
@@ -2830,7 +2920,8 @@ function renderUserTeam(){
 
     const badgeClass=player.status==='a'?'avail':player.status==='d'?'doubt'
       :player.status==='i'||player.status==='s'?'inj':player.status==='u'?'unav':'new';
-    const injBadge=player.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'';
+    // No inline font-size override: the disc rule sizes it now.
+    const injBadge=player.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'';
 
     const next3=getNext3Fixtures(player.teamId,userTeam.gw);
     let fixBoxes='<div class="fixrow">';
@@ -2843,10 +2934,12 @@ function renderUserTeam(){
 
     return '<div class="pcard phist" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
       +'<div class="pdisc '+player.pos+'" style="border-bottom:3px solid '+col+'">'
-        +'<span data-gw-score>'+gwScore+'</span>'+capMark+'</div>'
+        +'<span data-gw-score>'+gwScore+'</span>'+capMark+injBadge+'</div>'
       +'<div class="pcnote" data-note></div>'
-      +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+player.name+injBadge+'</div>'
-      +'<div class="pcsub">£'+player.price.toFixed(1)+' · '+opp+'</div>'
+      +'<div class="pcinfo">'
+        +'<div class="pcname'+nameBand(player.name)+'">'+player.name+'</div>'
+        +'<div class="pcsub">£'+player.price.toFixed(1)+'</div>'
+      +'</div>'
       +fixBoxes
       +'</div>';
   };
@@ -3419,11 +3512,6 @@ function renderXI(){
   const clubs=Object.keys(clubCount(squad)).length;
 
   const disc=p=>{
-    const fx=fixtures.find(f=>f.event===state.nextGW&&(f.team_h===p.teamId||f.team_a===p.teamId));
-    let opp='—';
-    if(fx){const h=fx.team_h===p.teamId;
-      const o=bootstrap.teams.find(t=>t.id===(h?fx.team_a:fx.team_h));
-      opp=((o||{}).short_name||'?')+(h?' H':' A')}
     const short=(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name||'';
     const col=clubColor(short);
     const playingPct=getPlayingPercentage(p);
@@ -3443,11 +3531,13 @@ function renderXI(){
 
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
-      +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')+'</div>'
-      +'<div class="pcname"><span class="club-dot" style="background:'+col+'"></span>'+p.name
-      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="font-size:9px">!</span>':'')
-      +(pctNum==='—'?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div>'
-      +'<div class="pcsub">£'+p.price.toFixed(1)+' · '+opp+'</div>'
+      +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
+      +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')
+      +(pctNum==='—'?'':'<span class="pbadge pctmark '+badgeClass+'">'+pctNum+'</span>')+'</div>'
+      +'<div class="pcinfo">'
+        +'<div class="pcname'+nameBand(p.name)+'">'+p.name+'</div>'
+        +'<div class="pcsub">£'+p.price.toFixed(1)+'</div>'
+      +'</div>'
       +fixBoxes+'</div>';
   };
   const gkX=xi.filter(p=>p.pos==='GKP'), dfX=xi.filter(p=>p.pos==='DEF'),
