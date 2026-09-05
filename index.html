@@ -1518,7 +1518,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-05a';
+const APP_BUILD = 'app-2026-09-05b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2264,12 +2264,134 @@ function fdrFor(teamId,gws){
   return{avg:sum/fs.length,homeShare:home/fs.length,count:fs.length,known:true};
 }
 
+/* ══ MINUTES WINDOW ════════════════════════════════════
+   xmins-2026-09-05d
+
+   Rolling four-gameweek expected minutes, read from the committed snapshot
+   files the GitHub Action writes to history/fpl/<season>/post/gw-N.json.
+
+   Why this exists: minutesSecurity() derived its rate term from SEASON-TO-DATE
+   starts share. Backtested walk-forward over 2025-26 and 2024-25, window
+   length matters monotonically — 4 gameweeks beat 6, beat 8, beat 10, on both
+   RMSE and Brier, in both seasons. Season-to-date is the far end of that
+   curve: by GW30 it is still averaging in a role the player lost in August.
+
+   Two other findings are baked in below:
+
+   - Separating P(start) from minutes-given-start. The previous approach keyed
+     off a 60-minute threshold, which scores a reliable 45-minute substitute as
+     a zero. That single choice produced a stable -11.5 minute bias across both
+     seasons tested.
+
+   - A hard floor for players with no appearance in the window. The symmetric
+     shrinkage prior lifts them to ~15 expected minutes; the measured outcome
+     for that group is 1.1 minutes with P(60+) of 0.01, over 12,088 gameweeks.
+     It is the largest group in the pool and the largest single error. Left in,
+     it would let out-of-favour players compete for a squad place on price.
+
+   Loading is progressive: boot never waits on it, a missing or partial set of
+   files falls back to the previous season-to-date behaviour, and a successful
+   load triggers one rescore. Nothing here can prevent the app starting.
+*/
+const MINWIN = {
+  WINDOW: 4,
+  PRIOR: 2.0,       // shrinkage pseudo-count; tuned, and optimal for starters too
+  SUB_MINS: 18,     // fallback for a sub with no sub appearances in the window
+  COLD: 1.5,        // no appearance at all in the window; measured mean is 1.1
+  BASE: { GKP: 88, DEF: 76, MID: 67, FWD: 72 },
+
+  status: 'idle',   // idle | loading | ready | unavailable
+  rows: null,       // { [elementId]: [{minutes,starts}, ...] }
+  loaded: [],       // gameweeks actually retrieved
+
+  /* FPL labels a season by its starting year: Aug 2026 onward is 2026-27.
+     Matches the folder naming in fpl-snapshot.mjs. */
+  season(){
+    const d = new Date(), y = d.getUTCFullYear();
+    const s = d.getUTCMonth() >= 6 ? y : y - 1;
+    return s + '-' + String((s + 1) % 100).padStart(2, '0');
+  },
+
+  async ensure(){
+    if (this.status !== 'idle') return;
+    this.status = 'loading';
+    const next = state.nextGW || 1;
+    const want = [];
+    for (let g = next - this.WINDOW; g < next; g++) if (g >= 1) want.push(g);
+    if (!want.length) { this.status = 'unavailable'; return; }
+
+    const base = './history/fpl/' + this.season() + '/post/';
+    const rows = {};
+    const got = [];
+    /* Missing files are expected, not exceptional — early season, or a
+       gameweek the Action has not settled yet. Take what is there. */
+    await Promise.all(want.map(async g => {
+      try{
+        const r = await fetch(base + 'gw-' + g + '.json', { cache: 'force-cache' });
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!j || !j.players) return;
+        got.push(g);
+        for (const id in j.players){
+          const p = j.players[id];
+          (rows[id] || (rows[id] = [])).push({
+            minutes: Number(p.minutes) || 0,
+            starts: Number(p.starts) || 0,
+          });
+        }
+      }catch(e){ /* offline, or file absent; fallback covers it */ }
+    }));
+
+    if (!got.length) { this.status = 'unavailable'; return; }
+    this.rows = rows; this.loaded = got.sort((a,b)=>a-b); this.status = 'ready';
+  },
+
+  /* Expected minutes for one player, 0-90. Returns null when the window is
+     unusable, so callers can fall back rather than trust a fabricated zero. */
+  xMins(elementId, position){
+    if (this.status !== 'ready') return null;
+    /* Absent from every snapshot is NOT the same as present-and-never-played.
+       A January signing has no rows through no fault of their own; treating
+       them as cold would gate them to nil and hide them from the optimiser
+       for the rest of the season. Return null so the caller falls back to
+       season-to-date, which at least sees their bootstrap record. */
+    const win = this.rows[elementId];
+    if (!win || !win.length) return null;
+
+    const k = win.length;
+    const started = win.filter(h => h.starts === 1).map(h => h.minutes);
+    const subbed  = win.filter(h => h.starts !== 1 && h.minutes > 0).map(h => h.minutes);
+    /* Present in the window but never on the pitch: genuinely out of favour.
+       Measured mean is 1.1 minutes across 12,088 such gameweeks. */
+    if (!started.length && !subbed.length) return this.COLD;
+
+    const pStart = (started.length + this.PRIOR / 2) / (k + this.PRIOR);
+    const pSub   = (subbed.length  + this.PRIOR / 2) / (k + this.PRIOR);
+    const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+    const mStart = started.length ? mean(started) : (this.BASE[position] ?? 67);
+    const mSub   = subbed.length  ? mean(subbed)  : this.SUB_MINS;
+
+    return clamp(pStart * mStart + pSub * mSub, 0, 90);
+  },
+};
+
 /* ══ MINUTES ═══════════════════════════════════════════ */
 function minutesSecurity(p){
   const st={a:1,d:.55,i:.08,s:.08,u:0,n:.15}[p.status];
   const statusMult=st===undefined?.5:st;
   const cop=p.chance_of_playing_next_round;
   const copMult=(cop===null||cop===undefined)?1:clamp(Number(cop),0,100)/100;
+
+  /* Preferred: expected minutes over the last four gameweeks, as a share of a
+     full match. Scales everyone down slightly against the old starts-share
+     (a nailed-on starter reads 0.87 rather than 1.00) because it is an
+     expectation rather than a binary — the shift is close to uniform, so
+     ranking is unaffected while the gate becomes better calibrated. */
+  const xm = MINWIN.xMins(p.id, POSN[p.element_type]);
+  if (xm !== null) return (xm / 90) * statusMult * copMult;
+
+  /* Fallback: season-to-date, the previous behaviour. Used before the snapshot
+     files exist, offline, and on any fetch failure. */
   let rate=.6;                                    // neutral prior
   if(state.gwPlayed>0&&fields.starts){
     const obs=clamp((p.starts||0)/state.gwPlayed,0,1);
@@ -2323,6 +2445,18 @@ function effWeight(key){
 
 /* ══ BUILD & SCORE ═════════════════════════════════════ */
 function build(){
+  if(!window._minwinKicked && state.gwPlayed>0){
+    window._minwinKicked=true;
+    MINWIN.ensure().then(()=>{
+      if(window._minwinRescored)return;
+      window._minwinRescored=true;
+      if(MINWIN.status==='ready'){
+        console.log('xMins window ready — GWs',MINWIN.loaded.join(', '));
+        build(); renderAll();
+      }
+    });
+  }
+
   const teams={}; bootstrap.teams.forEach(t=>teams[t.id]=t);
   const managers=Number(bootstrap.total_players)||0;
   const gws=[state.nextGW,state.nextGW+1,state.nextGW+2];
