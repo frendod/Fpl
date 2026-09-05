@@ -90,10 +90,10 @@ body::before{
   padding-right:calc(20px + env(safe-area-inset-right));
   padding-bottom:calc(90px + env(safe-area-inset-bottom));
 }
-.masthead{padding-top:calc(38px + env(safe-area-inset-top))}
-
 /* ─── MASTHEAD ─────────────────────────────────────────── */
-.masthead{padding:38px 0 0px;border-bottom:1px solid var(--line2)}
+/* NOTE: safe-area inset must live INSIDE this shorthand. A separate
+   .masthead{padding-top:...} rule above gets clobbered by this one. */
+.masthead{padding:calc(38px + env(safe-area-inset-top)) 0 0;border-bottom:1px solid var(--line2)}
 .masthead-bottom{display:flex;gap:20px;align-items:flex-start;margin-top:12px;flex-direction:column}
 .masthead-content{display:flex;gap:12px;align-items:baseline}
 .masthead-toggle{cursor:pointer;user-select:none;font-size:14px;color:var(--dim);transition:color .3s}
@@ -101,10 +101,13 @@ body::before{
 .tagline-box{display:none;margin-top:8px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:3px;font-size:14px;color:var(--dim);line-height:1.5}
 .tagline-box.open{display:block}
 .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}
+.masthead-hero{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;margin-top:12px}
+.masthead-meta{display:flex;gap:24px;align-items:flex-start;min-width:0}
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
-  text-transform:uppercase;color:var(--dim);
+  text-transform:uppercase;color:var(--dim);min-width:0;
 }
+.eyebrow-long{white-space:nowrap}
 .langtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .langbtn, .themebtn{
@@ -131,29 +134,30 @@ body::before{
 .evidence:hover{opacity:.8}
 .evidence-top{
   display:flex;justify-content:flex-start;align-items:center;
-  gap:8px;flex-wrap:nowrap;margin-bottom:0;height:20px;
+  gap:8px;flex-wrap:nowrap;margin-bottom:0;min-height:20px;
 }
 .evidence-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--dim);line-height:1;
+  text-transform:uppercase;color:var(--dim);line-height:1;white-space:nowrap;
 }
 .evidence-state{
   font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
-  transition:color .6s ease;line-height:1;
+  transition:color .6s ease;line-height:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;min-width:0;
 }
 /* Data status section - minimal, collapsed by default */
-.data-status{cursor:pointer;user-select:none;padding:0}
+.data-status{cursor:pointer;user-select:none;padding:0;flex:none}
 .data-status-top{
   display:flex;justify-content:flex-start;align-items:center;
-  gap:6px;flex-wrap:nowrap;margin-bottom:0;height:20px;
+  gap:6px;flex-wrap:nowrap;margin-bottom:0;min-height:20px;
 }
 .data-status-label{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--dim);line-height:1;
+  text-transform:uppercase;color:var(--dim);line-height:1;white-space:nowrap;
 }
 .data-status-icon{
   font-family:'Instrument Serif',serif;font-size:14px;
-  transition:all .2s ease;
+  transition:all .2s ease;flex:none;
   width:16px;display:flex;align-items:center;justify-content:center;
 }
 .data-status-icon.ok{color:#4fc771}
@@ -975,7 +979,26 @@ textarea:focus{border-color:var(--accent)}
   .wgrid{grid-template-columns:1fr}
   .pickgrid{grid-template-columns:1fr}
   .xistats{gap:18px}
-  .masthead{padding:28px 0 18px}
+  /* safe-area must be re-stated here — this shorthand overrides the base rule */
+  .masthead{padding:calc(16px + env(safe-area-inset-top)) 0 14px}
+  .masthead-row{gap:10px;margin-bottom:8px;align-items:center}
+  /* the full name is the first thing to go; season + build stamp are what matter */
+  .eyebrow{font-size:9.5px;letter-spacing:.10em;line-height:1.4}
+  .eyebrow-long{display:none}
+  /* stack the title above the status strip instead of fighting it for width */
+  .masthead-hero{flex-direction:column;gap:10px;margin-top:8px}
+  .masthead-meta{width:100%;gap:14px;align-items:center;justify-content:space-between}
+  .evidence{padding:0}
+  .evidence-label,.data-status-label{font-size:9px;letter-spacing:.10em}
+  .evidence-state{font-size:12.5px}
+  .evidence-note,.data-status-message{max-width:none}
+  .langbtn,.themebtn{padding:5px 9px;font-size:10.5px}
+  .themebtn{font-size:12px;padding:4px 8px}
+}
+@media (max-width:400px){
+  /* last resort at iPhone SE / mini widths */
+  .evidence-label,.data-status-label{font-size:8.5px;letter-spacing:.06em}
+  .masthead-meta{gap:10px}
 }
 /* ─── MY LEAGUES ───────────────────────────────────────── */
 .lg-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;
@@ -1259,7 +1282,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
   <div class="masthead">
     <div class="masthead-row">
-      <div class="eyebrow">Fantasy Premier League · 2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
+      <div class="eyebrow"><span class="eyebrow-long">Fantasy Premier League · </span>2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
       <div style="display:flex;gap:12px;align-items:center">
         <div class="themtoggle" role="group" aria-label="Theme">
           <button class="themebtn" data-theme="dark" aria-pressed="true" onclick="setTheme('dark')" title="Dark">🌙</button>
@@ -1273,9 +1296,9 @@ tbody tr.dead td:first-child{padding-left:26px}
       </div>
     </div>
     <!-- H1 + Evidence Blend + Data Status on same row, right-aligned -->
-    <div style="display:flex;gap:24px;align-items:flex-start;justify-content:space-between;margin-top:12px">
+    <div class="masthead-hero">
       <h1 style="margin:0">⚽ FPL Model</h1>
-      <div style="display:flex;gap:24px;align-items:flex-start">
+      <div class="masthead-meta">
         <div class="evidence" id="evidenceToggle" title="Click to expand">
           <div class="evidence-top">
             <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
@@ -1304,7 +1327,7 @@ tbody tr.dead td:first-child{padding-left:26px}
     </div>
     <div class="masthead-bottom">
       <div class="masthead-content">
-        <span class="masthead-toggle" id="taglineToggle" title="Click to expand">ℹ</span>
+        <span class="masthead-toggle" id="taglineToggle" title="Click to expand" role="button" tabindex="0" aria-label="About">&#8505;&#65038;</span>
         <div class="tagline-box" id="taglineBox">
           <p id="i18n-tagline" style="margin:0;font-size:13px">Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.</p>
         </div>
@@ -1495,7 +1518,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-08-31k';
+const APP_BUILD = 'app-2026-09-05a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
