@@ -1518,7 +1518,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-05b';
+const APP_BUILD = 'app-2026-09-05c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2900,7 +2900,43 @@ function getFDRClass(difficulty){
 // fixture difficulty: easier than average scales up, harder scales down.
 // That adjustment is a rule of thumb, not a model — see the footnote shown
 // alongside it in the UI.
-const XP_FDR_SWING=0.15;
+/* Fixture multipliers on expected points, by position and FDR.
+
+   Replaces a flat +/-0.15 applied in three bands. Measured on 2025-26 and
+   2024-25 (vaastav dataset joined to FPL's own published difficulty), using
+   points relative to each player's OWN average across the season, restricted
+   to appearances of 60+ minutes. Normalising within player is what stops team
+   quality masquerading as a fixture effect — strong teams both score more and
+   draw easier fixtures, so raw means by difficulty are badly confounded.
+
+   Two things the old constant got wrong:
+
+   - It collapsed five FDR levels into three, which throws away exactly the
+     fixtures where the effect is largest. A FDR-5 trip deserves roughly -30%,
+     not -15%.
+   - It applied one multiplier to every position. Defenders swing far harder
+     than midfielders (spread 0.47 and 0.57 across the two seasons, against
+     0.31 and 0.29 for midfielders) because clean sheets are binary and depend
+     entirely on the opposition. One number under-corrects defenders and
+     over-corrects midfielders simultaneously.
+
+   Venue is deliberately absent. Measured within each difficulty band, the home
+   effect was small and changed sign between seasons — FDR already encodes it,
+   since FPL publishes separate home and away difficulty for the same fixture.
+
+   Thin cells (GKP and FWD, which have a quarter of the outfield sample) are
+   shrunk toward the all-position value for that difficulty.
+
+   Caveat worth keeping: these are conditional on the player having played 60+
+   minutes, but ep_next is unconditional. Difficulty should barely affect
+   whether someone plays, so the mismatch is second order — but it is a reason
+   not to read these as exact. */
+const XP_FDR_MULT={
+  GKP:[1.29,1.15,0.99,0.91,0.70],
+  DEF:[1.41,1.20,0.99,0.84,0.64],
+  MID:[1.25,1.13,1.00,0.88,0.77],
+  FWD:[1.32,1.12,1.01,0.84,0.75],
+};
 function projectedPoints(player,gw){
   if(!player)return 0;
   const base=player.epNext||0;
@@ -2913,7 +2949,9 @@ function projectedPoints(player,gw){
     if(fx)diff=(fx.team_h===player.teamId)?fx.team_h_difficulty:fx.team_a_difficulty;
   }
   if(diff==null)return 0;           // blank gameweek: no fixture, no points
-  const mult=diff<=2?1+XP_FDR_SWING:diff>=4?1-XP_FDR_SWING:1;
+
+  const row=XP_FDR_MULT[player.pos]||XP_FDR_MULT.MID;
+  const mult=row[clamp(Math.round(diff),1,5)-1];
   return base*mult;
 }
 
