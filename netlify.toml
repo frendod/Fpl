@@ -1,6 +1,7 @@
 # Site root is served as-is; the app is a single index.html.
 [build]
   publish = "."
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/fpl'"
 
 [functions]
   # modern ESM function syntax
@@ -16,4 +17,10 @@
 [[redirects]]
   from = "/api/player"
   to = "/.netlify/functions/player"
+  status = 200
+
+# League standings and ownership
+[[redirects]]
+  from = "/api/league"
+  to = "/.netlify/functions/league"
   status = 200

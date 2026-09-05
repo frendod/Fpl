@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* fpl-snapshot.mjs — snapshot-2026-09-05b
+/* fpl-snapshot.mjs — snapshot-2026-09-05c
  *
  * Captures FPL API state into history/fpl/ as immutable per-gameweek JSON.
  *
@@ -27,6 +27,10 @@
  *   --season <s>   season folder name (default derived from date)
  *   --force        overwrite files that already exist
  *   --dry          fetch and report, write nothing
+ *   --within <m>   pre only: write nothing unless the deadline is between 0 and
+ *                  m minutes away. Lets a plain hourly cron hit a moving target:
+ *                  deadlines shift by day and time each week, so the script
+ *                  decides whether this is the right hour, not the schedule.
  *
  * RUN probe FIRST. This project has been bitten repeatedly by hand-typed
  * field names. The probe writes untouched responses so the field lists below
@@ -264,7 +268,7 @@ async function capturePost() {
 
     await writeJSON(path, {
       schema: 'fpl-post/1',
-      stamp: 'snapshot-2026-09-05b',
+      stamp: 'snapshot-2026-09-05c',
       season, gw,
       capturedAt: new Date().toISOString(),
       dataChecked: true,
@@ -293,7 +297,20 @@ async function capturePre() {
   const now = new Date();
   const late = deadline && now > deadline;
 
-  console.log(`pre: gameweek ${next.id}, deadline ${next.deadline_time}`);
+  const mins = deadline ? Math.round((deadline - now) / 60000) : null;
+  console.log(`pre: gameweek ${next.id}, deadline ${next.deadline_time} (${mins} min away)`);
+
+  /* Window guard. Team news lands in the last 48h before a deadline and moves
+   * chance_of_playing, so a snapshot taken days early carries systematically
+   * worse availability information than the live model will have. Capturing
+   * close to the deadline keeps training and production symmetric. */
+  const within = parseInt(flag('within', ''), 10);
+  if (!Number.isNaN(within)) {
+    if (mins == null) { console.log('  no deadline on this event, skipping'); return; }
+    if (mins > within) { console.log(`  outside ${within} min window, skipping`); return; }
+    if (mins < 0 && !FORCE) { console.log('  deadline passed, skipping (use --force to override)'); return; }
+  }
+
   if (late) {
     console.warn('  ! deadline has PASSED — ep_next may already be post-match revised');
     console.warn('  ! writing anyway, flagged lookahead:true; do not benchmark on this week');
@@ -311,11 +328,11 @@ async function capturePre() {
 
   await writeJSON(path, {
     schema: 'fpl-pre/1',
-    stamp: 'snapshot-2026-09-05b',
+    stamp: 'snapshot-2026-09-05c',
     season, gw: next.id,
     capturedAt: now.toISOString(),
     deadline: next.deadline_time,
-    minutesBeforeDeadline: deadline ? Math.round((deadline - now) / 60000) : null,
+    minutesBeforeDeadline: mins,
     lookahead: !!late,
     synthetic: false,
     counts: { players: Object.keys(players).length, fixtures: fixtures.length },
@@ -337,7 +354,7 @@ async function capturePre() {
 const commands = { probe, post: capturePost, pre: capturePre };
 
 if (!commands[cmd]) {
-  console.log('usage: node fpl-snapshot.mjs <probe|post|pre> [--from N] [--to N] [--out dir] [--season s] [--force] [--dry]');
+  console.log('usage: node fpl-snapshot.mjs <probe|post|pre> [--from N] [--to N] [--within M] [--out dir] [--season s] [--force] [--dry]');
   process.exit(1);
 }
 

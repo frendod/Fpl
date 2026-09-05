@@ -1,0 +1,73 @@
+# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-05c
+#
+# Captures FPL state into history/fpl/ without anyone having to remember.
+#
+# Runs hourly rather than on a per-gameweek schedule, because FPL deadlines
+# move: Friday one week, Saturday the next, occasionally Tuesday. Cron cannot
+# track that. Instead the job runs every hour and the script decides whether
+# this is the right hour — `pre --within 150` writes only when the deadline is
+# under 2.5 hours away, and `post` writes only when FPL's own data_checked
+# flag says the gameweek is settled. Every other run exits having written
+# nothing, which is the intended common case.
+#
+# Both commands are idempotent: existing files are skipped unless --force.
+# A missed hour costs nothing as long as the next one lands inside the window.
+
+name: FPL snapshot
+
+on:
+  schedule:
+    - cron: '7 * * * *'      # hourly, at 7 past — off the hour, when GitHub's
+                             # scheduler is least congested and most likely to
+                             # actually fire on time
+  workflow_dispatch:          # manual run button, for backfills and testing
+
+# Never let two runs overlap. Both could try to write the same file and push
+# competing commits.
+concurrency:
+  group: fpl-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # required to push the snapshot commits back
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Predictors. The window is generous enough to survive a skipped hour
+      # but late enough to catch team news, which is when chance_of_playing
+      # actually moves.
+      - name: Capture pre-deadline
+        run: node fpl-snapshot.mjs pre --within 150
+
+      # Outcomes. Exits silently until data_checked flips, which happens once
+      # bonus has been applied — usually a few hours after the last match.
+      - name: Capture post-gameweek
+        run: node fpl-snapshot.mjs post
+
+      - name: Commit any new snapshots
+        run: |
+          if git diff --quiet -- history/fpl; then
+            echo "no new snapshots this run"
+            exit 0
+          fi
+          git config user.name  "fpl-snapshot[bot]"
+          git config user.email "actions@github.com"
+          git add history/fpl
+          git commit -m "snapshot: $(git diff --cached --name-only | tr '\n' ' ')"
+          # Another run may have pushed while this one worked. Rebase and retry
+          # rather than failing — the data is append-only so there is nothing
+          # to merge, only ordering to settle.
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            echo "push attempt $i failed, retrying"
+            sleep 5
+          done
+          exit 1
