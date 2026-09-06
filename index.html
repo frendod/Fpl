@@ -721,6 +721,12 @@ textarea:focus{border-color:var(--accent)}
    white on white by about gameweek eight. .preset solves it the same way. */
 .objseg button[aria-pressed="true"]{background:#d9a441;color:var(--ink)}
 .objbar-hint{font-size:12px;color:var(--dimmer);flex:1 1 240px;min-width:0}
+.objbar-sub{margin-top:-4px}
+.objseg button:disabled{cursor:default}
+/* Arrow buttons dim when the window cannot move further; the centre pill is
+   permanently disabled because it is a readout, not a control. */
+.objseg button[data-gwstep]:disabled,.objseg button[data-span]:disabled{opacity:.3}
+.objseg button.objseg-label{color:var(--paper);letter-spacing:.06em;opacity:1;min-width:72px}
 .lockstar.on{color:var(--accent)}
 .lockstar:hover{color:var(--accent)}
 .bench-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
@@ -1554,7 +1560,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-06a';
+const APP_BUILD = 'app-2026-09-06c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1655,6 +1661,10 @@ const I18N={
     sumXP:'xP next', sumXP3:'next 3',
     histXPLegend:'Right-hand figure is projected points for that fixture. The coming gameweek is FPL\u2019s own expected points; later weeks apply the measured fixture-difficulty multiplier on top. A double gameweek is split across its two rows.',
     sqObjective:'Optimise on', sqObjScore:'Score', sqObjXP:'xP',
+    sqObjNote:n=>n===1?'Built for a single gameweek. Discs and the table show projected points for that week, and a club without a fixture drops out entirely.'
+      :'Built for '+n+' gameweeks. Discs show the per-gameweek average; the table breaks it out week by week. A blank counts against a player in the total.',
+    sqWindow:'Gameweeks', sqSpan:'Span', sqTotal:'Total',
+    sqWindowHint:'Played gameweeks cannot be selected \u2014 the window starts at the next one.',
     sqObjHint:'Score ranks on weighted evidence and is the safer default. xP builds for the next three gameweeks\u2019 projected points instead \u2014 sharper on fixtures, blunter on everything the evidence blend sees.',
     diagnostics:'Diagnostics', diagMeta:'What the engine actually found',
     capTitle:'Captain', capMeta:'Highest score, available, playing',
@@ -1741,7 +1751,7 @@ const I18N={
       +'guesstimate: its GW '+gw+' estimate nudged \u00b115% by fixture difficulty. Treat as indicative.',
     mtSquadNote:' Squad shown is your current one.',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
-    sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score', sqXIxP:'XI xP, 3 GW',
+    sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score', sqXIxP:'XI xP per GW',
     sqNote:'Strongest legal 15 within \u00a3100m and 3-per-club, XI maximised with a playable bench. A strong build, not a mathematical optimum.',
     sqCantBuild:'Not enough available players to build a full squad yet — this fills in once the season\u2019s prices and squads settle.',
     sqCap:'C', sqLocked:'Locked in', sqLockHint:'Tap ★ on any player to lock them into the squad.',
@@ -1860,6 +1870,10 @@ const I18N={
     sumXP:'xP pr\u00f3x.', sumXP3:'pr\u00f3x. 3',
     histXPLegend:'La cifra de la derecha son los puntos proyectados de ese partido. La pr\u00f3xima jornada usa los puntos esperados de FPL; las siguientes a\u00f1aden el multiplicador de dificultad medido. Una jornada doble se reparte entre sus dos filas.',
     sqObjective:'Optimizar por', sqObjScore:'Puntos', sqObjXP:'xP',
+    sqObjNote:n=>n===1?'Construido para una sola jornada. Los discos y la tabla muestran los puntos proyectados de esa semana, y un club sin partido desaparece.'
+      :'Construido para '+n+' jornadas. Los discos muestran el promedio por jornada; la tabla lo desglosa semana a semana. Una jornada en blanco penaliza en el total.',
+    sqWindow:'Jornadas', sqSpan:'Rango', sqTotal:'Total',
+    sqWindowHint:'Las jornadas jugadas no se pueden elegir: la ventana empieza en la siguiente.',
     sqObjHint:'Puntos ordena por evidencia ponderada y es la opci\u00f3n m\u00e1s segura. xP construye seg\u00fan los puntos proyectados de las tres pr\u00f3ximas jornadas: m\u00e1s afilado con el calendario, m\u00e1s romo con todo lo dem\u00e1s que ve la mezcla de evidencia.',
     diagnostics:'Diagnóstico', diagMeta:'Lo que el motor encontró realmente',
     capTitle:'Capitán', capMeta:'Mayor puntuación, disponible, jugando',
@@ -1944,7 +1958,7 @@ const I18N={
       +' ajustado \u00b115% seg\u00fan la dificultad del calendario. T\u00f3malo como orientativo.',
     mtSquadNote:' La plantilla mostrada es la actual.',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
-    sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI', sqXIxP:'xP del XI, 3 J',
+    sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI', sqXIxP:'xP del XI por jornada',
     sqNote:'La mejor plantilla legal de 15 con \u00a3100m y m\u00e1x. 3 por club, XI maximizado con suplentes jugables. Una construcci\u00f3n s\u00f3lida, no un \u00f3ptimo matem\u00e1tico.',
     sqCantBuild:'A\u00fan no hay suficientes jugadores disponibles para una plantilla completa — se completar\u00e1 cuando se asienten los precios y las plantillas.',
     sqCap:'C', sqLocked:'Fijados', sqLockHint:'Toca ★ en cualquier jugador para fijarlo en la plantilla.',
@@ -2630,6 +2644,7 @@ function build(){
   players.forEach((p,i)=>p.rank=i+1);
   filtered=players.slice();
 
+  xiBuildSeq++;                 // horizon cache is keyed on this
   diag.matched=raw.filter(p=>p.matchedU).length;
   diag.matchedPrior=raw.filter(p=>p.matchedPrior).length;
   diag.pool=raw.length;
@@ -3713,7 +3728,85 @@ function renderPicks(){
    FPL's opinion, not this app's. Neither number is the right one for every
    question, which is why this is a switch and not a replacement. */
 let xiObjective='score';
-const objVal=p=>xiObjective==='xp3'?(Number(p.xp3)||0):(Number(p.score)||0);
+
+/* HORIZON
+   xiSpan  how many gameweeks the squad is built for, 1-5. A span of 1 is the
+           "best XI for this gameweek" view; anything above is a run.
+   xiStart the first gameweek in that window. null means follow the season,
+           which is the right default and the one that survives a week
+           passing without the user touching anything.
+
+   Played gameweeks are not selectable. There is no such thing as a best XI
+   for a match that has finished — the answer is the scoreline, and this tab
+   would be quietly presenting a projection as if it were a plan. */
+const XI_SPAN_MIN=1, XI_SPAN_MAX=5;
+let xiSpan=3;
+let xiStart=null;
+
+function lastGW(){
+  const evs=(bootstrap&&bootstrap.events)||[];
+  return evs.length?evs[evs.length-1].id:38;
+}
+/* How long a window the remaining season can actually hold. With three
+   gameweeks left a span of five does not exist, and the earlier version
+   quietly produced columns headed GW39 and GW40 — real-looking headers over
+   fixtures that will never be played. The stored preference is left alone so
+   it comes back intact next season; only the effective span is clamped. */
+function xiMaxSpan(){
+  return clamp(lastGW()-(state.nextGW||1)+1, XI_SPAN_MIN, XI_SPAN_MAX);
+}
+function xiSpanEff(){ return clamp(xiSpan, XI_SPAN_MIN, xiMaxSpan()); }
+
+/* The window has to fit inside the season, so the start is pulled back if a
+   long span would push it off the end rather than silently scoring blanks. */
+function xiStartGW(){
+  const lo=state.nextGW||1, hi=Math.max(lo,lastGW()-xiSpanEff()+1);
+  return clamp(xiStart==null?lo:xiStart, lo, hi);
+}
+function xiGWs(){
+  const s=xiStartGW(), n=xiSpanEff(), hi=lastGW(), out=[];
+  for(let i=0;i<n&&s+i<=hi;i++)out.push(s+i);
+  return out;
+}
+
+/* Per-gameweek expected points for every player over the current window.
+
+   Cached because the optimiser is not cheap with it: improveSquad runs up to
+   300 passes over a pool of ~650, and projectedPoints filters the whole
+   fixture list on every call. Computing it once per horizon turns that from
+   hundreds of thousands of scans into one.
+
+   The key carries the window AND a build counter, so changing the weights
+   (which rebuilds players from a fresh bootstrap) cannot leave a stale
+   ep_next sitting in the cache behind an unchanged window. */
+let xiBuildSeq=0;
+let xpH={key:null,byId:{}};
+function ensureHorizon(){
+  const key=xiStartGW()+':'+xiSpanEff()+':'+xiBuildSeq;
+  if(xpH.key===key)return;
+  const gws=xiGWs(), by={};
+  players.forEach(p=>{
+    const legs=gws.map(g=>projectedPoints(p,g));
+    by[p.id]={legs,total:legs.reduce((a,b)=>a+b,0)};
+  });
+  xpH={key,byId:by};
+}
+const xpLegs=p=>(xpH.byId[p.id]||{legs:[]}).legs;
+const xpTotal=p=>(xpH.byId[p.id]||{total:0}).total;
+
+const objVal=p=>xiObjective==='xp'?xpTotal(p):(Number(p.score)||0);
+
+/* What the pitch discs print. objVal over a multi-week window is a SUM, and
+   putting that straight on a disc was a mistake: it landed in the slot where
+   a 0-10 Score used to sit, unlabelled, so a GBP 4.6m keeper read 25.9 with
+   nothing saying over what period. Nobody can check a number they cannot
+   place on a familiar scale; at 8.6 a week the same keeper is obviously
+   wrong at a glance.
+
+   Dividing by the span is monotonic, so the ordering, the squad and the
+   captain pick are all identical. Only the scale moves. The XI total divides
+   too, so eleven discs still sum to the figure above them. */
+const objDisplay=p=>xiObjective==='xp'?(objVal(p)/xiSpanEff()):objVal(p);
 
 const SQUAD_REQ={GKP:2,DEF:5,MID:5,FWD:3};
 const XI_MIN={GKP:1,DEF:3,MID:3,FWD:1};
@@ -3856,7 +3949,55 @@ function optimiseSquad(pool, lockedIds){
 
 let lockedIds=new Set();     // player ids locked into the Best XI squad
 
+/* Squad table columns. In Score mode this is the single column it always
+   was. In xP mode it becomes one column per gameweek in the window plus a
+   total, so a run can be read across rather than trusted as one figure -
+   a player with a blank in the middle of a three-week window and a player
+   with three steady returns can otherwise land on the same number. */
+function xpHeadCells(){
+  if(xiObjective!=='xp')return '<th>'+t('thScore')+'</th>';
+  return xiGWs().map(g=>'<th class="mono">'+t('hGW')+g+'</th>').join('')
+    +(xiSpanEff()>1?'<th>'+t('sqTotal')+'</th>':'');
+}
+function xpBodyCells(p){
+  if(xiObjective!=='xp')return '<td class="sc">'+objDisplay(p).toFixed(1)+'</td>';
+  const legs=xpLegs(p);
+  /* A zero here is a blank gameweek, not a bad projection, and the two want
+     to look different or a blank reads as a weak week. */
+  const leg=v=>v>0?'<td class="mono">'+v.toFixed(1)+'</td>'
+                  :'<td class="mono" style="opacity:.35">\u2014</td>';
+  return legs.map(leg).join('')
+    +(xiSpanEff()>1?'<td class="sc">'+xpTotal(p).toFixed(1)+'</td>':'');
+}
+
+/* Gameweek window controls. Only drawn in xP mode: Score has no horizon,
+   it reads a fixed next-three-fixture average internally. */
+function horizonBar(){
+  if(xiObjective!=='xp')return '';
+  const gws=xiGWs(), lo=state.nextGW||1, span=xiSpanEff(), maxSpan=xiMaxSpan();
+  const canBack=xiStartGW()>lo;
+  const canFwd=xiStartGW()+span-1<lastGW();
+  const label=span===1?(t('hGW')+gws[0])
+    :(t('hGW')+gws[0]+'\u2013'+gws[gws.length-1]);
+  return '<div class="objbar objbar-sub">'
+    +'<span class="objbar-title">'+t('sqWindow')+'</span>'
+    +'<span class="objseg">'
+      +'<button data-gwstep="-1"'+(canBack?'':' disabled')+' aria-label="'+t('prev')+'">\u25c0</button>'
+      +'<button class="objseg-label" disabled>'+label+'</button>'
+      +'<button data-gwstep="1"'+(canFwd?'':' disabled')+' aria-label="'+t('next')+'">\u25b6</button>'
+    +'</span>'
+    +'<span class="objbar-title">'+t('sqSpan')+'</span>'
+    +'<span class="objseg">'
+      +[1,2,3,4,5].map(n=>'<button data-span="'+n+'"'+(n>maxSpan?' disabled':'')
+        +' aria-pressed="'+(span===n)+'">'+n+'</button>').join('')
+    +'</span>'
+    +'<span class="objbar-hint">'+t('sqWindowHint')+'</span></div>';
+}
+
 function renderXI(){
+  /* Before optimiseSquad, not after: the optimiser reads objVal on every
+     comparison and objVal reads this cache. */
+  if(xiObjective==='xp')ensureHorizon();
   const res=optimiseSquad(players, lockedIds);
 
   // objective switch — what the optimiser is maximising
@@ -3864,9 +4005,10 @@ function renderXI(){
     +'<span class="objbar-title">'+t('sqObjective')+'</span>'
     +'<span class="objseg">'
     +'<button data-obj="score" aria-pressed="'+(xiObjective==='score')+'">'+t('sqObjScore')+'</button>'
-    +'<button data-obj="xp3" aria-pressed="'+(xiObjective==='xp3')+'">'+t('sqObjXP')+' '+XP_RUN_GWS+'</button>'
+    +'<button data-obj="xp" aria-pressed="'+(xiObjective==='xp')+'">'+t('sqObjXP')+'</button>'
     +'</span>'
-    +'<span class="objbar-hint">'+t('sqObjHint')+'</span></div>';
+    +'<span class="objbar-hint">'+(xiObjective==='xp'?t('sqObjNote')(xiSpanEff()):t('sqObjHint'))+'</span></div>'
+    +horizonBar();
 
   // locked-players bar + hint (always shown at top of the tab)
   const lockedPlayers=players.filter(p=>lockedIds.has(p.id));
@@ -3914,7 +4056,7 @@ function renderXI(){
     fixBoxes+='</div>';
 
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
-      +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+objVal(p).toFixed(1)
+      +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+objDisplay(p).toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')+'</div>'
       +'<div class="pcinfo">'
@@ -3944,7 +4086,7 @@ function renderXI(){
       +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
       +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
       +'<td class="mono">'+p.price.toFixed(1)+'</td>'
-      +'<td class="sc">'+objVal(p).toFixed(1)+'</td>'
+      +xpBodyCells(p)
       +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
   };
   const order={GKP:0,DEF:1,MID:2,FWD:3};
@@ -3963,7 +4105,8 @@ function renderXI(){
     objBar+lockBar
     +'<div class="xistats">'
     +'<div class="xistat"><span>'+t('shape')+'</span><b>'+formation+'</b></div>'
-    +'<div class="xistat"><span>'+(xiObjective==='xp3'?t('sqXIxP'):t('sqXIScore'))+'</span><b>'+xiScore.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+(xiObjective==='xp'?t('sqXIxP'):t('sqXIScore'))+'</span><b>'
+      +(xiObjective==='xp'?(xiScore/xiSpanEff()):xiScore).toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqBudget')+'</span><b>'+cost.toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqRemaining')+'</span><b>'+(XI_BUDGET-cost).toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:18px">'+cap.name+(cap.status!=='a'?'<span class="pbadge '+(cap.status==='d'?'doubt':cap.status==='i'?'inj':cap.status==='s'?'inj':cap.status==='u'?'unav':'new')+'" style="margin-left:6px;font-size:10px" title="'+(cap.status==='d'?'Doubt':cap.status==='i'?'Injured':cap.status==='s'?'Suspended':cap.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</b></div>'
@@ -3981,7 +4124,7 @@ function renderXI(){
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
     +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
     +'<div class="tscroll"><table><thead><tr><th></th><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
-    +'</th><th>'+t('thPrice')+'</th><th>'+(xiObjective==='xp3'?t('thXP3'):t('thScore'))+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
+    +'</th><th>'+t('thPrice')+'</th>'+xpHeadCells()+'<th>'+t('sqClubs')+'</th></tr></thead><tbody>'
     +sorted.map(row).join('')
     +'</tbody></table></div></div>';
   wireLockControls();
@@ -3992,7 +4135,7 @@ function saveState(){
   try{
     const state={
       lockedIds:Array.from(lockedIds),
-      xiObjective,
+      xiObjective, xiSpan, xiStart,
       timestamp:new Date().toISOString()
     };
     localStorage.setItem('fplRock_state',JSON.stringify(state));
@@ -4012,9 +4155,20 @@ function loadState(){
          renderAll, and the locked-players branch below returns early, so a
          saved objective with no saved locks would otherwise never be drawn. */
       let objChanged=false;
-      if((state.xiObjective==='xp3'||state.xiObjective==='score')&&state.xiObjective!==xiObjective){
-        xiObjective=state.xiObjective; objChanged=true;
+      /* 'xp3' is the name this setting had in app-2026-09-06a, when the span
+         was fixed at three. Migrate rather than drop it, or anyone who had
+         picked xP silently lands back on Score. */
+      const savedObj=state.xiObjective==='xp3'?'xp':state.xiObjective;
+      if((savedObj==='xp'||savedObj==='score')&&savedObj!==xiObjective){
+        xiObjective=savedObj; objChanged=true;
       }
+      if(Number.isFinite(state.xiSpan)){
+        const sp=clamp(state.xiSpan,XI_SPAN_MIN,XI_SPAN_MAX);
+        if(sp!==xiSpan){xiSpan=sp; objChanged=true;}
+      }
+      /* A stored start gameweek can be in the past by the time it is read
+         back. xiStartGW clamps it forward, so nothing here has to. */
+      if(state.xiStart===null||Number.isFinite(state.xiStart))xiStart=state.xiStart;
       if(objChanged&&!(state.lockedIds&&state.lockedIds.length))renderXI();
       if(state.lockedIds&&Array.isArray(state.lockedIds)){
         lockedIds.clear();
@@ -4052,6 +4206,24 @@ function wireLockControls(){
       const v=b.dataset.obj;
       if(v===xiObjective)return;
       xiObjective=v;
+      renderXI(); saveState();
+    };
+  });
+  document.querySelectorAll('.objseg [data-gwstep]').forEach(b=>{
+    b.onclick=()=>{
+      if(b.disabled)return;
+      /* Step from the RESOLVED start, not from xiStart, which is null until
+         the user moves it — otherwise the first click jumps to gameweek 2. */
+      xiStart=xiStartGW()+(+b.dataset.gwstep);
+      renderXI(); saveState();
+    };
+  });
+  document.querySelectorAll('.objseg [data-span]').forEach(b=>{
+    b.onclick=()=>{
+      if(b.disabled)return;
+      const n=clamp(+b.dataset.span,XI_SPAN_MIN,XI_SPAN_MAX);
+      if(n===xiSpan)return;
+      xiSpan=n;
       renderXI(); saveState();
     };
   });
