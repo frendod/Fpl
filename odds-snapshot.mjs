@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-09-06b
+/* odds-snapshot.mjs — odds-2026-09-06d
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -109,9 +109,15 @@ const CAPTURES = [
 ];
 
 /* Odds-API club names on the left, FPL bootstrap `name` on the right.
- * Only entries that normalisation alone cannot reconcile. Anything not listed
- * falls through to normName() on both sides, which handles the FC/AFC suffixes
- * and accents. Seeded from expected naming conventions — CONFIRM WITH probe. */
+ * Only entries that normalisation alone cannot reconcile.
+ *
+ * Confirmed against a live probe. Note what is NOT here: FPL spells several
+ * clubs in full ("Ipswich Town", "Hull City", "Coventry City", "Leeds United"
+ * is not — it is "Leeds"), so an alias that shortens "Ipswich Town" to
+ * "Ipswich" moves the odds name AWAY from the FPL name and breaks a join that
+ * would otherwise have worked untouched. Every entry below earns its place by
+ * bridging a real difference. Add nothing on the assumption that a club has a
+ * short name — check the probe output instead. */
 const TEAM_ALIASES = {
   'manchester city': 'man city',
   'manchester united': 'man utd',
@@ -124,11 +130,6 @@ const TEAM_ALIASES = {
   'brighton and hove albion': 'brighton',
   'brighton hove albion': 'brighton',
   'leeds united': 'leeds',
-  'leicester city': 'leicester',
-  'ipswich town': 'ipswich',
-  'norwich city': 'norwich',
-  'sunderland afc': 'sunderland',
-  'burnley fc': 'burnley',
 };
 
 /* ── PLUMBING ─────────────────────────────────────────────────────────── */
@@ -226,6 +227,47 @@ function toFplName(oddsName) {
   return TEAM_ALIASES[n] || n;
 }
 
+/* Index odds events by club pair. Deliberately a list per pair rather than a
+ * single event: the events endpoint returns months of fixtures, not the next
+ * gameweek, and a last-write-wins map would silently bind a fixture in
+ * December to a gameweek in September. An ordered pair is unique within one
+ * season, so today this list is always length one — but "always" here rests on
+ * the API's window never crossing a season boundary, which is not a promise
+ * anyone made. */
+function indexEvents(events) {
+  const idx = new Map();
+  for (const ev of (events || [])) {
+    const key = `${toFplName(ev.home)}|${toFplName(ev.away)}`;
+    if (!idx.has(key)) idx.set(key, []);
+    idx.get(key).push(ev);
+  }
+  return idx;
+}
+
+/* Resolve one FPL fixture to one odds event, nearest kickoff wins. Returns the
+ * event plus how far apart the two sources think the match is, so a bad match
+ * is visible rather than assumed good. */
+function matchEvent(idx, home, away, kickoff) {
+  const candidates = idx.get(`${home}|${away}`) || [];
+  if (!candidates.length) return null;
+  const k = kickoff ? new Date(kickoff).getTime() : null;
+  if (k == null) return { event: candidates[0], hoursApart: null, ambiguous: candidates.length > 1 };
+  let best = null, bestGap = Infinity;
+  for (const ev of candidates) {
+    const gap = Math.abs(new Date(ev.date).getTime() - k);
+    if (gap < bestGap) { bestGap = gap; best = ev; }
+  }
+  return {
+    event: best,
+    hoursApart: Math.round(bestGap / 3600000 * 10) / 10,
+    ambiguous: candidates.length > 1,
+  };
+}
+
+/* Kickoff times can legitimately differ a little between sources, but not by
+ * much. Beyond this the two are describing different fixtures. */
+const MAX_KICKOFF_GAP_HOURS = 36;
+
 /* ── PROBE ────────────────────────────────────────────────────────────── */
 
 async function probe() {
@@ -273,17 +315,21 @@ async function probe() {
   const fplNames = Object.fromEntries((boot.teams || []).map(t => [t.id, t.name]));
 
   console.log(`\n--- fixture join, FPL gameweek ${next ? next.id : '?'} ---`);
-  const oddsByPair = new Map();
-  for (const ev of (events || [])) {
-    oddsByPair.set(`${toFplName(ev.home)}|${toFplName(ev.away)}`, ev);
-  }
+  const idx = indexEvents(events);
   let matched = 0;
+  const matchedEvents = [];
   for (const f of fixtures) {
     const h = normName(fplNames[f.team_h]);
     const a = normName(fplNames[f.team_a]);
-    const ev = oddsByPair.get(`${h}|${a}`);
-    if (ev) { matched++; console.log(`  OK   ${h} v ${a} -> event ${ev.id}`); }
-    else console.log(`  MISS ${h} v ${a}  (no odds event matched)`);
+    const m = matchEvent(idx, h, a, f.kickoff_time);
+    if (m) {
+      matched++; matchedEvents.push(m.event);
+      const warn = m.hoursApart != null && m.hoursApart > MAX_KICKOFF_GAP_HOURS ? '  ** KICKOFF MISMATCH' : '';
+      const amb = m.ambiguous ? '  ** AMBIGUOUS, several events share this pair' : '';
+      console.log(`  OK   ${h} v ${a} -> event ${m.event.id}  (${m.hoursApart}h apart)${warn}${amb}`);
+    } else {
+      console.log(`  MISS ${h} v ${a}  (no odds event matched)`);
+    }
   }
   console.log(`  matched ${matched}/${fixtures.length}`);
   if (matched < fixtures.length) {
@@ -294,18 +340,56 @@ async function probe() {
     console.log('  ^ correct TEAM_ALIASES against these before capturing');
   }
 
+  /* The event count should be roughly one gameweek per week. Anything much
+   * larger means the league filter is not applying and foreign fixtures are
+   * being pulled in, which would waste the /odds/multi budget and could match
+   * the wrong game. Report the leagues actually present rather than trusting
+   * the filter. */
+  const leagueCount = {};
+  for (const ev of (events || [])) {
+    const s = (ev.league && ev.league.slug) || 'unknown';
+    leagueCount[s] = (leagueCount[s] || 0) + 1;
+  }
+  const leagueKeys = Object.keys(leagueCount);
+  console.log(`\n--- event window ---`);
+  console.log(`  ${(events || []).length} events across ${leagueKeys.length} league(s)`);
+  for (const [s, n] of Object.entries(leagueCount).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+    console.log(`    ${n.toString().padStart(4)}  ${s}`);
+  }
+  if (leagueKeys.length > 1) {
+    console.log('  ! more than one league returned — the league filter is not applying');
+  }
+  const dates = (events || []).map(e => e.date).filter(Boolean).sort();
+  if (dates.length) console.log(`  date span: ${dates[0]} .. ${dates[dates.length - 1]}`);
+
   /* One full odds body, so the market names and label shapes can be read
-   * against reality rather than remembered. */
-  const first = (events || [])[0];
-  if (first) {
-    const odds = await oddsGet('odds', { eventId: first.id, bookmakers: BOOKMAKERS });
-    await writeJSON(join(dir, `odds-${first.id}.json`), odds);
-    console.log(`\n--- markets on event ${first.id} ---`);
-    for (const [book, markets] of Object.entries(odds.bookmakers || {})) {
-      console.log(`  ${book}: ${markets.length} markets`);
+   * against reality rather than remembered.
+   *
+   * Sample a MATCHED event, not events[0]. The event list spans a wider window
+   * than the current gameweek and its first entry may be a fixture far enough
+   * out that no bookmaker has posted a market yet — which reads as "the API is
+   * broken" when it only means "nothing priced this one". */
+  const sample = matchedEvents[0] || (events || [])[0];
+  if (sample) {
+    const odds = await oddsGet('odds', { eventId: sample.id, bookmakers: BOOKMAKERS });
+    await writeJSON(join(dir, `odds-${sample.id}.json`), odds);
+    console.log(`\n--- markets on event ${sample.id} (${sample.home} v ${sample.away}) ---`);
+    const books = Object.entries(odds.bookmakers || {});
+    if (!books.length) {
+      console.log('  ! no bookmaker keys at all — nothing priced on this fixture yet');
+    }
+    for (const w of BOOKMAKERS.split(',').map(s => s.trim())) {
+      if (!books.some(([b]) => b === w)) console.log(`  ! "${w}" absent from the response`);
+    }
+    for (const [book, markets] of books) {
+      console.log(`  ${book}: ${(markets || []).length} markets`);
+      if (!(markets || []).length) continue;
       const scorer = markets.find(m => m.name === 'Anytime Goalscorer');
       console.log(`    Anytime Goalscorer: ${scorer ? scorer.odds.length + ' entries' : 'ABSENT'}`);
-      if (scorer) console.log(`    sample row: ${JSON.stringify(scorer.odds[0])}`);
+      if (scorer) {
+        console.log(`    sample row: ${JSON.stringify(scorer.odds[0])}`);
+        console.log(`    updatedAt:  ${scorer.updatedAt}`);
+      }
       const cs = markets.filter(m => /Clean Sheet/i.test(m.name)).map(m => m.name);
       console.log(`    clean sheet markets: ${cs.join(', ') || 'none'}`);
     }
@@ -368,33 +452,38 @@ async function capturePre() {
   const oddsEvents = await oddsGet('events', { sport: SPORT_SLUG, league: PL_SLUG });
   console.log(`  ${(oddsEvents || []).length} odds events in the league window`);
 
-  /* Join on normalised home|away pair. */
-  const byPair = new Map();
-  for (const ev of (oddsEvents || [])) {
-    byPair.set(`${toFplName(ev.home)}|${toFplName(ev.away)}`, ev);
-  }
+  /* Join on normalised club pair, disambiguated by kickoff time. */
+  const idx = indexEvents(oddsEvents);
 
   const mapping = [];
   const unmatched = [];
   for (const f of fixtures) {
     const h = normName(fplNames[f.team_h]);
     const a = normName(fplNames[f.team_a]);
-    const ev = byPair.get(`${h}|${a}`);
-    if (ev) {
-      mapping.push({
-        fplFixture: f.id, fplHome: f.team_h, fplAway: f.team_a,
-        oddsEvent: ev.id, oddsHome: ev.home, oddsAway: ev.away,
-        kickoff: f.kickoff_time, oddsDate: ev.date,
-        bookmakerCount: ev.bookmakerCount ?? null,
+    const m = matchEvent(idx, h, a, f.kickoff_time);
+    if (!m) { unmatched.push({ fplFixture: f.id, home: h, away: a, reason: 'no event' }); continue; }
+    /* A pair that matches but whose kickoff is days out is not this fixture.
+     * Better to record no odds than the wrong odds. */
+    if (m.hoursApart != null && m.hoursApart > MAX_KICKOFF_GAP_HOURS) {
+      unmatched.push({
+        fplFixture: f.id, home: h, away: a,
+        reason: `kickoff ${m.hoursApart}h apart from event ${m.event.id}`,
       });
-    } else {
-      unmatched.push({ fplFixture: f.id, home: h, away: a });
+      continue;
     }
+    mapping.push({
+      fplFixture: f.id, fplHome: f.team_h, fplAway: f.team_a,
+      oddsEvent: m.event.id, oddsHome: m.event.home, oddsAway: m.event.away,
+      kickoff: f.kickoff_time, oddsDate: m.event.date,
+      hoursApart: m.hoursApart,
+      ambiguous: m.ambiguous,
+      bookmakerCount: m.event.bookmakerCount ?? null,
+    });
   }
 
   if (unmatched.length) {
     console.warn(`  ! ${unmatched.length} fixture(s) did not match an odds event:`);
-    for (const u of unmatched) console.warn(`  !   ${u.home} v ${u.away}`);
+    for (const u of unmatched) console.warn(`  !   ${u.home} v ${u.away} — ${u.reason}`);
     console.warn('  ! check TEAM_ALIASES against probe output — these fixtures have no odds');
   }
   if (!mapping.length) { console.log('  nothing matched, writing nothing'); return; }
@@ -441,7 +530,7 @@ async function capturePre() {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-09-06b',
+    stamp: 'odds-2026-09-06d',
     season, gw: next.id,
     capturePoint: point,
     capturedAt: now.toISOString(),
