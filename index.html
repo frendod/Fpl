@@ -364,7 +364,11 @@ thead th{
   color:var(--dim);padding:10px 14px;text-align:left;border-bottom:1px solid var(--line2);
   white-space:nowrap;user-select:none;
 }
-thead th.sortable{cursor:pointer}
+thead th.sortable,thead th.sq-sort{cursor:pointer}
+thead th.sq-sort:hover{color:var(--paper)}
+thead th.sq-sort[aria-sort]{color:var(--accent)}
+thead th.sq-sort[aria-sort="descending"]::after{content:' \2193'}
+thead th.sq-sort[aria-sort="ascending"]::after{content:' \2191'}
 thead th.sortable:hover{color:var(--paper)}
 thead th[aria-sort]{color:var(--accent)}
 thead th[aria-sort="descending"]::after{content:' ↓'}
@@ -1560,7 +1564,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-06c';
+const APP_BUILD = 'app-2026-09-06d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1731,6 +1735,7 @@ const I18N={
     sumPrice:'Price', sumOwn:'Ownership', sumTransfers:'Transfers', sumPts:'Total pts',
     sumPPG:'Per game', sumMin:'Minutes', sumGames:'Games', sumForm:'Form', sumBonus:'Total bonus',
     sumGoals:'Goals', sumAssists:'Assists', sumShots:'Shots', sumOnTarget:'On target',
+    sumPens:'Penalties', sumSetPiece:'Set pieces',
     sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
     histUnderstatNote:'Multi-season xG by opponent.',
     hSeasons:'Seasons', hApps:'Apps',
@@ -1937,6 +1942,7 @@ const I18N={
     sumPrice:'Precio', sumOwn:'Propiedad', sumTransfers:'Fichajes', sumPts:'Puntos tot.',
     sumPPG:'Por partido', sumMin:'Minutos', sumGames:'Partidos', sumForm:'Forma', sumBonus:'Bonus total',
     sumGoals:'Goles', sumAssists:'Asist.', sumShots:'Tiros', sumOnTarget:'A puerta',
+    sumPens:'Penaltis', sumSetPiece:'Bal\u00f3n parado',
     sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
     histUnderstatNote:'xG por rival multitemporada.',
     hSeasons:'Temp.', hApps:'PJ',
@@ -3949,15 +3955,33 @@ function optimiseSquad(pool, lockedIds){
 
 let lockedIds=new Set();     // player ids locked into the Best XI squad
 
+/* Sort state for the 15-man squad table, separate from the all-players table
+   above: they show different columns and there is no reason a sort in one
+   should move the other. 'pos' is the default and reproduces the original
+   ordering exactly — position group, then objective descending. */
+let sqSort={key:'pos',asc:true};
+
+/* Which way a column wants to run on first click. Text reads better
+   ascending, numbers better descending, same convention as the all-players
+   table so the two behave alike. */
+const SQ_ASC_FIRST={pos:true,name:true,club:true,xi:true};
+
+function sqHead(key,label,cls){
+  const on=sqSort.key===key;
+  return '<th class="sq-sort'+(cls?' '+cls:'')+'" data-sqsort="'+key+'"'
+    +(on?' aria-sort="'+(sqSort.asc?'ascending':'descending')+'"':'')
+    +'>'+label+'</th>';
+}
+
 /* Squad table columns. In Score mode this is the single column it always
    was. In xP mode it becomes one column per gameweek in the window plus a
    total, so a run can be read across rather than trusted as one figure -
    a player with a blank in the middle of a three-week window and a player
    with three steady returns can otherwise land on the same number. */
 function xpHeadCells(){
-  if(xiObjective!=='xp')return '<th>'+t('thScore')+'</th>';
-  return xiGWs().map(g=>'<th class="mono">'+t('hGW')+g+'</th>').join('')
-    +(xiSpanEff()>1?'<th>'+t('sqTotal')+'</th>':'');
+  if(xiObjective!=='xp')return sqHead('obj',t('thScore'));
+  return xiGWs().map((g,i)=>sqHead('gw'+i,t('hGW')+g,'mono')).join('')
+    +(xiSpanEff()>1?sqHead('total',t('sqTotal')):'');
 }
 function xpBodyCells(p){
   if(xiObjective!=='xp')return '<td class="sc">'+objDisplay(p).toFixed(1)+'</td>';
@@ -4090,7 +4114,34 @@ function renderXI(){
       +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
   };
   const order={GKP:0,DEF:1,MID:2,FWD:3};
-  const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||objVal(b)-objVal(a));
+  const shortOf=p=>(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name||'';
+  /* A key can go stale: sort by GW4 at span 3, then drop to span 1 and 'gw2'
+     no longer names a column. Anything unrecognised falls back to the
+     positional default rather than sorting on undefined. */
+  const sqValue=(p,key)=>{
+    const leg=key.indexOf('gw')===0?parseInt(key.slice(2),10):-1;
+    if(leg>=0)return xpLegs(p)[leg];
+    switch(key){
+      case 'xi':    return inXI(p.id)?1:0;
+      case 'price': return p.price;
+      case 'obj':   return objVal(p);
+      case 'total': return xpTotal(p);
+      default:      return undefined;
+    }
+  };
+  const sorted=squad.slice().sort((a,b)=>{
+    const k=sqSort.key, dir=sqSort.asc?1:-1;
+    if(k==='name')return dir*a.name.localeCompare(b.name);
+    if(k==='club')return dir*shortOf(a).localeCompare(shortOf(b));
+    if(k==='pos') return dir*(order[a.pos]-order[b.pos])||objVal(b)-objVal(a);
+    const av=sqValue(a,k), bv=sqValue(b,k);
+    if(av===undefined||bv===undefined)   // stale key: original ordering
+      return (order[a.pos]-order[b.pos])||objVal(b)-objVal(a);
+    /* Ties inside a column are broken by the objective, so equal prices or a
+       column of blanks still come out in a useful order rather than whatever
+       the pool happened to be in. */
+    return dir*((Number(av)||0)-(Number(bv)||0))||objVal(b)-objVal(a);
+  });
 
   // Substitute slots, same shape as MY TEAM: keeper first, then the outfield
   // subs numbered in bench order. buildXI already returns bench as
@@ -4123,8 +4174,11 @@ function renderXI(){
     +'</div>'
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
     +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
-    +'<div class="tscroll"><table><thead><tr><th></th><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
-    +'</th><th>'+t('thPrice')+'</th>'+xpHeadCells()+'<th>'+t('sqClubs')+'</th></tr></thead><tbody>'
+    +'<div class="tscroll"><table><thead><tr>'
+      +sqHead('xi','\u25cf')+'<th></th>'
+      +sqHead('name',t('thPlayer'))+sqHead('pos',t('thPos'))
+      +sqHead('price',t('thPrice'),'mono')+xpHeadCells()+sqHead('club',t('sqClubs'))
+    +'</tr></thead><tbody>'
     +sorted.map(row).join('')
     +'</tbody></table></div></div>';
   wireLockControls();
@@ -4216,6 +4270,14 @@ function wireLockControls(){
          the user moves it — otherwise the first click jumps to gameweek 2. */
       xiStart=xiStartGW()+(+b.dataset.gwstep);
       renderXI(); saveState();
+    };
+  });
+  document.querySelectorAll('th[data-sqsort]').forEach(th=>{
+    th.onclick=()=>{
+      const k=th.dataset.sqsort;
+      if(sqSort.key===k)sqSort.asc=!sqSort.asc;
+      else sqSort={key:k,asc:SQ_ASC_FIRST[k]!==undefined?SQ_ASC_FIRST[k]:false};
+      renderXI();
     };
   });
   document.querySelectorAll('.objseg [data-span]').forEach(b=>{
@@ -4810,7 +4872,29 @@ function playerSummary(d){
     // For MID and FWD
     gridHtml+=g(t('sumGoals'),goals,xg,'xG');
     gridHtml+=g(t('sumAssists'),assists,xa,'xA');
-    gridHtml+=g(t('sumShots'),shots,NA,t('sumOnTarget'));
+    /* Shots come from the frozen Understat shards, so they exist for past
+       seasons and never for the current one. On target existed in NEITHER
+       source — it was a hardcoded placeholder that could only ever draw a
+       dash. Rather than leave a cell that is permanently empty, show what is
+       actually held: Understat's own key passes alongside the shots when the
+       displayed season is one it covers, and FPL's set-piece order when it
+       is not. Set-piece duty is published in bootstrap, useful, and shown
+       nowhere else in the app. */
+    if(shots!=null){
+      gridHtml+=g(t('sumShots'),shots,kp,t('sumKP'));
+    }else{
+      const ord=n=>{
+        const v=Number(n);
+        if(!v)return null;                       // null or 0 = not on them
+        return v+(v===1?'st':v===2?'nd':v===3?'rd':'th');
+      };
+      const pen=el?ord(el.penalties_order):null;
+      /* Corners and direct free kicks are separate orders; the lower of the
+         two is the player's best set-piece claim. */
+      const sp=el?[el.corners_and_indirect_freekicks_order,el.direct_freekicks_order]
+        .map(Number).filter(v=>v>0):[];
+      gridHtml+=g(t('sumPens'),pen,sp.length?ord(Math.min.apply(null,sp)):null,t('sumSetPiece'));
+    }
   }
   
   // Defcon and defensive contributions for DEF, MID, FWD
