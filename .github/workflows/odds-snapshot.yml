@@ -1,0 +1,76 @@
+# .github/workflows/odds-snapshot.yml — odds-2026-09-06b
+#
+# Captures pre-deadline betting odds into history/odds/, twice per gameweek.
+#
+#   early   ~24h before the deadline
+#   late    ~1.5h before the deadline
+#
+# The movement between the two is the market repricing on press conference
+# news, which is an independent read on who is actually starting. The early
+# capture exists to compute that delta — it is not a stand-in for the late one,
+# because the live model runs at the deadline.
+#
+# Same hourly-cron-plus-band pattern as fpl-snapshot.yml, and for the same
+# reason: FPL deadlines move week to week and cron cannot track them, so the
+# job runs every hour and the script decides whether the clock is inside a
+# capture band. Almost every run writes nothing. That is the intended common
+# case. Bands are sized so several hourly runs can hit each one, which means a
+# delayed or dropped cron costs nothing.
+#
+# Runs at 22 past rather than 7 past so it does not collide with the FPL job,
+# and shares its concurrency group so the two can never race to push.
+#
+# SETUP: this workflow needs a repository secret named ODDS_API_KEY.
+# Settings -> Secrets and variables -> Actions -> New repository secret.
+# The key must never be committed to the repo — netlify.toml serves the repo
+# root publicly.
+
+name: Odds snapshot
+
+on:
+  schedule:
+    - cron: '22 * * * *'
+  workflow_dispatch:
+
+# Shared with fpl-snapshot.yml. Both jobs commit to the same repo; without a
+# shared group they can push over each other.
+concurrency:
+  group: fpl-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No window flag: the script reads the clock and picks early, late, or
+      # neither. Neither is the usual answer.
+      - name: Capture pre-deadline odds
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: node odds-snapshot.mjs pre
+
+      - name: Commit any new snapshots
+        run: |
+          if git diff --quiet -- history/odds; then
+            echo "no new snapshots this run"
+            exit 0
+          fi
+          git config user.name  "odds-snapshot[bot]"
+          git config user.email "actions@github.com"
+          git add history/odds
+          git commit -m "odds: $(git diff --cached --name-only | tr '\n' ' ')"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            echo "push attempt $i failed, retrying"
+            sleep 5
+          done
+          exit 1

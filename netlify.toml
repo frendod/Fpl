@@ -1,13 +1,39 @@
+# netlify.toml — config-2026-09-06a
+#
 # Site root is served as-is; the app is a single index.html.
+#
+# publish = "." serves the whole repo. That is deliberate — index.html and the
+# history/ shards both need to be fetchable — but it means every committed file
+# is a public URL. Two consequences worth stating plainly:
+#
+#   1. No secret ever goes in this repo. The odds API key lives in a Netlify
+#      environment variable (ODDS_API_KEY) and is read server-side by the
+#      function. It is never in a committed file, never in a query string in
+#      client code, never in a build log.
+#
+#   2. Anything committed that is not meant to be read is still readable. The
+#      redirect rules at the bottom return 404 for the paths that have no
+#      business being public. This is defence in depth, not the primary
+#      control — point 1 is the primary control.
+#
+# The thorough fix is a publish directory assembled by a build command, so only
+# deliberate output is served. That is a larger change to a working deploy and
+# is not done here.
+
 [build]
   publish = "."
-  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/fpl'"
+  # Snapshot commits are data, not code. Without excluding them, the hourly
+  # snapshot workflows would trigger a full Netlify rebuild every time they
+  # write a file — which for the odds job is potentially every gameweek.
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/fpl' ':(exclude)history/odds'"
 
 [functions]
   # modern ESM function syntax
   node_bundler = "esbuild"
 
-# Give the function a clean, same-origin URL: /api/fpl
+# ── API routes ────────────────────────────────────────────────────────────
+# Give the functions clean, same-origin URLs.
+
 [[redirects]]
   from = "/api/fpl"
   to = "/.netlify/functions/fpl"
@@ -24,3 +50,52 @@
   from = "/api/league"
   to = "/.netlify/functions/league"
   status = 200
+
+# ── Blocked paths ─────────────────────────────────────────────────────────
+# Return 404 for repo contents that should not be publicly readable. These sit
+# after the /api routes so they cannot shadow them.
+#
+# .git is the important one. A served .git directory lets anyone reconstruct
+# the full history of the repo, including any file ever committed and later
+# removed. If a key has ever been committed, deleting it from HEAD does not
+# remove it from history.
+
+[[redirects]]
+  from = "/.git/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/.github/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/netlify.toml"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/package.json"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/fpl-snapshot.mjs"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/odds-snapshot.mjs"
+  to = "/404.html"
+  status = 404
