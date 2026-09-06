@@ -705,6 +705,22 @@ textarea:focus{border-color:var(--accent)}
 .lockchip-x{color:var(--dim);font-size:11px}
 .lockchip:hover .lockchip-x{color:var(--paper)}
 .lockstar{background:none;border:none;color:var(--dimmer);font-size:16px;cursor:pointer;padding:0;line-height:1}
+/* Objective switch above the squad. Deliberately styled as a small control
+   rather than a preset row: it changes what is being maximised, which is a
+   different kind of decision from nudging a weight. */
+.objbar{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.objbar-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim)}
+.objseg{display:inline-flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.objseg button{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;padding:5px 12px;border:none;background:transparent;
+  color:var(--dim);cursor:pointer;transition:all .15s}
+.objseg button+button{border-left:1px solid var(--line2)}
+/* Fixed gold, not var(--accent). Accent is lerped toward #ffffff as the live
+   weight ramps, and --ink is #ffffff in the light theme — together that is
+   white on white by about gameweek eight. .preset solves it the same way. */
+.objseg button[aria-pressed="true"]{background:#d9a441;color:var(--ink)}
+.objbar-hint{font-size:12px;color:var(--dimmer);flex:1 1 240px;min-width:0}
 .lockstar.on{color:var(--accent)}
 .lockstar:hover{color:var(--accent)}
 .bench-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
@@ -866,6 +882,24 @@ textarea:focus{border-color:var(--accent)}
 .fix-opp.fix-blank{color:var(--dimmer)}
 .fix-venue{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
   border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
+/* Projected points, pinned to the right of each fixture row. Fixed width and
+   tabular figures so the column reads down the strip instead of jittering
+   with the length of the opponent's short name beside it. */
+.fix-xp{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);
+  font-variant-numeric:tabular-nums;min-width:34px;text-align:right;flex:0 0 auto}
+.fix-legend{font-size:11px;line-height:1.4;color:var(--dimmer);padding:8px 10px 0}
+/* Projection strip. Kept OUT of .sum-block deliberately: that block is headed
+   with a season label and everything in it is something that has already
+   happened. These two numbers have not happened, and sitting them under a
+   "2026/27 season" heading would read as a season total. */
+.xp-strip{display:flex;align-items:center;gap:18px;margin:0 0 8px;padding:10px 14px;
+  background:var(--panel2);border:1px solid var(--line2);border-radius:10px;flex-wrap:wrap}
+.xp-strip-k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);flex:0 0 auto}
+.xp-strip-cell{display:flex;flex-direction:column;gap:1px}
+.xp-strip-cell .k{font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.xp-strip-cell .v{font-size:17px;color:var(--paper);font-variant-numeric:tabular-nums}
 .sum-block{margin:0 0 4px;padding:12px 14px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
 .sum-season{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin-bottom:8px}
@@ -1437,6 +1471,8 @@ tbody tr.dead td:first-child{padding-left:26px}
             <th>Pos</th>
             <th class="sortable" data-sort="price" data-i18n="thPrice">Price</th>
             <th class="sortable" data-sort="score" aria-sort="descending" data-i18n="thScore">Score</th>
+            <th class="sortable" data-sort="xp1" data-i18n="thXP" id="thXP">xP</th>
+            <th class="sortable" data-sort="xp3" data-i18n="thXP3" id="thXP3">xP3</th>
             <th class="sortable" data-sort="mins" data-i18n="thMins">Mins</th>
             <th class="sortable" data-sort="xg90">xG/90</th>
             <th class="sortable" data-sort="xa90">xA/90</th>
@@ -1518,7 +1554,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-05c';
+const APP_BUILD = 'app-2026-09-06a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1613,6 +1649,13 @@ const I18N={
     anyPrice:'Any price', upTo:'Up to ', allAvail:'All players', fitOnly:'Fully available only',
     thPlayer:'Player', thPos:'Pos', thPrice:'Price', thScore:'Score', thMins:'Mins',
     thDefcon:'DefCon', thOwned:'Owned', thMom:'Momentum', thForm:'Form', thFDR:'FDR',
+    thXP:'xP', thXP3:'xP3',
+    xpTip:'Projected points for the coming gameweek. FPL\u2019s own expected points, zero on a blank.',
+    xp3Tip:n=>'Projected points across the next '+n+' gameweeks. Fixture difficulty is applied from the second week on, doubles are counted twice and blanks as nothing.',
+    sumXP:'xP next', sumXP3:'next 3',
+    histXPLegend:'Right-hand figure is projected points for that fixture. The coming gameweek is FPL\u2019s own expected points; later weeks apply the measured fixture-difficulty multiplier on top. A double gameweek is split across its two rows.',
+    sqObjective:'Optimise on', sqObjScore:'Score', sqObjXP:'xP',
+    sqObjHint:'Score ranks on weighted evidence and is the safer default. xP builds for the next three gameweeks\u2019 projected points instead \u2014 sharper on fixtures, blunter on everything the evidence blend sees.',
     diagnostics:'Diagnostics', diagMeta:'What the engine actually found',
     capTitle:'Captain', capMeta:'Highest score, available, playing',
     valTitle:'Best value', valMeta:'Score per million',
@@ -1698,7 +1741,7 @@ const I18N={
       +'guesstimate: its GW '+gw+' estimate nudged \u00b115% by fixture difficulty. Treat as indicative.',
     mtSquadNote:' Squad shown is your current one.',
     sqStarting:'Starting XI', sqBench:'Bench', sqSquad:'Full squad (15)',
-    sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score',
+    sqBudget:'Budget', sqRemaining:'Left', sqClubs:'Clubs', sqXIScore:'XI score', sqXIxP:'XI xP, 3 GW',
     sqNote:'Strongest legal 15 within \u00a3100m and 3-per-club, XI maximised with a playable bench. A strong build, not a mathematical optimum.',
     sqCantBuild:'Not enough available players to build a full squad yet — this fills in once the season\u2019s prices and squads settle.',
     sqCap:'C', sqLocked:'Locked in', sqLockHint:'Tap ★ on any player to lock them into the squad.',
@@ -1811,6 +1854,13 @@ const I18N={
     anyPrice:'Cualquier precio', upTo:'Hasta ', allAvail:'Todos', fitOnly:'Solo plenamente disponibles',
     thPlayer:'Jugador', thPos:'Pos', thPrice:'Precio', thScore:'Puntos', thMins:'Min',
     thDefcon:'DefCon', thOwned:'Propiedad', thMom:'Impulso', thForm:'Forma', thFDR:'FDR',
+    thXP:'xP', thXP3:'xP3',
+    xpTip:'Puntos proyectados para la pr\u00f3xima jornada. Los puntos esperados de FPL; cero si no hay partido.',
+    xp3Tip:n=>'Puntos proyectados en las pr\u00f3ximas '+n+' jornadas. La dificultad del calendario se aplica desde la segunda semana, los dobles cuentan dos veces y las jornadas en blanco no cuentan.',
+    sumXP:'xP pr\u00f3x.', sumXP3:'pr\u00f3x. 3',
+    histXPLegend:'La cifra de la derecha son los puntos proyectados de ese partido. La pr\u00f3xima jornada usa los puntos esperados de FPL; las siguientes a\u00f1aden el multiplicador de dificultad medido. Una jornada doble se reparte entre sus dos filas.',
+    sqObjective:'Optimizar por', sqObjScore:'Puntos', sqObjXP:'xP',
+    sqObjHint:'Puntos ordena por evidencia ponderada y es la opci\u00f3n m\u00e1s segura. xP construye seg\u00fan los puntos proyectados de las tres pr\u00f3ximas jornadas: m\u00e1s afilado con el calendario, m\u00e1s romo con todo lo dem\u00e1s que ve la mezcla de evidencia.',
     diagnostics:'Diagnóstico', diagMeta:'Lo que el motor encontró realmente',
     capTitle:'Capitán', capMeta:'Mayor puntuación, disponible, jugando',
     valTitle:'Mejor valor', valMeta:'Puntos por millón',
@@ -1894,7 +1944,7 @@ const I18N={
       +' ajustado \u00b115% seg\u00fan la dificultad del calendario. T\u00f3malo como orientativo.',
     mtSquadNote:' La plantilla mostrada es la actual.',
     sqStarting:'Once inicial', sqBench:'Suplentes', sqSquad:'Plantilla (15)',
-    sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI',
+    sqBudget:'Presupuesto', sqRemaining:'Resto', sqClubs:'Clubes', sqXIScore:'Puntos XI', sqXIxP:'xP del XI, 3 J',
     sqNote:'La mejor plantilla legal de 15 con \u00a3100m y m\u00e1x. 3 por club, XI maximizado con suplentes jugables. Una construcci\u00f3n s\u00f3lida, no un \u00f3ptimo matem\u00e1tico.',
     sqCantBuild:'A\u00fan no hay suficientes jugadores disponibles para una plantilla completa — se completar\u00e1 cuando se asienten los precios y las plantillas.',
     sqCap:'C', sqLocked:'Fijados', sqLockHint:'Toca ★ en cualquier jugador para fijarlo en la plantilla.',
@@ -2561,8 +2611,16 @@ function build(){
     const expo=clamp((WEIGHTS.mins||0)/25,0,2);
     const gate=expo===0?1:Math.pow(clamp(p.mins,0,1),expo);
     const score=clamp(sum,0,1)*10*gate;
+    /* Projected points, attached once per build so the table, the modal and
+       the optimiser cannot drift apart. xp1 is the coming gameweek; xp3 is
+       the run the squad optimiser uses, because a squad picked on one
+       gameweek is a squad picked on one fixture. */
+    const xp1=projectedPoints(p,xpNextGW());
+    const xp3=projectedRun(p,XP_RUN_GWS);
     return Object.assign(p,{
       score:Math.round(score*10)/10,
+      xp1:Math.round(xp1*100)/100,
+      xp3:Math.round(xp3*100)/100,
       gate,
       parts,
       pct:{xg90:P.xg90[p.id],defcon:P.defcon[p.id],mins:P.mins[p.id],bps:P.bps[p.id]},
@@ -2937,23 +2995,92 @@ const XP_FDR_MULT={
   MID:[1.25,1.13,1.00,0.88,0.77],
   FWD:[1.32,1.12,1.01,0.84,0.75],
 };
-function projectedPoints(player,gw){
-  if(!player)return 0;
-  const base=player.epNext||0;
-  const nextGW=(userTeam.currentEvent||0)+1;
-  if(gw<=nextGW||!base)return base;
+/* ══ EXPECTED POINTS ═══════════════════════════════════
+   xp-2026-09-06a
 
-  let diff=null;
-  if(fixtures&&fixtures.length){
-    const fx=fixtures.find(f=>f.event===gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
-    if(fx)diff=(fx.team_h===player.teamId)?fx.team_h_difficulty:fx.team_a_difficulty;
-  }
-  if(diff==null)return 0;           // blank gameweek: no fixture, no points
+   One projected-points number, computed the same way everywhere it is shown:
+   the squad pitch, the all-players table, and the player modal. Previously
+   this lived only inside My Team, and read the next gameweek off
+   userTeam.currentEvent — so with no team loaded it silently believed the
+   season had not started. It now falls back to state.nextGW, which is what
+   the rest of the app already uses.
 
-  const row=XP_FDR_MULT[player.pos]||XP_FDR_MULT.MID;
-  const mult=row[clamp(Math.round(diff),1,5)-1];
-  return base*mult;
+   THE BASE IS ep_next, NOT A MODEL
+
+   FPL publishes its own expected points for the coming gameweek and it is a
+   decent number. What it does not do is extend past that gameweek, so the
+   only thing added here is the fixture multiplier measured on two seasons of
+   the vaastav dataset (see XP_FDR_MULT above). For the next gameweek the
+   multiplier is deliberately NOT applied: ep_next has already priced that
+   fixture, and applying it again would double-count difficulty.
+
+   DOUBLES AND BLANKS
+
+   The old version called fixtures.find(), so a double gameweek was scored on
+   whichever fixture happened to be first in the array and the second was
+   thrown away. Blanks returned zero, which was right.
+
+   For a FUTURE double both fixtures are multiplied up and summed, because
+   ep_next describes one fixture's worth of a player and there are two of
+   them. For a double in the NEXT gameweek the base is split across the
+   fixtures instead, because ep_next is published per gameweek, not per match
+   — multiplying it up there would invent points FPL has already counted.
+
+   WHERE ODDS WILL ENTER
+
+   oddsMult() below is the single seam. It returns 1 today because no odds
+   capture has landed yet. Once history/odds/ has files, an implied
+   goalscorer probability becomes a per-player, per-fixture correction on the
+   attacking share of ep_next and nothing else in this file has to move.
+
+   Careful when that happens: an anytime-goalscorer price is P(plays) times
+   P(scores | plays), fused. Feeding it in AND gating on xMins counts minutes
+   twice. Whatever it multiplies has to be net of availability.
+════════════════════════════════════════════════════════ */
+
+/* The gameweek being projected FROM. My Team pins this to the squad it has
+   loaded; everywhere else the season state is the authority. */
+function xpNextGW(){
+  if(typeof userTeam!=='undefined'&&userTeam&&userTeam.currentEvent)
+    return userTeam.currentEvent+1;
+  return state.nextGW||1;
 }
+
+/* Reserved seam for the odds correction. Returns a multiplier on one
+   fixture's expected points. Inert until a capture exists. */
+function oddsMult(){ return 1; }
+
+/* Every fixture a player's club has in one gameweek, with its expected
+   points contribution. Empty array means a blank. */
+function xpFixtures(player,gw){
+  if(!player||!fixtures||!fixtures.length)return [];
+  const base=player.epNext||0;
+  const fx=fixtures.filter(f=>f.event===gw&&(f.team_h===player.teamId||f.team_a===player.teamId));
+  if(!fx.length)return [];
+  const isNext=gw<=xpNextGW();
+  const row=XP_FDR_MULT[player.pos]||XP_FDR_MULT.MID;
+  return fx.map(f=>{
+    const isH=f.team_h===player.teamId;
+    const diff=isH?f.team_h_difficulty:f.team_a_difficulty;
+    const mult=isNext?(1/fx.length):row[clamp(Math.round(diff),1,5)-1];
+    return {gw,diff,home:isH,oppId:isH?f.team_a:f.team_h,xp:base*mult*oddsMult()};
+  });
+}
+
+function projectedPoints(player,gw){
+  return xpFixtures(player,gw).reduce((s,f)=>s+f.xp,0);
+}
+
+/* Expected points across the next n gameweeks, counting doubles and blanks
+   as they fall. This is the number the squad optimiser can be pointed at:
+   a one-week figure would build a squad for a single fixture. */
+function projectedRun(player,n){
+  const start=xpNextGW();
+  let tot=0;
+  for(let i=0;i<n;i++)tot+=projectedPoints(player,start+i);
+  return tot;
+}
+const XP_RUN_GWS=3;
 
 async function changeGameweek(gw){
   if(!userTeam.picks)return;
@@ -3571,6 +3698,23 @@ function renderPicks(){
    cheap-but-playable bench. Greedy seed per formation → swap
    improvement. Strong, not provably optimal.
 ════════════════════════════════════════════════════════ */
+/* Which number the optimiser maximises.
+
+   'score' is the weighted-evidence ranking and stays the default: it is what
+   the percentile engine, the minutes gate and the weight sliders all feed,
+   and switching that silently would make every squad built before this build
+   unreproducible.
+
+   'xp3' maximises projected points over the next three gameweeks instead.
+   That is a different squad and often a better one for a wildcard, because it
+   prices the actual fixtures rather than an average difficulty. It is also
+   blind to everything the evidence blend sees - ownership, momentum,
+   defensive contribution, last season's expected goals - because ep_next is
+   FPL's opinion, not this app's. Neither number is the right one for every
+   question, which is why this is a switch and not a replacement. */
+let xiObjective='score';
+const objVal=p=>xiObjective==='xp3'?(Number(p.xp3)||0):(Number(p.score)||0);
+
 const SQUAD_REQ={GKP:2,DEF:5,MID:5,FWD:3};
 const XI_MIN={GKP:1,DEF:3,MID:3,FWD:1};
 const XI_MAX={GKP:1,DEF:5,MID:5,FWD:3};
@@ -3579,7 +3723,7 @@ const CLUB_MAX=3, XI_BUDGET=100.0;
 function bestXI(squad){
   const byPos={GKP:[],DEF:[],MID:[],FWD:[]};
   squad.forEach(p=>byPos[p.pos].push(p));
-  Object.values(byPos).forEach(a=>a.sort((x,y)=>y.score-x.score));
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>objVal(y)-objVal(x)));
   const gk=byPos.GKP.slice(0,1), gkBench=byPos.GKP.slice(1);
   let best=null;
   for(let d=XI_MIN.DEF; d<=Math.min(XI_MAX.DEF,byPos.DEF.length); d++)
@@ -3587,14 +3731,14 @@ function bestXI(squad){
       for(let f=XI_MIN.FWD; f<=Math.min(XI_MAX.FWD,byPos.FWD.length); f++){
         if(d+m+f!==10)continue;
         const xi=byPos.DEF.slice(0,d).concat(byPos.MID.slice(0,m),byPos.FWD.slice(0,f));
-        const score=xi.reduce((s,p)=>s+p.score,0);
+        const score=xi.reduce((s,p)=>s+objVal(p),0);
         if(!best||score>best.score)best={d,m,f,xi,score};
       }
   if(!best)return null;
   const xi=gk.concat(best.xi);
   const benchOut=squad.filter(p=>p.pos!=='GKP'&&best.xi.indexOf(p)<0);
   return {xi, bench:gkBench.concat(benchOut), formation:best.d+'-'+best.m+'-'+best.f,
-    xiScore:xi.reduce((s,p)=>s+p.score,0)};
+    xiScore:xi.reduce((s,p)=>s+objVal(p),0)};
 }
 function clubCount(list){const c={};list.forEach(p=>c[p.teamId]=(c[p.teamId]||0)+1);return c;}
 function squadCost(s){return s.reduce((a,p)=>a+p.price,0);}
@@ -3603,7 +3747,7 @@ function buildSquad(pool, seed, locked){
   locked=locked||[];
   const byPos={GKP:[],DEF:[],MID:[],FWD:[]};
   pool.forEach(p=>byPos[p.pos].push(p));
-  Object.values(byPos).forEach(a=>a.sort((x,y)=>y.score-x.score));
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>objVal(y)-objVal(x)));
   const squad=[], clubs={};
   const canAdd=p=>((clubs[p.teamId]||0)<CLUB_MAX);
   // seed with locked players first (they occupy their position slots + budget + club)
@@ -3647,9 +3791,9 @@ function improveSquad(squad,pool,lockedIds){
       if(isLocked(cur))continue;                 // never swap out a locked player
       const cm=clubCount(squad.filter((_,j)=>j!==i));
       const repl=pool.filter(p=>p.pos===cur.pos&&!inSquad(p.id)&&p.price<cur.price
-        &&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>b.score-a.score)[0];
+        &&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>objVal(b)-objVal(a))[0];
       if(!repl)continue;
-      const saved=cur.price-repl.price, lost=cur.score-repl.score;
+      const saved=cur.price-repl.price, lost=objVal(cur)-objVal(repl);
       const ratio=saved/Math.max(0.1,lost);
       if(saved>0&&(!bestSwap||ratio>bestSwap.ratio))bestSwap={i,repl,ratio};
     }
@@ -3664,10 +3808,10 @@ function improveSquad(squad,pool,lockedIds){
       if(isLocked(cur))continue;                 // don't replace a locked starter
       const idx=squad.findIndex(p=>p.id===cur.id);
       const cm=clubCount(squad.filter((_,j)=>j!==idx));
-      const up=pool.filter(p=>p.pos===cur.pos&&!inSquad(p.id)&&p.score>cur.score
-        &&(p.price-cur.price)<=spare&&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>b.score-a.score)[0];
+      const up=pool.filter(p=>p.pos===cur.pos&&!inSquad(p.id)&&objVal(p)>objVal(cur)
+        &&(p.price-cur.price)<=spare&&(cm[p.teamId]||0)<CLUB_MAX).sort((a,b)=>objVal(b)-objVal(a))[0];
       if(!up)continue;
-      const gain=up.score-cur.score;
+      const gain=objVal(up)-objVal(cur);
       if(gain>0&&(!bestUp||gain>bestUp.gain))bestUp={idx,up,gain};
     }
     if(!bestUp)break; squad[bestUp.idx]=bestUp.up;
@@ -3715,6 +3859,15 @@ let lockedIds=new Set();     // player ids locked into the Best XI squad
 function renderXI(){
   const res=optimiseSquad(players, lockedIds);
 
+  // objective switch — what the optimiser is maximising
+  const objBar='<div class="objbar">'
+    +'<span class="objbar-title">'+t('sqObjective')+'</span>'
+    +'<span class="objseg">'
+    +'<button data-obj="score" aria-pressed="'+(xiObjective==='score')+'">'+t('sqObjScore')+'</button>'
+    +'<button data-obj="xp3" aria-pressed="'+(xiObjective==='xp3')+'">'+t('sqObjXP')+' '+XP_RUN_GWS+'</button>'
+    +'</span>'
+    +'<span class="objbar-hint">'+t('sqObjHint')+'</span></div>';
+
   // locked-players bar + hint (always shown at top of the tab)
   const lockedPlayers=players.filter(p=>lockedIds.has(p.id));
   const lockBar='<div class="lockbar">'
@@ -3729,15 +3882,15 @@ function renderXI(){
     +'</div>';
 
   if(res&&res.infeasible){
-    $('xiBody').innerHTML=lockBar
+    $('xiBody').innerHTML=objBar+lockBar
       +'<div class="note err" style="margin:14px 0"><b>'+t('sqInfeasible')+'</b><br>'
       +res.infeasible.map(e=>'· '+e).join('<br>')+'</div>';
     wireLockControls();
     return;
   }
-  if(!res){$('xiBody').innerHTML=lockBar+'<div class="empty">'+t('sqCantBuild')+'</div>';wireLockControls();return}
+  if(!res){$('xiBody').innerHTML=objBar+lockBar+'<div class="empty">'+t('sqCantBuild')+'</div>';wireLockControls();return}
   const {squad,xi,bench,formation,xiScore,cost}=res;
-  const cap=xi.slice().sort((a,b)=>b.score-a.score)[0];
+  const cap=xi.slice().sort((a,b)=>objVal(b)-objVal(a))[0];
   const inXI=id=>xi.some(p=>p.id===id);
   const clubs=Object.keys(clubCount(squad)).length;
 
@@ -3761,7 +3914,7 @@ function renderXI(){
     fixBoxes+='</div>';
 
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
-      +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+p.score.toFixed(1)
+      +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+objVal(p).toFixed(1)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')+'</div>'
       +'<div class="pcinfo">'
@@ -3791,11 +3944,11 @@ function renderXI(){
       +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
       +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
       +'<td class="mono">'+p.price.toFixed(1)+'</td>'
-      +'<td class="sc">'+p.score.toFixed(1)+'</td>'
+      +'<td class="sc">'+objVal(p).toFixed(1)+'</td>'
       +'<td class="mono" style="color:var(--dim)">'+(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name+'</td></tr>';
   };
   const order={GKP:0,DEF:1,MID:2,FWD:3};
-  const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||b.score-a.score);
+  const sorted=squad.slice().sort((a,b)=>order[a.pos]-order[b.pos]||objVal(b)-objVal(a));
 
   // Substitute slots, same shape as MY TEAM: keeper first, then the outfield
   // subs numbered in bench order. buildXI already returns bench as
@@ -3807,10 +3960,10 @@ function renderXI(){
     .concat(bOut.map((p,i)=>bslot(p,(i+1)+'. '+p.pos))).join('');
 
   $('xiBody').innerHTML=
-    lockBar
+    objBar+lockBar
     +'<div class="xistats">'
     +'<div class="xistat"><span>'+t('shape')+'</span><b>'+formation+'</b></div>'
-    +'<div class="xistat"><span>'+t('sqXIScore')+'</span><b>'+xiScore.toFixed(1)+'</b></div>'
+    +'<div class="xistat"><span>'+(xiObjective==='xp3'?t('sqXIxP'):t('sqXIScore'))+'</span><b>'+xiScore.toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqBudget')+'</span><b>'+cost.toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('sqRemaining')+'</span><b>'+(XI_BUDGET-cost).toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:18px">'+cap.name+(cap.status!=='a'?'<span class="pbadge '+(cap.status==='d'?'doubt':cap.status==='i'?'inj':cap.status==='s'?'inj':cap.status==='u'?'unav':'new')+'" style="margin-left:6px;font-size:10px" title="'+(cap.status==='d'?'Doubt':cap.status==='i'?'Injured':cap.status==='s'?'Suspended':cap.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</b></div>'
@@ -3828,7 +3981,7 @@ function renderXI(){
     +'<div class="panel"><div class="panel-head"><div class="panel-title">'+t('sqSquad')+'</div>'
     +'<div class="panel-meta">'+t('sqNote')+'</div></div>'
     +'<div class="tscroll"><table><thead><tr><th></th><th></th><th>'+t('thPlayer')+'</th><th>'+t('thPos')
-    +'</th><th>'+t('thPrice')+'</th><th>'+t('thScore')+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
+    +'</th><th>'+t('thPrice')+'</th><th>'+(xiObjective==='xp3'?t('thXP3'):t('thScore'))+'</th><th>'+t('sqClubs')+'</th></tr></thead><tbody>'
     +sorted.map(row).join('')
     +'</tbody></table></div></div>';
   wireLockControls();
@@ -3839,6 +3992,7 @@ function saveState(){
   try{
     const state={
       lockedIds:Array.from(lockedIds),
+      xiObjective,
       timestamp:new Date().toISOString()
     };
     localStorage.setItem('fplRock_state',JSON.stringify(state));
@@ -3852,6 +4006,16 @@ function loadState(){
     const saved=localStorage.getItem('fplRock_state');
     if(saved){
       const state=JSON.parse(saved);
+      /* Restore the objective before any render below, or the first paint
+         shows a squad built on one number labelled with the other. A restored
+         objective has to force its own repaint: loadState runs AFTER
+         renderAll, and the locked-players branch below returns early, so a
+         saved objective with no saved locks would otherwise never be drawn. */
+      let objChanged=false;
+      if((state.xiObjective==='xp3'||state.xiObjective==='score')&&state.xiObjective!==xiObjective){
+        xiObjective=state.xiObjective; objChanged=true;
+      }
+      if(objChanged&&!(state.lockedIds&&state.lockedIds.length))renderXI();
       if(state.lockedIds&&Array.isArray(state.lockedIds)){
         lockedIds.clear();
         state.lockedIds.forEach(id=>lockedIds.add(id));
@@ -3878,6 +4042,18 @@ function wireLockControls(){
       renderTable();
       saveState();
     });
+  });
+  /* onclick assignment, not addEventListener: wireLockControls also runs after
+     every renderTable, and the objective strip is still in the DOM from the
+     last renderXI — a listener would be added again on each pass and one click
+     would fire a rebuild several times over. */
+  document.querySelectorAll('.objseg [data-obj]').forEach(b=>{
+    b.onclick=()=>{
+      const v=b.dataset.obj;
+      if(v===xiObjective)return;
+      xiObjective=v;
+      renderXI(); saveState();
+    };
   });
   $('xiBody').querySelectorAll('[data-lock]').forEach(chip=>{
     chip.addEventListener('click',()=>{ lockedIds.delete(+chip.dataset.lock); renderXI(); saveState(); });
@@ -3919,7 +4095,20 @@ function sortList(){
   });
 }
 
+/* A blank gameweek and a bench player both project zero, and neither is worth
+   a column of 0.0s. Dash them and let the run column carry the signal. */
+function xpCell(v){
+  const n=Number(v)||0;
+  /* opacity, not var(--dimmer): that token is #ffffff in the dark theme, so a
+     dash painted with it is exactly as loud as a real number beside it. */
+  if(n<=0)return '<span style="opacity:.35">—</span>';
+  return n.toFixed(1);
+}
+
 function renderTable(){
+  const hx=$('thXP'), hx3=$('thXP3');
+  if(hx)hx.title=t('xpTip');
+  if(hx3)hx3.title=t('xp3Tip')(XP_RUN_GWS);
   const start=(page-1)*PAGE;
   const slice=filtered.slice(start,start+PAGE);
   const pages=Math.max(1,Math.ceil(filtered.length/PAGE));
@@ -3938,6 +4127,8 @@ function renderTable(){
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
     +'<td class="'+cls+'">'+p.score.toFixed(1)+'</td>'
+    +'<td class="mono">'+xpCell(p.xp1)+'</td>'
+    +'<td class="mono">'+xpCell(p.xp3)+'</td>'
     +'<td class="mono">'+Math.round(p.mins*100)+'%</td>'
     +'<td class="mono">'+p.xg90.toFixed(2)+'</td>'
     +'<td class="mono">'+p.xa90.toFixed(2)+'</td>'
@@ -3946,7 +4137,7 @@ function renderTable(){
     +'<td class="mono" style="color:var(--dim)">'+p.sel.toFixed(1)+'%</td>'
     +'<td class="mono" style="color:'+(p.mom>0?'var(--good)':p.mom<0?'var(--bad)':'var(--dimmer)')+'">'
       +(p.mom>0?'+':'')+(Math.abs(p.mom)>=1000?(p.mom/1000).toFixed(1)+'k':p.mom)+'</td></tr>';
-  }).join(''):'<tr><td colspan="12" class="empty">'+t('noMatch')+'</td></tr>';
+  }).join(''):'<tr><td colspan="15" class="empty">'+t('noMatch')+'</td></tr>';
 
   // taps handled globally by the delegated .phist listener (covers every view)
   wireLockControls();
@@ -4180,6 +4371,9 @@ async function openHistory(pid,pname){
     d.teamId=plObj?plObj.teamId:null;
     d.el=plObj?plObj.el:null;
     d.pos=plObj?plObj.pos:null;
+    /* The scored row, not just the bootstrap element. The summary and the
+       fixture strip both need xp1/xp3, which only exist after build(). */
+    d.p=plObj||null;
     d.understat=understat;   // so the summary can pull xG/xA/shots from Understat
     renderHistory(d, understat);
   }catch(e){
@@ -4309,13 +4503,18 @@ function renderHistory(d, understat){
     for(const gw of gws){
       const fx=fixtures.filter(f=>f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
       if(!fx.length){ rows.push({gw,blank:true}); continue; }
+      /* Projected points for this gameweek, decomposed per fixture so a
+         double reads as two rows that sum to the gameweek's total rather
+         than one row repeated. Same engine as the table column. */
+      const xps=d.p?xpFixtures(d.p,gw):[];
       // a team can have a double gameweek — list each fixture
-      fx.forEach(f=>{
+      fx.forEach((f,i)=>{
         const isH=f.team_h===teamId;
         const oppId=isH?f.team_a:f.team_h;
         const opp=(teams.find(t=>t.id===oppId)||{});
         const diff=isH?f.team_h_difficulty:f.team_a_difficulty;
-        rows.push({gw,opp:opp.short_name||opp.name||'?',venue:isH?'H':'A',diff});
+        rows.push({gw,opp:opp.short_name||opp.name||'?',venue:isH?'H':'A',diff,
+          xp:xps[i]?xps[i].xp:null});
       });
     }
     if(!rows.length)return '';
@@ -4328,7 +4527,8 @@ function renderHistory(d, understat){
         return '<div class="fix-row"><span class="fix-gw">'+t('hGW')+r.gw+'</span>'
           +'<span class="fix-dot '+dotClass(r.diff)+'"></span>'
           +'<span class="fix-opp">'+r.opp+'</span>'
-          +'<span class="fix-venue">'+r.venue+'</span></div>';
+          +'<span class="fix-venue">'+r.venue+'</span>'
+          +(r.xp==null?'':'<span class="fix-xp">'+r.xp.toFixed(1)+'</span>')+'</div>';
       }).join('')
       +'</div>';
   }
@@ -4339,6 +4539,22 @@ function renderHistory(d, understat){
 // compact current/last-season stats summary shown under the player name.
 // Uses current-season FPL figures once games are played, otherwise last season.
 // Position-specific: GKP/DEF show CS, DEF/MID/FWD show defcon and defensive contributions
+/* Forward-looking projection for the modal: the coming gameweek and the run
+   the squad optimiser prices. Returns '' when the player has no scored row,
+   which happens if the modal is opened before build() has run. */
+function playerProjection(d){
+  if(!d||!d.p)return '';
+  const one=Number(d.p.xp1)||0, run=Number(d.p.xp3)||0;
+  if(!one&&!run)return '';
+  const cell=(k,v)=>'<div class="xp-strip-cell"><span class="k">'+k+'</span>'
+    +'<span class="v">'+v.toFixed(1)+'</span></div>';
+  return '<div class="xp-strip" title="'+esc(t('xp3Tip')(XP_RUN_GWS))+'">'
+    +'<span class="xp-strip-k">'+t('thXP')+'</span>'
+    +cell(t('sumXP'),one)
+    +cell(t('sumXP3'),run)
+    +'</div>';
+}
+
 function playerSummary(d){
   const el=d.el;
   const past=d.pastSeasons||[];
@@ -4444,6 +4660,9 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   let html='';
 
   // player stats summary (current or last season) under the name
+  const xpStrip=playerProjection(d);
+  if(xpStrip)html+=xpStrip;
+
   const summary=playerSummary(d);
   if(summary)html+=summary;
 
@@ -4471,6 +4690,7 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     if(fx){
       html+='<div class="hist-tab-content" data-tab="upcoming">'
         +'<div class="fix-strip">'+fx+'</div>'
+        +(d.p?'<div class="fix-legend">'+t('histXPLegend')+'</div>':'')
         +'</div>';
     }
   }
