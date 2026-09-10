@@ -1,4 +1,4 @@
-/* xp-engine.js — xpe-2026-09-10b
+/* xp-engine.js — xpe-2026-09-10c
  *
  * Expected points, built from FPL's own scoring rules. Pure functions only:
  * no DOM, no fetch, no globals read. The same text runs in the node backtest
@@ -22,6 +22,10 @@
  * 2026-09-10b — priors and per-player setup moved in from the backtest
  * (buildPriors, playerInputs), so the backtest and the app assemble a
  * player's inputs with the same code. Backtest output unchanged.
+ *
+ * 2026-09-10c — availability(): FPL's injury flags as a multiplier on the
+ * minutes model, for the app. The backtest has no flags, so its output is
+ * unchanged; the live app gains the one input the backtest never had.
  */
 const XPE = (() => {
 
@@ -300,6 +304,29 @@ const XPE = (() => {
     return { rates, mins };
   }
 
+  /* ── AVAILABILITY ─────────────────────────────────────────────────────
+   * FPL's flags as a multiplier on playing time. chance_of_playing_next_round
+   * is a percentage when a player is flagged and null when he is not; status
+   * is a (available), d (doubtful), i (injured), s (suspended), u (left the
+   * club), n (not eligible). When the percentage exists it is the whole
+   * story — the earlier Score gate multiplied status AND percentage and so
+   * penalised every doubt twice.
+   *
+   * Flags describe the next gameweek. For later ones the penalty fades over
+   * four weeks, because most knocks clear; a long injury is caught anyway by
+   * the minutes window going cold once he misses matches. */
+  function availability(status, cop, ahead = 0) {
+    const pct = cop === null || cop === undefined || cop === '' ? null : Number(cop);
+    const a = pct != null && isFinite(pct) ? Math.min(1, Math.max(0, pct / 100))
+      : ({ a: 1, d: 0.75, i: 0, s: 0, u: 0, n: 0 }[status] ?? 1);
+    if (status === 'u' || status === 'n') return a;
+    return 1 - (1 - a) * Math.max(0, 1 - ahead * 0.25);
+  }
+  function scaleMinutes(m, a) {
+    if (a >= 1) return m;
+    return { ...m, pStart: m.pStart * a, pSub: m.pSub * a, p60: m.p60 * a, p1: m.p1 * a, xMins: m.xMins * a, avail: a };
+  }
+
   /* Team context for one fixture, from the player's side. */
   function fixtureContext(T, rules, homeTeam, awayTeam, isHome, assistRatio) {
     const L = lambdas(T, homeTeam, awayTeam), team = isHome ? homeTeam : awayTeam;
@@ -310,5 +337,6 @@ const XPE = (() => {
   }
 
   return { rulesFor, DEFAULTS, DCTHR, pmf, pAtLeast, eFloorDiv, shrink, teamRatings, lambdas, minutesModel, fixtureXP,
-    buildPriors, bandRate, bandMinutes, dcBandFrom, playerInputs, fixtureContext, band };
+    buildPriors, bandRate, bandMinutes, dcBandFrom, playerInputs, fixtureContext, band, availability, scaleMinutes,
+    STAMP: 'xpe-2026-09-10c' };
 })();
