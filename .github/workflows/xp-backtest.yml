@@ -1,0 +1,67 @@
+# .github/workflows/xp-backtest.yml — xpbt-2026-09-10a
+#
+# Runs the xP backtest on demand and prints the results on the run's summary
+# page, so it can be checked from a phone: Actions → xP backtest → Run
+# workflow, then open the finished run.
+#
+# Read-only: it commits nothing. The vaastav seasons it downloads are cached
+# between runs, so after the first one a run takes well under a minute.
+
+name: xP backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: 'Season to test'
+        type: choice
+        options: [both, 2024-25, 2025-26]
+        default: both
+      parts:
+        description: 'Show predicted vs actual for each component'
+        type: boolean
+        default: true
+      calib:
+        description: 'Show calibration (what each band of predictions actually scored)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache historical seasons
+        uses: actions/cache@v4
+        with:
+          path: model/data
+          key: vaastav-2023-24-to-2025-26-v1
+
+      - name: Run backtest
+        run: |
+          ARGS=""
+          if [ "${{ inputs.season }}" != "both" ]; then ARGS="$ARGS --season ${{ inputs.season }}"; fi
+          if [ "${{ inputs.parts }}" = "true" ]; then ARGS="$ARGS --parts"; fi
+          if [ "${{ inputs.calib }}" = "true" ]; then ARGS="$ARGS --calib"; fi
+          node model/xp-backtest.mjs $ARGS 2>&1 | tee result.txt
+          STAMP=$(grep -o "xpe-[0-9-]*[a-z]" model/xp-engine.js | head -1)
+          {
+            echo "## xP backtest — engine $STAMP"
+            echo ""
+            echo "Walk-forward: each gameweek predicted using only earlier data."
+            echo "xp = our model · fplep = FPL's ep_next rebuilt · seas = season points per gameweek."
+            echo "Rank and RMSE are the headline measures; lower RMSE and higher rank are better."
+            echo ""
+            echo '```'
+            cat result.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
