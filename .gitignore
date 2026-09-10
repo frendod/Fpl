@@ -1,2 +1,6 @@
-.DS_Store
+DS_Store
 **/.DS_Store
+
+# vaastav seasons for the xP backtest; fetched on first run, a few MB each
+model/data/
+node_modules/
