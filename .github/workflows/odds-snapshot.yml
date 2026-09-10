@@ -31,6 +31,11 @@ on:
   schedule:
     - cron: '22 * * * *'
   workflow_dispatch:
+    inputs:
+      any:
+        description: 'Capture now, ignoring the clock (saved as gw-N-adhoc.json; does not block the early/late captures)'
+        type: boolean
+        default: false
 
 # Shared with fpl-snapshot.yml. Both jobs commit to the same repo; without a
 # shared group they can push over each other.
@@ -56,7 +61,9 @@ jobs:
       - name: Capture pre-deadline odds
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
-        run: node odds-snapshot.mjs pre
+        # Scheduled runs: inputs.any is empty, so no flag. Manual run with the
+        # box ticked: --any, which the script files under an adhoc name.
+        run: node odds-snapshot.mjs pre ${{ inputs.any && '--any' || '' }}
 
       - name: Commit any new snapshots
         run: |

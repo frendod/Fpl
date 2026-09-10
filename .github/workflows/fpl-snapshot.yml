@@ -21,6 +21,11 @@ on:
                              # scheduler is least congested and most likely to
                              # actually fire on time
   workflow_dispatch:          # manual run button, for backfills and testing
+    inputs:
+      pred_now:
+        description: 'Capture predictions now, ignoring the window (a test; the in-window run replaces it)'
+        type: boolean
+        default: false
 
 # Never let two runs overlap. Both could try to write the same file and push
 # competing commits.
@@ -53,7 +58,7 @@ jobs:
       - name: Is a prediction capture due?
         id: pred
         continue-on-error: true
-        run: node predict-snapshot.mjs check --within 150 >> "$GITHUB_OUTPUT"
+        run: node predict-snapshot.mjs check --within 150 ${{ inputs.pred_now && '--force' || '' }} >> "$GITHUB_OUTPUT"
 
       - name: Install headless browser
         if: steps.pred.outputs.due == 'true'
@@ -67,7 +72,7 @@ jobs:
       - name: Capture predictions
         if: steps.pred.outputs.due == 'true'
         continue-on-error: true
-        run: node predict-snapshot.mjs capture --within 150
+        run: node predict-snapshot.mjs capture --within 150 ${{ inputs.pred_now && '--force' || '' }}
 
       # Outcomes. Exits silently until data_checked flips, which happens once
       # bonus has been applied — usually a few hours after the last match.
