@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* fpl-snapshot.mjs — snapshot-2026-09-10a
+/* fpl-snapshot.mjs — snapshot-2026-09-10b
  *
  * Captures FPL API state into history/fpl/ as immutable per-gameweek JSON.
  *
@@ -42,13 +42,16 @@
  * Pre-deadline state cannot be backfilled, so anything a future model might
  * want has to be captured now or never.
  *
+ * 2026-09-10b — adds `code`, FPL's stable cross-season player id, as the join
+ * key to last season's FPL data.
+ *
  * RUN probe FIRST. This project has been bitten repeatedly by hand-typed
  * field names. The probe writes untouched responses so the field lists below
  * can be checked against reality before anything trusts them.
  */
 
 const API = 'https://fantasy.premierleague.com/api';
-const STAMP = 'snapshot-2026-09-10a';
+const STAMP = 'snapshot-2026-09-10b';
 
 /* Browser-like headers. Bare fetch gets 403s from this API. */
 const HEADERS = {
@@ -82,6 +85,10 @@ const PRE_FIELDS = [
    * model can be re-run on this week's inputs. Names are needed for the
    * Understat match; season xG/xA and transfers feed xg90, xa90 and momentum. */
   'first_name', 'second_name',
+  /* FPL's stable player code. Element ids are reassigned every season; code
+   * is not, so it is the join key to last season's FPL data (vaastav
+   * players_raw carries it too). No name matching. */
+  'code',
   'expected_goals', 'expected_assists', 'expected_goal_involvements', 'expected_goals_conceded',
   'transfers_in_event', 'transfers_out_event',
   'clearances_blocks_interceptions', 'tackles', 'recoveries',
