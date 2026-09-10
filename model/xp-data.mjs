@@ -1,4 +1,4 @@
-/* xp-data.mjs — xpdata-2026-09-10a
+/* xp-data.mjs — xpdata-2026-09-10b
  *
  * Loads a vaastav season into the shapes the xP engine consumes, which are
  * deliberately the same shapes the app can build from history/fpl/post/ and
@@ -32,8 +32,8 @@ const POS = { GK: 'GKP', GKP: 'GKP', DEF: 'DEF', MID: 'MID', FWD: 'FWD' };
  * MB per season and lives outside git (model/data/ is ignored), so a fresh
  * clone runs the backtest with no manual download step. */
 const VAASTAV = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data';
-export async function ensureSeason(dir, season) {
-  for (const f of ['gws/merged_gw.csv', 'players_raw.csv', 'fixtures.csv', 'teams.csv']) {
+export async function ensureSeason(dir, season, files = ['gws/merged_gw.csv', 'players_raw.csv', 'fixtures.csv', 'teams.csv']) {
+  for (const f of files) {
     const out = `${dir}/${season}/${f.split('/').pop()}`;
     if (fs.existsSync(out)) continue;
     fs.mkdirSync(`${dir}/${season}`, { recursive: true });

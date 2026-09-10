@@ -1,4 +1,4 @@
-/* xp-engine.js — xpe-2026-09-10a
+/* xp-engine.js — xpe-2026-09-10b
  *
  * Expected points, built from FPL's own scoring rules. Pure functions only:
  * no DOM, no fetch, no globals read. The same text runs in the node backtest
@@ -18,6 +18,10 @@
  * Every rate is a shrinkage estimate: this season's data pulled toward a
  * prior, which is the player's own last season where it exists, and the
  * position-and-price average where it does not. All inputs are FPL data.
+ *
+ * 2026-09-10b — priors and per-player setup moved in from the backtest
+ * (buildPriors, playerInputs), so the backtest and the app assemble a
+ * player's inputs with the same code. Backtest output unchanged.
  */
 const XPE = (() => {
 
@@ -197,5 +201,114 @@ const XPE = (() => {
     return { total, parts, xg, xa, pCS, xMins: m.xMins };
   }
 
-  return { rulesFor, DEFAULTS, pmf, pAtLeast, eFloorDiv, shrink, teamRatings, lambdas, minutesModel, fixtureXP };
+  /* ── PRIORS FROM LAST SEASON ────────────────────────────────────────
+   * rows:     last season's player-matches, {code, pos, min, st, xg, xa, a,
+   *           bn, yc, sv, dc (null before 2025-26), price, fx, team}
+   * fixtures: last season's fixtures, {id, home, away} by team code
+   * current:  this season's team codes — any not in last season's league
+   *           are promoted, and take the relegated clubs' average ratings.
+   * Output is plain data, so it can be written to a JSON file once a season
+   * and loaded by the app. */
+  const DCTHR = { DEF: 10, MID: 12, FWD: 12 };
+  const band = p => Math.max(4, Math.min(12, Math.floor(p)));
+  const blank = () => ({ rows: 0, mins: 0, starts: 0, st60: 0, stMins: 0, subApps: 0, xg: 0, xa: 0, bn: 0, yc: 0, sv: 0, dc: 0, dcMins: 0, dcSt: 0, dcHit: 0 });
+  function buildPriors(rows, fixtures, current, opt = {}) {
+    const reg = opt.teamRegress ?? 0.8;
+    const pl = {}; let hasDC = false;
+    for (const r of rows) {
+      const p = pl[r.code] || (pl[r.code] = { ...blank(), priceSum: 0, pos: r.pos });
+      p.rows++; p.mins += r.min; p.xg += r.xg; p.xa += r.xa; p.bn += r.bn; p.yc += r.yc; p.sv += r.sv; p.priceSum += r.price; p.pos = r.pos;
+      if (r.st >= 1) { p.starts++; p.stMins += r.min; if (r.min >= 60) p.st60++; } else if (r.min > 0) p.subApps++;
+      if (r.dc != null) { hasDC = true; p.dc += r.dc; p.dcMins += r.min; if (r.st >= 1) p.dcSt++; if (r.dc >= (DCTHR[r.pos] ?? Infinity)) p.dcHit++; }
+    }
+    const bandT = {}, posT = {};
+    for (const p of Object.values(pl)) {
+      p.price = p.priceSum / p.rows; delete p.priceSum;
+      for (const [T, k] of [[bandT, p.pos + band(p.price)], [posT, p.pos]]) {
+        const b = T[k] || (T[k] = blank()); for (const f in b) b[f] += p[f] || 0;
+      }
+    }
+    const byFx = {}, tm = {}; let tot = 0, cnt = 0, hx = 0, ax = 0;
+    for (const r of rows) { const k = r.fx + ':' + r.team; byFx[k] = (byFx[k] || 0) + r.xg; }
+    for (const f of fixtures) {
+      const h = byFx[f.id + ':' + f.home], a = byFx[f.id + ':' + f.away]; if (h == null || a == null) continue;
+      for (const [t, xf, xa] of [[f.home, h, a], [f.away, a, h]]) { const o = tm[t] || (tm[t] = { f: 0, a: 0, n: 0 }); o.f += xf; o.a += xa; o.n++; }
+      tot += h + a; cnt += 2; hx += h; ax += a;
+    }
+    const avg = tot / cnt, att = {}, def = {};
+    for (const [t, o] of Object.entries(tm)) { att[t] = 1 + reg * (o.f / o.n / avg - 1); def[t] = 1 + reg * (o.a / o.n / avg - 1); }
+    const now = new Set((current || []).map(Number));
+    const relegated = Object.keys(tm).filter(t => !now.has(Number(t)));
+    const mean = (o, ks) => ks.length ? ks.reduce((s, k) => s + o[k], 0) / ks.length : 1;
+    const promoted = { att: mean(att, relegated), def: mean(def, relegated) };
+    for (const t of now) if (!(t in att)) { att[t] = promoted.att; def[t] = promoted.def; }
+    const aSum = rows.reduce((s, r) => s + (r.a || 0), 0), xaSum = rows.reduce((s, r) => s + r.xa, 0);
+    return { pl, bandT, posT, team: { avg, home: Math.sqrt(hx / ax), att, def, promoted }, assistRatio: aSum / xaSum, hasDC };
+  }
+
+  const rateOf = (t, k) => (k === 'dc' ? (t.dcMins ? t.dc / t.dcMins : 0) : (t.mins ? t[k] / t.mins : 0));
+  function bandRate(P, pos, price, k) {
+    const b = P.bandT[pos + band(price)], t = P.posT[pos];
+    const bm = b ? (k === 'dc' ? b.dcMins : b.mins) : 0, pr = t ? rateOf(t, k) : 0;
+    return b ? (rateOf(b, k) * bm + pr * 3000) / (bm + 3000) : pr;
+  }
+  function bandMinutes(P, pos, price) {
+    const b = P.bandT[pos + band(price)] || P.posT[pos];
+    return { pStart: b.starts / b.rows, q60: b.st60 / Math.max(1, b.starts), mStart: b.stMins / Math.max(1, b.starts), pSub: b.subApps / Math.max(1, b.rows - b.starts) };
+  }
+  /* This season's own position/price defcon table, for when last season had
+   * no defcon field (backtest of 2025-26). Built from the state list. */
+  function dcBandFrom(states) {
+    const T = {};
+    for (const s of states) for (const k of [s.pos + band(s.price), s.pos]) {
+      const b = T[k] || (T[k] = { dc: 0, dcMins: 0, dcSt: 0, dcHit: 0 }); b.dc += s.dc; b.dcMins += s.dcMins; b.dcSt += s.dcSt; b.dcHit += s.dcHit;
+    }
+    return T;
+  }
+
+  /* ── ONE PLAYER'S INPUTS ──────────────────────────────────────────────
+   * me:  this season so far, {mins, xg, xa, bn, yc, sv, dc, dcMins, dcSt,
+   *      dcHit, win:[{minutes, starts}]}
+   * p1:  his entry in the priors (by code), or null
+   * Returns the rates and minutes that fixtureXP consumes. */
+  const RATE_KEYS = ['xg', 'xa', 'bn', 'yc', 'sv', 'dc'];
+  function playerInputs(pos, price, me, p1, P, rules, opt = {}, dcBand = null) {
+    const o = { ...DEFAULTS, ...opt };
+    const rates = {};
+    for (const k of RATE_KEYS) {
+      let bandR = bandRate(P, pos, price, k);
+      if (k === 'dc' && dcBand) { const b = dcBand[pos + band(price)], q = dcBand[pos]; const qr = q && q.dcMins ? q.dc / q.dcMins : 0; bandR = b && b.dcMins ? (b.dc + qr * 3000) / (b.dcMins + 3000) : qr; }
+      const hasPrior = p1 && (k !== 'dc' || P.hasDC);
+      const priorR = hasPrior ? shrink(p1[k], k === 'dc' ? p1.dcMins : p1.mins, bandR, o.priorP) : bandR;
+      rates[k + '90'] = shrink(me[k], k === 'dc' ? me.dcMins : me.mins, priorR, o.rateP) * 90;
+    }
+    if (rules.defcon && pos !== 'GKP') {
+      const hitOf = b => (b && b.dcSt ? b.dcHit / b.dcSt : null);
+      const src = dcBand || P.bandT, q = hitOf((dcBand || P.posT)[pos]), b = src[pos + band(price)];
+      const bandH = b && b.dcSt ? (b.dcHit + (q ?? 0) * 20) / (b.dcSt + 20) : q;
+      if (bandH != null) {
+        const priorH = p1 && P.hasDC ? shrink(p1.dcHit, p1.dcSt, bandH, o.hitP ?? 6) : bandH;
+        rates.dcHit = shrink(me.dcHit, me.dcSt, priorH, o.hitP ?? 6);
+      }
+    }
+    const bm = bandMinutes(P, pos, price);
+    const minPrior = p1 && p1.rows >= 5 ? {
+      pStart: shrink(p1.starts, p1.rows, bm.pStart, 5), q60: shrink(p1.st60, p1.starts, bm.q60, 5),
+      mStart: shrink(p1.stMins, p1.starts, bm.mStart, 5), pSub: shrink(p1.subApps, p1.rows - p1.starts, bm.pSub, 5),
+    } : bm;
+    const mins = minutesModel(me.win.slice(-o.minWin), minPrior, pos, o);
+    return { rates, mins };
+  }
+
+  /* Team context for one fixture, from the player's side. */
+  function fixtureContext(T, rules, homeTeam, awayTeam, isHome, assistRatio) {
+    const L = lambdas(T, homeTeam, awayTeam), team = isHome ? homeTeam : awayTeam;
+    return { rules, assistRatio,
+      lamFor: isHome ? L.home : L.away, lamAgainst: isHome ? L.away : L.home,
+      lamForAvg: T.avg * (T.att[team] ?? 1), lamAgainstAvg: T.avg * (T.def[team] ?? 1),
+      pCSAvg: Math.exp(-T.avg * (T.def[team] ?? 1)) };
+  }
+
+  return { rulesFor, DEFAULTS, DCTHR, pmf, pAtLeast, eFloorDiv, shrink, teamRatings, lambdas, minutesModel, fixtureXP,
+    buildPriors, bandRate, bandMinutes, dcBandFrom, playerInputs, fixtureContext, band };
 })();
