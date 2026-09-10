@@ -1600,7 +1600,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-10a';
+const APP_BUILD = 'app-2026-09-10b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1705,7 +1705,9 @@ const I18N={
     bdSeasonRate:r=>'Starts share this season, shrunk toward 60% \u2192',
     bdStatus:'status', bdCop:'chance of playing', bdSecurity:'security',
     bdExpo:(w,e)=>'Raised to the power '+e+' (minutes weight '+w+' \u00f7 25)',
-    bdRamp:(g,R,lw)=>'GW'+g+' of the '+R+'-gameweek ramp: this-season features carry '+lw+'% of their slider weight and the price prior '+(100-lw)+'%. xG and xA blend this season with last at the same split.',
+    bdRamp:(g,R,lw)=>'GW'+g+' of the '+R+'-gameweek ramp: this-season features carry '+lw+'% of their slider weight and the price prior '+(100-lw)+'%.',
+    bdXgBlend:'xG and xA blend this season with last at the same split.',
+    bdXgLive:'xG and xA are this season only \u2014 no last-season blend is loaded, so early-season rates rest on a few matches.',
     bdOff:'Contributing nothing at current weights:',
     bdScoreNote:'Each row is the player\u2019s percentile times that feature\u2019s share of the total weight, on a 0\u201310 scale. Rows sum to the evidence figure; the minutes gate then multiplies it.',
     bdBase:'Base \u00b7 FPL ep_next', bdFixtures:'By gameweek',
@@ -1935,7 +1937,9 @@ const I18N={
     bdSeasonRate:r=>'Titularidades esta temporada, ajustadas hacia el 60% \u2192',
     bdStatus:'estado', bdCop:'prob. de jugar', bdSecurity:'seguridad',
     bdExpo:(w,e)=>'Elevado a '+e+' (peso de minutos '+w+' \u00f7 25)',
-    bdRamp:(g,R,lw)=>'J'+g+' de la rampa de '+R+' jornadas: los datos de esta temporada llevan el '+lw+'% de su peso y el precio el '+(100-lw)+'%. xG y xA mezclan esta temporada y la anterior en la misma proporci\u00f3n.',
+    bdRamp:(g,R,lw)=>'J'+g+' de la rampa de '+R+' jornadas: los datos de esta temporada llevan el '+lw+'% de su peso y el precio el '+(100-lw)+'%.',
+    bdXgBlend:'xG y xA mezclan esta temporada y la anterior en la misma proporci\u00f3n.',
+    bdXgLive:'xG y xA son solo de esta temporada \u2014 no hay mezcla con la anterior, as\u00ed que a principio de temporada se basan en pocos partidos.',
     bdOff:'Sin aporte con los pesos actuales:',
     bdScoreNote:'Cada fila es el percentil del jugador por la parte del peso total de ese factor, en escala 0\u201310. Las filas suman la evidencia; despu\u00e9s el filtro de minutos la multiplica.',
     bdBase:'Base \u00b7 ep_next de FPL', bdFixtures:'Por jornada',
@@ -5025,8 +5029,13 @@ function scoreBreakdown(p){
     +'<div class="bd-eq-sub">#'+p.rank+' '+t('bdOf')+' '+ctx.n
       +' \u00b7 #'+p.posRank+' '+p.pos+'</div></div>';
 
+  /* Only claim the xG blend when a prior actually matched. The Understat
+     loader has been a stub for a while, so on the live site nobody matches
+     and xg90/xa90 are this season's FPL figures alone. */
+  const xgNote=(diag.matched||diag.matchedPrior)?t('bdXgBlend'):t('bdXgLive');
   const ramp=ctx.mode==='blend'
-    ? '<div class="bd-note">'+t('bdRamp')(ctx.gwPlayed, RAMP_GWS, Math.round(ctx.liveWeight*100))+'</div>' : '';
+    ? '<div class="bd-note">'+t('bdRamp')(ctx.gwPlayed, RAMP_GWS, Math.round(ctx.liveWeight*100))+' '+xgNote+'</div>'
+    : (ctx.gwPlayed>0&&!(diag.matched||diag.matchedPrior)?'<div class="bd-note">'+xgNote+'</div>':'');
   const offNote=off.length
     ? '<div class="bd-note">'+t('bdOff')+' '+off.map(k=>esc((F[k]&&F[k][0])||FEATURES[k].label)).join(', ')+'</div>' : '';
 
