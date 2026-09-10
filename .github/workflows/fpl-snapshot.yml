@@ -1,4 +1,4 @@
-# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-05c
+# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-10a
 #
 # Captures FPL state into history/fpl/ without anyone having to remember.
 #
@@ -47,6 +47,28 @@ jobs:
       - name: Capture pre-deadline
         run: node fpl-snapshot.mjs pre --within 150
 
+      # Predictions, frozen in the same window as the pre snapshot. The check
+      # is plain node and costs nothing; Chromium is only installed on the
+      # handful of runs a week where a capture is actually due.
+      - name: Is a prediction capture due?
+        id: pred
+        continue-on-error: true
+        run: node predict-snapshot.mjs check --within 150 >> "$GITHUB_OUTPUT"
+
+      - name: Install headless browser
+        if: steps.pred.outputs.due == 'true'
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.0
+          npx playwright install --with-deps chromium
+
+      # Loads the live site, so it records whatever build is actually deployed.
+      # A failure here must not cost the week's pre/post files, hence
+      # continue-on-error: the commit step below still runs.
+      - name: Capture predictions
+        if: steps.pred.outputs.due == 'true'
+        continue-on-error: true
+        run: node predict-snapshot.mjs capture --within 150
+
       # Outcomes. Exits silently until data_checked flips, which happens once
       # bonus has been applied — usually a few hours after the last match.
       - name: Capture post-gameweek
@@ -54,7 +76,11 @@ jobs:
 
       - name: Commit any new snapshots
         run: |
-          if git diff --quiet -- history/fpl; then
+          # git status, not git diff: a new snapshot is an UNTRACKED file, and
+          # git diff ignores untracked files entirely. Until snapshot-2026-09-10a
+          # this check saw nothing, exited 0, and every capture was discarded
+          # with the runner — green run, empty repo.
+          if [ -z "$(git status --porcelain -- history/fpl)" ]; then
             echo "no new snapshots this run"
             exit 0
           fi

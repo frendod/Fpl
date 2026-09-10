@@ -1,4 +1,4 @@
-# .github/workflows/odds-snapshot.yml — odds-2026-09-06b
+# .github/workflows/odds-snapshot.yml — odds-2026-09-10a
 #
 # Captures pre-deadline betting odds into history/odds/, twice per gameweek.
 #
@@ -60,7 +60,11 @@ jobs:
 
       - name: Commit any new snapshots
         run: |
-          if git diff --quiet -- history/odds; then
+          # git status, not git diff: a new snapshot is an UNTRACKED file, and
+          # git diff ignores untracked files entirely. Until odds-2026-09-10a
+          # this check saw nothing, exited 0, and every capture was discarded
+          # with the runner — green run, empty repo.
+          if [ -z "$(git status --porcelain -- history/odds)" ]; then
             echo "no new snapshots this run"
             exit 0
           fi
