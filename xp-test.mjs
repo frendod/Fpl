@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* xp-test.mjs — xptest-2026-09-06a
+/* xp-test.mjs — xptest-2026-09-10a
  *
  * Behavioural test for the expected-points engine in index.html.
  *
@@ -12,6 +12,13 @@
  * splice renames or removes one of them the test throws immediately instead
  * of passing against a stale duplicate. The cost is that it is coupled to the
  * function names, which is the intended coupling.
+ *
+ * Since app-2026-09-10c xpFixtures hands off to the xP model (model/
+ * xp-engine.js, tested by model/xp-backtest.mjs) whenever it is loaded, and
+ * to xpFixturesFPL otherwise. Here the model is absent, so these assertions
+ * pin the FALLBACK path and the plumbing around it — the horizon, the My
+ * Team override, doubles and blanks — which is what the page runs on first
+ * paint and whenever the model cannot load.
  *
  * The fixtures are synthetic. This checks the engine's ARITHMETIC — doubles,
  * blanks, the next-gameweek split, the My Team horizon override — not whether
@@ -35,7 +42,7 @@ const mult = src.slice(src.indexOf('const XP_FDR_MULT='), src.indexOf('};', src.
 globalThis.clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 let fixtures=[], state={nextGW:5}, userTeam={};
 const code = mult + '\n' + grab('xpNextGW') + '\n' + grab('oddsMult') + '\n'
-  + grab('xpFixtures') + '\n' + grab('projectedPoints') + '\n' + grab('projectedRun');
+  + grab('xpFixtures') + '\n' + grab('xpFixturesFPL') + '\n' + grab('projectedPoints') + '\n' + grab('projectedRun');
 const fn = new Function('fixtures','state','userTeam','clamp',
   code + '\nreturn {xpFixtures,projectedPoints,projectedRun,xpNextGW,XP_FDR_MULT};');
 
