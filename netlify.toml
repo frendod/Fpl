@@ -1,4 +1,4 @@
-# netlify.toml — config-2026-09-06a
+# netlify.toml — config-2026-09-10a
 #
 # Site root is served as-is; the app is a single index.html.
 #
@@ -22,10 +22,17 @@
 
 [build]
   publish = "."
-  # Snapshot commits are data, not code. Without excluding them, the hourly
-  # snapshot workflows would trigger a full Netlify rebuild every time they
-  # write a file — which for the odds job is potentially every gameweek.
-  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/fpl' ':(exclude)history/odds'"
+  # Odds commits are excluded from triggering a deploy: nothing in the app
+  # reads history/odds yet.
+  #
+  # history/fpl is NOT excluded, as of config-2026-09-10a. The app fetches
+  # post/gw-N.json from the DEPLOYED site for the xMins window, and the weekly
+  # report will fetch pred/ and post/ the same way. Excluding them meant a new
+  # gameweek reached the repo but never the site, so the Score gate would
+  # quietly run on stale weeks until the next code push. The workflows only
+  # commit when a file is actually written — about three times a gameweek
+  # (pre, pred, post) — so this is a few static deploys a week, not hourly.
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/odds'"
 
 [functions]
   # modern ESM function syntax
@@ -97,5 +104,10 @@
 
 [[redirects]]
   from = "/odds-snapshot.mjs"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/predict-snapshot.mjs"
   to = "/404.html"
   status = 404

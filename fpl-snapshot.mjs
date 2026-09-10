@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* fpl-snapshot.mjs — snapshot-2026-09-05c
+/* fpl-snapshot.mjs — snapshot-2026-09-10a
  *
  * Captures FPL API state into history/fpl/ as immutable per-gameweek JSON.
  *
@@ -31,6 +31,16 @@
  *                  m minutes away. Lets a plain hourly cron hit a moving target:
  *                  deadlines shift by day and time each week, so the script
  *                  decides whether this is the right hour, not the schedule.
+ *                  An existing capture taken OUTSIDE the window (a manual run
+ *                  days early) is replaced once the window opens; an existing
+ *                  in-window capture is never touched. Git keeps the early one.
+ *
+ * 2026-09-10a — pre snapshots carry enough to REPLAY the model later, not just
+ * to describe the week: every bootstrap field build() reads, the season state
+ * (events, total_players), and fixtures for the next six gameweeks rather than
+ * one, since Score prices three and xP up to five. Schema bumps to fpl-pre/2.
+ * Pre-deadline state cannot be backfilled, so anything a future model might
+ * want has to be captured now or never.
  *
  * RUN probe FIRST. This project has been bitten repeatedly by hand-typed
  * field names. The probe writes untouched responses so the field lists below
@@ -38,6 +48,7 @@
  */
 
 const API = 'https://fantasy.premierleague.com/api';
+const STAMP = 'snapshot-2026-09-10a';
 
 /* Browser-like headers. Bare fetch gets 403s from this API. */
 const HEADERS = {
@@ -67,7 +78,18 @@ const PRE_FIELDS = [
   'saves_per_90', 'clean_sheets_per_90', 'goals_conceded_per_90', 'starts_per_90',
   'penalties_order', 'corners_and_indirect_freekicks_order', 'direct_freekicks_order',
   'total_points', 'points_per_game', 'bps', 'ict_index',
+  /* Added 2026-09-10a: the rest of what index.html build() reads, so a later
+   * model can be re-run on this week's inputs. Names are needed for the
+   * Understat match; season xG/xA and transfers feed xg90, xa90 and momentum. */
+  'first_name', 'second_name',
+  'expected_goals', 'expected_assists', 'expected_goal_involvements', 'expected_goals_conceded',
+  'transfers_in_event', 'transfers_out_event',
+  'clearances_blocks_interceptions', 'tackles', 'recoveries',
+  'goals_scored', 'assists', 'clean_sheets', 'saves', 'bonus', 'event_points',
 ];
+
+/* How many gameweeks of fixtures a pre snapshot keeps, counting the next. */
+const FIXTURE_HORIZON = 6;
 
 /* From event/{gw}/live/ elements[].stats. The outcome set. */
 const POST_FIELDS = [
@@ -89,7 +111,7 @@ const POST_FIELDS = [
 
 /* ── PLUMBING ─────────────────────────────────────────────────────────── */
 
-import { mkdir, writeFile, access } from 'node:fs/promises';
+import { mkdir, writeFile, access, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const args = process.argv.slice(2);
@@ -268,7 +290,7 @@ async function capturePost() {
 
     await writeJSON(path, {
       schema: 'fpl-post/1',
-      stamp: 'snapshot-2026-09-05c',
+      stamp: STAMP,
       season, gw,
       capturedAt: new Date().toISOString(),
       dataChecked: true,
@@ -317,18 +339,37 @@ async function capturePre() {
   }
 
   const path = join(OUT, season, 'pre', `gw-${next.id}.json`);
-  if (!FORCE && await exists(path)) { console.log('  already on disk, skipping'); return; }
+  if (!FORCE && await exists(path)) {
+    /* An early capture is a worse version of the same file: it predates the
+     * team news the live model will have at the deadline. Replace it once,
+     * when the window opens. An in-window capture is final. */
+    let prev = null;
+    try { prev = JSON.parse(await readFile(path, 'utf8')); } catch { /* unreadable: leave it */ }
+    const prevMins = prev ? prev.minutesBeforeDeadline : null;
+    const inWindow = !Number.isNaN(within) && mins != null && mins >= 0 && mins <= within;
+    if (inWindow && prevMins != null && prevMins > within) {
+      console.log(`  replacing early capture (${prevMins} min out) with an in-window one`);
+    } else {
+      console.log('  already on disk, skipping');
+      return;
+    }
+  }
 
   const missing = new Set();
   const players = {};
   for (const el of (boot.elements || [])) players[el.id] = pick(el, PRE_FIELDS, missing);
   reportMissing(missing, 'bootstrap elements');
 
-  const fixtures = await get(`fixtures/?event=${next.id}`);
+  /* One request for the season's fixtures, trimmed to the horizon. FDR values
+   * are re-rated by FPL during the season, so the ones in force at the
+   * deadline are the ones a replay must use. */
+  const allFx = await get('fixtures/');
+  const lastFxGW = next.id + FIXTURE_HORIZON - 1;
+  const fixtures = allFx.filter(f => f.event != null && f.event >= next.id && f.event <= lastFxGW);
 
   await writeJSON(path, {
-    schema: 'fpl-pre/1',
-    stamp: 'snapshot-2026-09-05c',
+    schema: 'fpl-pre/2',
+    stamp: STAMP,
     season, gw: next.id,
     capturedAt: now.toISOString(),
     deadline: next.deadline_time,
@@ -336,6 +377,13 @@ async function capturePre() {
     lookahead: !!late,
     synthetic: false,
     counts: { players: Object.keys(players).length, fixtures: fixtures.length },
+    fixtureHorizon: [next.id, lastFxGW],
+    totalPlayers: boot.total_players ?? null,
+    events: events.map(e => ({
+      id: e.id, deadline_time: e.deadline_time,
+      finished: e.finished, data_checked: e.data_checked,
+      is_previous: e.is_previous, is_current: e.is_current, is_next: e.is_next,
+    })),
     missingFields: [...missing],
     teams: (boot.teams || []).map(t => ({
       id: t.id, short: t.short_name, name: t.name,

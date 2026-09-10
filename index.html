@@ -956,6 +956,42 @@ textarea:focus{border-color:var(--accent)}
 .hist-empty{padding:26px 20px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
 .hist-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--dim)}
 .hist-venue{display:inline-block;width:20px;font-size:11px;color:var(--dim)}
+/* Score / xP breakdown tabs (bd-2026-09-10a). Rows are a three-column grid
+   rather than a table: label and working on the left, percentile bar in the
+   middle, contribution pinned right, so the right edge reads as a column of
+   numbers that sums to the figure in the group header. */
+.bd-eq{padding:4px 0 10px}
+.bd-eq-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bd-big{font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--accent);font-variant-numeric:tabular-nums}
+.bd-eq-txt{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--paper)}
+.bd-eq-sub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:2px}
+.bd-group{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:8px 12px;margin:0 0 8px}
+.bd-ghead{display:flex;justify-content:space-between;align-items:baseline;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:2px 0 6px}
+.bd-row{display:grid;grid-template-columns:1fr 56px 50px;gap:10px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.bd-l{display:flex;flex-direction:column;gap:1px;min-width:0}
+.bd-name{font-size:13px;color:var(--paper)}
+.bd-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-bar{height:5px;background:var(--line2);border-radius:3px;overflow:hidden}
+.bd-bar i{display:block;height:100%;background:var(--accent);opacity:.75}
+.bd-v{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);text-align:right;font-variant-numeric:tabular-nums;letter-spacing:0}
+.bd-v.neg{color:var(--bad)}
+.bd-line{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;color:var(--dim);padding:2px 0}
+.bd-line b{color:var(--paper);font-weight:600}
+.bd-flag{font-size:12px;line-height:1.45;color:var(--paper);margin-top:6px;padding:7px 9px;border-radius:6px;
+  border-left:3px solid var(--accent);background:rgba(217,164,65,.08)}
+.bd-note{font-size:11px;line-height:1.45;color:var(--dimmer);padding:2px 2px 6px}
+.bd-xt td,.bd-xt th{padding:5px 6px}
+.bd-xt td:first-child{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.bd-opp{text-align:left!important;font-family:inherit}
+.bd-ha{font-size:9.5px;color:var(--dim);border:1px solid var(--line2);border-radius:3px;padding:0 4px;margin-left:3px}
+.bd-fdr{display:inline-block;min-width:18px;text-align:center;border-radius:3px;color:#0d1117;font-weight:600;padding:0 3px}
+.bd-m{color:var(--dim)}
+.bd-xt th:nth-child(2){text-align:left}
+.bd-dim{color:var(--dim);font-weight:400}
+.bd-tot td{border-top:1px solid var(--line2);color:var(--accent);font-weight:600}
+.bd-tot td:first-child{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:left}
+.bd-blank td{color:var(--dimmer)}
 
 /* ─── SEASON PLAN ──────────────────────────────────────── */
 .fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
@@ -1564,7 +1600,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-06d';
+const APP_BUILD = 'app-2026-09-10a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1663,6 +1699,26 @@ const I18N={
     xpTip:'Projected points for the coming gameweek. FPL\u2019s own expected points, zero on a blank.',
     xp3Tip:n=>'Projected points across the next '+n+' gameweeks. Fixture difficulty is applied from the second week on, doubles are counted twice and blanks as nothing.',
     sumXP:'xP next', sumXP3:'next 3',
+    tabXP:'xP', tabScore:'Score',
+    bdPctIn:pos=>' in '+pos, bdWt:'wt', bdOf:'of', bdEvidence:'evidence', bdGateK:'minutes gate',
+    bdXMins:(m,gws)=>'Expected minutes '+m+'\u2032 of 90'+(gws?' ('+gws+')':'')+' \u2192',
+    bdSeasonRate:r=>'Starts share this season, shrunk toward 60% \u2192',
+    bdStatus:'status', bdCop:'chance of playing', bdSecurity:'security',
+    bdExpo:(w,e)=>'Raised to the power '+e+' (minutes weight '+w+' \u00f7 25)',
+    bdRamp:(g,R,lw)=>'GW'+g+' of the '+R+'-gameweek ramp: this-season features carry '+lw+'% of their slider weight and the price prior '+(100-lw)+'%. xG and xA blend this season with last at the same split.',
+    bdOff:'Contributing nothing at current weights:',
+    bdScoreNote:'Each row is the player\u2019s percentile times that feature\u2019s share of the total weight, on a 0\u201310 scale. Rows sum to the evidence figure; the minutes gate then multiplies it.',
+    bdBase:'Base \u00b7 FPL ep_next', bdFixtures:'By gameweek',
+    bdFormEq:(pts,n,list)=>'Form = <b>'+pts+'</b> pts \u00f7 <b>'+n+'</b> GW ('+list+')',
+    bdFormPlain:f=>'FPL form <b>'+f+'</b> \u2014 points per gameweek over the last 30 days',
+    bdKindForm:'ep_next is this player\u2019s form, unchanged. Nothing about the coming opponent is in it.',
+    bdKindCop:'ep_next is form scaled by chance of playing. Nothing about the coming opponent is in it.',
+    bdKindNeg:'Form is negative, so FPL floors ep_next at zero.',
+    bdKindPrior:'No minutes yet this season, so ep_next is FPL\u2019s own pre-match estimate rather than form.',
+    bdKindOther:'ep_next does not reconcile to form for this player. FPL\u2019s figure is used as published.',
+    bdAsIs:'as-is', bdSplit:n=>'\u00f7'+n, bdBlank:'blank', bdRun:n=>'Next '+n, bdPerGW:'/GW',
+    bdMultNote:'The coming gameweek takes ep_next as-is. Later gameweeks multiply it by a fixture factor measured by position and difficulty on two seasons of FPL data.',
+    bdLeaves:'Not in xP: underlying xG, the xMins window, last season. Those are in Score.',
     histXPLegend:'Right-hand figure is projected points for that fixture. The coming gameweek is FPL\u2019s own expected points; later weeks apply the measured fixture-difficulty multiplier on top. A double gameweek is split across its two rows.',
     sqObjective:'Optimise on', sqObjScore:'Score', sqObjXP:'xP',
     sqObjNote:n=>n===1?'Built for a single gameweek. Discs and the table show projected points for that week, and a club without a fixture drops out entirely.'
@@ -1873,6 +1929,26 @@ const I18N={
     xpTip:'Puntos proyectados para la pr\u00f3xima jornada. Los puntos esperados de FPL; cero si no hay partido.',
     xp3Tip:n=>'Puntos proyectados en las pr\u00f3ximas '+n+' jornadas. La dificultad del calendario se aplica desde la segunda semana, los dobles cuentan dos veces y las jornadas en blanco no cuentan.',
     sumXP:'xP pr\u00f3x.', sumXP3:'pr\u00f3x. 3',
+    tabXP:'xP', tabScore:'Puntos',
+    bdPctIn:pos=>' en '+pos, bdWt:'peso', bdOf:'de', bdEvidence:'evidencia', bdGateK:'filtro de minutos',
+    bdXMins:(m,gws)=>'Minutos esperados '+m+'\u2032 de 90'+(gws?' ('+gws+')':'')+' \u2192',
+    bdSeasonRate:r=>'Titularidades esta temporada, ajustadas hacia el 60% \u2192',
+    bdStatus:'estado', bdCop:'prob. de jugar', bdSecurity:'seguridad',
+    bdExpo:(w,e)=>'Elevado a '+e+' (peso de minutos '+w+' \u00f7 25)',
+    bdRamp:(g,R,lw)=>'J'+g+' de la rampa de '+R+' jornadas: los datos de esta temporada llevan el '+lw+'% de su peso y el precio el '+(100-lw)+'%. xG y xA mezclan esta temporada y la anterior en la misma proporci\u00f3n.',
+    bdOff:'Sin aporte con los pesos actuales:',
+    bdScoreNote:'Cada fila es el percentil del jugador por la parte del peso total de ese factor, en escala 0\u201310. Las filas suman la evidencia; despu\u00e9s el filtro de minutos la multiplica.',
+    bdBase:'Base \u00b7 ep_next de FPL', bdFixtures:'Por jornada',
+    bdFormEq:(pts,n,list)=>'Forma = <b>'+pts+'</b> pts \u00f7 <b>'+n+'</b> J ('+list+')',
+    bdFormPlain:f=>'Forma FPL <b>'+f+'</b> \u2014 puntos por jornada en los \u00faltimos 30 d\u00edas',
+    bdKindForm:'ep_next es la forma del jugador, sin cambios. No incluye nada del pr\u00f3ximo rival.',
+    bdKindCop:'ep_next es la forma por la probabilidad de jugar. No incluye nada del pr\u00f3ximo rival.',
+    bdKindNeg:'La forma es negativa, as\u00ed que FPL deja ep_next en cero.',
+    bdKindPrior:'Sin minutos esta temporada: ep_next es la estimaci\u00f3n propia de FPL, no la forma.',
+    bdKindOther:'ep_next no cuadra con la forma de este jugador. Se usa la cifra de FPL tal cual.',
+    bdAsIs:'tal cual', bdSplit:n=>'\u00f7'+n, bdBlank:'sin partido', bdRun:n=>'Pr\u00f3x. '+n, bdPerGW:'/J',
+    bdMultNote:'La pr\u00f3xima jornada usa ep_next tal cual. Las siguientes lo multiplican por un factor de calendario medido por posici\u00f3n y dificultad en dos temporadas de FPL.',
+    bdLeaves:'Fuera del xP: xG subyacente, la ventana de minutos y la temporada anterior. Eso est\u00e1 en Puntos.',
     histXPLegend:'La cifra de la derecha son los puntos proyectados de ese partido. La pr\u00f3xima jornada usa los puntos esperados de FPL; las siguientes a\u00f1aden el multiplicador de dificultad medido. Una jornada doble se reparte entre sus dos filas.',
     sqObjective:'Optimizar por', sqObjScore:'Puntos', sqObjXP:'xP',
     sqObjNote:n=>n===1?'Construido para una sola jornada. Los discos y la tabla muestran los puntos proyectados de esa semana, y un club sin partido desaparece.'
@@ -2051,6 +2127,7 @@ let players=[], filtered=[], page=1, sortKey='score', sortAsc=false;
 let state={mode:'unloaded',gwPlayed:0,liveWeight:0,nextGW:1};
 let fields={defcon:null,defconParts:[],starts:false};
 let diag={};
+let scoreCtx=null;             // weights and denominators from the last build(), for the modal
 let highlightGood5Weeks=false;  // toggle for highlighting 5+ week good fixture runs
 let fdrTheme='dark';  // 'dark' or 'light' theme for fixture difficulty colors
 
@@ -2446,7 +2523,10 @@ const MINWIN = {
 };
 
 /* ══ MINUTES ═══════════════════════════════════════════ */
-function minutesSecurity(p){
+/* minutesDetail returns the parts as well as the product, so the player
+   modal's Score tab can show where the gate came from. minutesSecurity is the
+   same number the engine always used; nothing about the arithmetic moved. */
+function minutesDetail(p){
   const st={a:1,d:.55,i:.08,s:.08,u:0,n:.15}[p.status];
   const statusMult=st===undefined?.5:st;
   const cop=p.chance_of_playing_next_round;
@@ -2458,7 +2538,8 @@ function minutesSecurity(p){
      expectation rather than a binary — the shift is close to uniform, so
      ranking is unaffected while the gate becomes better calibrated. */
   const xm = MINWIN.xMins(p.id, POSN[p.element_type]);
-  if (xm !== null) return (xm / 90) * statusMult * copMult;
+  if (xm !== null) return {src:'xmins', xm, rate:xm/90, statusMult, copMult,
+    value:(xm / 90) * statusMult * copMult};
 
   /* Fallback: season-to-date, the previous behaviour. Used before the snapshot
      files exist, offline, and on any fetch failure. */
@@ -2470,8 +2551,9 @@ function minutesSecurity(p){
     const obs=clamp((p.minutes||0)/(state.gwPlayed*90),0,1);
     rate=state.liveWeight*obs+(1-state.liveWeight)*.6;
   }
-  return rate*statusMult*copMult;
+  return {src:'season', xm:null, rate, statusMult, copMult, value:rate*statusMult*copMult};
 }
+function minutesSecurity(p){ return minutesDetail(p).value; }
 
 /* ══ STATUS & PLAYING % ════════════════════════════════ */
 function getStatusBadge(status){
@@ -2561,6 +2643,7 @@ function build(){
     const rate=managers?net/(ownerBase+shrink):0;
 
     const f=fdrFor(p.team,gws);
+    const md=minutesDetail(p);
     return{
       id:p.id, el:p,
       epNext:parseFloat(p.ep_next)||0,
@@ -2584,7 +2667,7 @@ function build(){
       xa90:pick('xa90',fplXa90),
       xgdiff:pick('xgdiff90',0),
       fdr:f.avg, fdrKnown:f.known, homeShare:f.homeShare, fdrCount:f.count,
-      mins:minutesSecurity(p),
+      mins:md.value, minsD:md,
       mom:net,
       momRate:rate,
       owners:Math.round(ownerBase),
@@ -2607,13 +2690,25 @@ function build(){
     fdr   :percentiles(raw,p=>p.fdrKnown?-p.fdr:0),   // easier fixtures rank higher
     home  :percentiles(raw,p=>p.homeShare),
     mins  :percentiles(raw,p=>p.mins),
-    own   :percentiles(raw,p=>-p.sel),                // low ownership ranks higher
+    /* Ranked on ownership itself, so the weight's sign carries the intent:
+       negative penalises the crowd (rewards differentials), positive follows
+       it. Until app-2026-09-10a this ranked on -sel, which double-negated —
+       the default -8 and the Differential preset's -30 both quietly favoured
+       template picks, the opposite of what the slider hint promises. */
+    own   :percentiles(raw,p=>p.sel),
     mom   :percentiles(raw,p=>managers?p.momRate:p.mom),
     price :percentiles(raw,p=>p.price),
   };
 
   const keys=Object.keys(FEATURES).filter(k=>FEATURES[k].role!=='gate');
   const denom=keys.reduce((s,k)=>s+Math.abs(effWeight(k)),0)||1;
+  /* Everything the Score tab in the player modal needs to redo the sum by
+     hand. Captured here rather than recomputed there, so the breakdown is the
+     arithmetic that produced the number, not a second copy of it. */
+  const eff={}; keys.forEach(k=>eff[k]=effWeight(k));
+  scoreCtx={eff, denom, expo:clamp((WEIGHTS.mins||0)/25,0,2),
+    liveWeight:state.liveWeight, gwPlayed:state.gwPlayed, mode:state.mode,
+    minwin:MINWIN.status==='ready'?MINWIN.loaded.slice():null};
 
   players=raw.map(p=>{
     const parts={};
@@ -2630,7 +2725,8 @@ function build(){
     // multiplicative; above 1 punishes rotation risk harder.
     const expo=clamp((WEIGHTS.mins||0)/25,0,2);
     const gate=expo===0?1:Math.pow(clamp(p.mins,0,1),expo);
-    const score=clamp(sum,0,1)*10*gate;
+    const evid=clamp(sum,0,1)*10;
+    const score=evid*gate;
     /* Projected points, attached once per build so the table, the modal and
        the optimiser cannot drift apart. xp1 is the coming gameweek; xp3 is
        the run the squad optimiser uses, because a squad picked on one
@@ -2642,12 +2738,17 @@ function build(){
       xp1:Math.round(xp1*100)/100,
       xp3:Math.round(xp3*100)/100,
       gate,
+      evid,
       parts,
       pct:{xg90:P.xg90[p.id],defcon:P.defcon[p.id],mins:P.mins[p.id],bps:P.bps[p.id]},
+      pctAll:Object.fromEntries(keys.map(k=>[k,P[k][p.id]])),
     });
   }).sort((a,b)=>b.score-a.score);
 
   players.forEach((p,i)=>p.rank=i+1);
+  const posSeen={};
+  players.forEach(p=>{ posSeen[p.pos]=(posSeen[p.pos]||0)+1; p.posRank=posSeen[p.pos]; });
+  scoreCtx.posN=posSeen; scoreCtx.n=players.length;
   filtered=players.slice();
 
   xiBuildSeq++;                 // horizon cache is keyed on this
@@ -3955,6 +4056,63 @@ function optimiseSquad(pool, lockedIds){
 
 let lockedIds=new Set();     // player ids locked into the Best XI squad
 
+/* ══ PREDICTION LEDGER ═════════════════════════════════
+   ledger-2026-09-10a
+
+   What the app predicts for the coming gameweek, as data. predict-snapshot.mjs
+   loads the live site headless inside the pre-deadline window, calls this, and
+   writes the result to history/fpl/<season>/pred/gw-N.json. The weekly report
+   joins that file to post/gw-N.json.
+
+   It exports the numbers the UI would show, from the same engine, at default
+   settings (a headless browser has no saved weights or locks). That makes the
+   ledger a record of what was predicted, not a later re-derivation of it —
+   which matters because the model is about to be tuned, and a re-derivation
+   would quietly rewrite history every time it was.
+
+   Three XIs are frozen, because the report's sharpest test is what each
+   objective's team actually scored:
+     score   the Score optimiser
+     xp1     xP over the coming gameweek only
+     xp3     xP over the default three-week horizon
+
+   Nothing in the app calls this. It borrows the optimiser's globals and puts
+   every one of them back, whether or not the optimiser throws.
+════════════════════════════════════════════════════════ */
+window.fplLedger=function(){
+  if(!players.length)return null;
+  const saved={obj:xiObjective, span:xiSpan, start:xiStart, locks:lockedIds};
+  const pick=(obj,span)=>{
+    xiObjective=obj; xiSpan=span; xiStart=null; lockedIds=new Set();
+    if(obj==='xp')ensureHorizon();
+    const r=optimiseSquad(players, lockedIds);
+    if(!r||r.infeasible)return null;
+    const cap=r.xi.slice().sort((a,b)=>objVal(b)-objVal(a))[0];
+    return {objective:obj, span:obj==='xp'?xiSpanEff():null, gws:obj==='xp'?xiGWs():null,
+      formation:r.formation, cost:Math.round(r.cost*10)/10, captain:cap?cap.id:null,
+      xi:r.xi.map(p=>p.id), bench:(r.bench||[]).map(p=>p.id), squad:r.squad.map(p=>p.id),
+      objTotal:Math.round(r.xiScore*100)/100};
+  };
+  let xi;
+  try{ xi={score:pick('score',saved.span), xp1:pick('xp',1), xp3:pick('xp',3)}; }
+  finally{
+    xiObjective=saved.obj; xiSpan=saved.span; xiStart=saved.start; lockedIds=saved.locks;
+    xpH.key=null;
+  }
+  const r3=v=>Math.round(v*1000)/1000;
+  const cols=['score','xp1','xp3','epNext','mins','gate','evid','price','pos','teamId','status','rank','posRank'];
+  const rows={};
+  players.forEach(p=>{
+    rows[p.id]=[p.score,p.xp1,p.xp3,p.epNext,r3(p.mins),r3(p.gate),r3(p.evid||0),p.price,p.pos,p.teamId,p.status,p.rank,p.posRank];
+  });
+  return {schema:'fpl-pred/1', build:APP_BUILD, gw:xpNextGW(), capturedAt:new Date().toISOString(),
+    state:{mode:state.mode, gwPlayed:state.gwPlayed, liveWeight:state.liveWeight, nextGW:state.nextGW},
+    weights:Object.assign({},WEIGHTS), preset:activePreset,
+    minwin:MINWIN.status==='ready'?MINWIN.loaded.slice():null, minwinStatus:MINWIN.status,
+    understat:{matched:diag.matched, matchedPrior:diag.matchedPrior, pool:diag.pool},
+    counts:{players:players.length}, cols, players:rows, xi};
+};
+
 /* Sort state for the 15-man squad table, separate from the all-players table
    above: they show different columns and there is no reason a sort in one
    should move the other. 'pos' is the default and reproduces the original
@@ -4789,6 +4947,173 @@ function playerProjection(d){
     +'</div>';
 }
 
+/* ══ BREAKDOWN TABS ════════════════════════════════════
+   bd-2026-09-10a
+
+   Two tabs in the player modal that redo the headline numbers by hand. Both
+   read what build() already attached to the player row (pctAll, parts, evid,
+   gate, minsD) and the scoreCtx it left behind, so they show the arithmetic
+   that produced the number rather than a second implementation of it. If the
+   two ever disagree, the engine is right and this is the bug.
+════════════════════════════════════════════════════════ */
+function bdFmtK(n){
+  const a=Math.abs(n), sg=n<0?'\u2212':'+';
+  return sg+(a>=1000?(a/1000).toFixed(a>=10000?0:1)+'k':String(a));
+}
+function bdSigned(v,dp){
+  const r=Number(v).toFixed(dp);
+  return (Number(r)>0?'+':Number(r)<0?'\u2212':'')+Math.abs(Number(r)).toFixed(dp);
+}
+
+function scoreBreakdown(p){
+  if(!p||!p.pctAll||!scoreCtx)return '';
+  const ctx=scoreCtx, F=t('F')||{};
+  const RAW={
+    form:p=>p.form.toFixed(1), ppg:p=>p.ppg.toFixed(1), ict:p=>p.ict.toFixed(1),
+    bps:p=>String(p.bps), xg90:p=>p.xg90.toFixed(2), xa90:p=>p.xa90.toFixed(2),
+    xgdiff:p=>bdSigned(p.xgdiff,2), defcon:p=>String(p.defcon),
+    fdr:p=>p.fdrKnown?p.fdr.toFixed(1):'\u2014',
+    home:p=>p.fdrKnown?Math.round(p.homeShare*p.fdrCount)+'/'+p.fdrCount:'\u2014',
+    own:p=>p.sel.toFixed(1)+'%', mom:p=>bdFmtK(p.mom), price:p=>'\u00a3'+p.price.toFixed(1),
+  };
+  const on=[], off=[];
+  Object.keys(ctx.eff).forEach(k=>(ctx.eff[k]===0?off:on).push(k));
+
+  const rows=GROUPS.map(g=>{
+    const ks=on.filter(k=>FEATURES[k].group===g.id);
+    if(!ks.length)return '';
+    const sub=ks.reduce((a,k)=>a+(p.parts[k]||0)*10,0);
+    const body=ks.map(k=>{
+      const f=FEATURES[k], pct=p.pctAll[k], c=(p.parts[k]||0)*10;
+      const share=ctx.eff[k]/ctx.denom*100;
+      const label=(F[k]&&F[k][0])||f.label;
+      const pctTxt='p'+Math.round(pct*100)+(f.scope==='pos'?t('bdPctIn')(p.pos):'');
+      return '<div class="bd-row">'
+        +'<div class="bd-l"><span class="bd-name">'+esc(label)+'</span>'
+        +'<span class="bd-sub">'+RAW[k](p)+' \u00b7 '+pctTxt+' \u00b7 '+t('bdWt')+' '
+          +bdSigned(share,0).replace('+','')+'%</span></div>'
+        +'<div class="bd-bar"><i style="width:'+Math.round(pct*100)+'%"></i></div>'
+        +'<div class="bd-v'+(c<0?' neg':'')+'">'+bdSigned(c,2)+'</div></div>';
+    }).join('');
+    return '<div class="bd-group"><div class="bd-ghead"><span>'+t(g.nameK)+'</span>'
+      +'<span class="bd-v">'+bdSigned(sub,2)+'</span></div>'+body+'</div>';
+  }).join('');
+
+  /* The gate. Shown as its own block because it multiplies rather than adds,
+     and that is the single most misread thing about the Score. */
+  const md=p.minsD||{};
+  const pctS=v=>Math.round(v*100)+'%';
+  const minsLine=md.src==='xmins'
+    ? t('bdXMins')(Math.round(md.xm), ctx.minwin&&ctx.minwin.length
+        ? t('hGW')+ctx.minwin[0]+(ctx.minwin.length>1?'\u2013'+ctx.minwin[ctx.minwin.length-1]:'')
+        : '')
+    : t('bdSeasonRate')(pctS(md.rate||0));
+  const gateBlock='<div class="bd-group"><div class="bd-ghead"><span>'+t('bdGateK')+'</span>'
+      +'<span class="bd-v">\u00d7'+p.gate.toFixed(2)+'</span></div>'
+    +'<div class="bd-line">'+minsLine+' <b>'+(md.rate||0).toFixed(2)+'</b></div>'
+    +'<div class="bd-line">\u00d7 '+t('bdStatus')+' <b>'+pctS(md.statusMult==null?1:md.statusMult)+'</b>'
+      +' \u00d7 '+t('bdCop')+' <b>'+pctS(md.copMult==null?1:md.copMult)+'</b>'
+      +' = '+t('bdSecurity')+' <b>'+(p.mins||0).toFixed(2)+'</b></div>'
+    +'<div class="bd-line">'+t('bdExpo')((WEIGHTS.mins||0), ctx.expo.toFixed(2))
+      +' \u2192 <b>\u00d7'+p.gate.toFixed(2)+'</b></div>'
+    +'</div>';
+
+  const head='<div class="bd-eq">'
+    +'<div class="bd-eq-main"><span class="bd-big">'+p.score.toFixed(1)+'</span>'
+    +'<span class="bd-eq-txt">= '+p.evid.toFixed(2)+' '+t('bdEvidence')
+      +' \u00d7 '+p.gate.toFixed(2)+' '+t('bdGateK')+'</span></div>'
+    +'<div class="bd-eq-sub">#'+p.rank+' '+t('bdOf')+' '+ctx.n
+      +' \u00b7 #'+p.posRank+' '+p.pos+'</div></div>';
+
+  const ramp=ctx.mode==='blend'
+    ? '<div class="bd-note">'+t('bdRamp')(ctx.gwPlayed, RAMP_GWS, Math.round(ctx.liveWeight*100))+'</div>' : '';
+  const offNote=off.length
+    ? '<div class="bd-note">'+t('bdOff')+' '+off.map(k=>esc((F[k]&&F[k][0])||FEATURES[k].label)).join(', ')+'</div>' : '';
+
+  return head+ramp+rows+gateBlock+offNote+'<div class="bd-note">'+t('bdScoreNote')+'</div>';
+}
+
+/* What ep_next actually is, for this player. Worked out against the FPL
+   fields rather than asserted: measured on the GW4 pre-deadline snapshot,
+   ep_next equalled form for 604 of 652 players, and the rest were form times
+   chance of playing, negative form floored at zero, or new signings with no
+   minutes. None of those involve the opponent. */
+function epNextKind(el, ep){
+  const form=parseFloat(el.form)||0, cop=el.chance_of_playing_next_round;
+  if(Math.abs(ep-form)<=0.05)return {k:'form'};
+  if(cop!=null&&Math.abs(ep-form*cop/100)<=0.15)return {k:'cop',cop:Number(cop)};
+  if(form<=0&&ep===0)return {k:'neg'};
+  if(!(el.minutes>0))return {k:'prior'};
+  return {k:'other'};
+}
+
+/* Reconstruct form from the player's own gameweek rows. FPL defines it as
+   points per gameweek over the last 30 days, blanks counted as zero. Shown
+   only when the reconstruction matches the published figure — a sum that
+   does not reconcile is worse than no sum. */
+function formWorking(el, ts){
+  if(!ts||!ts.length||!bootstrap||!bootstrap.events)return null;
+  const now=Date.now(), from=now-30*864e5;
+  const win=bootstrap.events.filter(e=>{
+    const d=Date.parse(e.deadline_time); return d<=now&&d>=from;
+  }).map(e=>e.id);
+  if(!win.length)return null;
+  const byGW={}; win.forEach(g=>byGW[g]=0);
+  ts.forEach(r=>{ if(r.round in byGW)byGW[r.round]+=Number(r.points)||0; });
+  const pts=win.reduce((a,g)=>a+byGW[g],0);
+  if(Math.abs(pts/win.length-(parseFloat(el.form)||0))>0.051)return null;
+  return {pts, n:win.length, list:win.map(g=>t('hGW')+g+' '+byGW[g]).join(' \u00b7 ')};
+}
+
+function xpBreakdown(d){
+  const p=d&&d.p; if(!p||!p.el)return '';
+  const el=p.el, ep=p.epNext||0, kind=epNextKind(el,ep);
+  const fw=formWorking(el, d.thisSeason);
+  const baseLines=[];
+  baseLines.push(fw?t('bdFormEq')(fw.pts,fw.n,fw.list):t('bdFormPlain')(el.form));
+  if(kind.k==='cop')baseLines.push('\u00d7 '+t('bdCop')+' <b>'+kind.cop+'%</b>');
+  const kindTxt={form:t('bdKindForm'),cop:t('bdKindCop'),neg:t('bdKindNeg'),
+    prior:t('bdKindPrior'),other:t('bdKindOther')}[kind.k];
+
+  const teams=(bootstrap&&bootstrap.teams)||[];
+  const short=id=>((teams.find(x=>x.id===id)||{}).short_name||'?');
+  const start=xpNextGW(), N=5, rows=[], totals=[];
+  let run=0;
+  for(let i=0;i<N;i++){
+    const gw=start+i;
+    if(gw>lastGW())break;
+    const legs=xpFixtures(p,gw);
+    if(!legs.length){
+      rows.push('<tr class="bd-blank"><td>'+t('hGW')+gw+'</td><td colspan="3">'+t('bdBlank')+'</td><td>0.0</td></tr>');
+    }else{
+      legs.forEach((f,j)=>{
+        const mult=ep>0?f.xp/ep:(i===0?1/legs.length:(XP_FDR_MULT[p.pos]||XP_FDR_MULT.MID)[clamp(Math.round(f.diff),1,5)-1]);
+        const mTxt=i===0?(legs.length>1?t('bdSplit')(legs.length):t('bdAsIs')):'\u00d7'+mult.toFixed(2);
+        rows.push('<tr><td>'+(j===0?t('hGW')+gw:'')+'</td>'
+          +'<td class="bd-opp">'+short(f.oppId)+' <span class="bd-ha">'+(f.home?'H':'A')+'</span></td>'
+          +'<td><span class="bd-fdr '+(f.diff<=2?'fdr-easy':f.diff===3?'fdr-mid':'fdr-hard')+'">'+f.diff+'</span></td>'
+          +'<td class="bd-m">'+mTxt+'</td><td>'+f.xp.toFixed(1)+'</td></tr>');
+      });
+    }
+    run+=projectedPoints(p,gw);
+    if(i===XP_RUN_GWS-1||i===N-1)
+      totals.push('<tr class="bd-tot"><td colspan="4">'+t('bdRun')(i+1)
+        +' <span class="bd-dim">('+(run/(i+1)).toFixed(1)+t('bdPerGW')+')</span></td><td>'+run.toFixed(1)+'</td></tr>');
+  }
+
+  return '<div class="bd-eq">'
+      +'<div class="bd-eq-main"><span class="bd-big">'+(Number(p.xp1)||0).toFixed(1)+'</span>'
+      +'<span class="bd-eq-txt">'+t('hGW')+start+' \u00b7 '+t('bdRun')(XP_RUN_GWS)+' '+(Number(p.xp3)||0).toFixed(1)+'</span></div></div>'
+    +'<div class="bd-group"><div class="bd-ghead"><span>'+t('bdBase')+'</span><span class="bd-v">'+ep.toFixed(1)+'</span></div>'
+      +baseLines.map(l=>'<div class="bd-line">'+l+'</div>').join('')
+      +'<div class="bd-flag bd-flag-'+kind.k+'">'+kindTxt+'</div></div>'
+    +'<div class="bd-group"><div class="bd-ghead"><span>'+t('bdFixtures')+'</span></div>'
+      +'<table class="hist-table bd-xt"><thead><tr><th>'+t('hGW')+'</th><th>'+t('hOpp')+'</th><th>FDR</th><th>\u00d7</th><th>xP</th></tr></thead>'
+      +'<tbody>'+rows.join('')+totals.join('')+'</tbody></table></div>'
+    +'<div class="bd-note">'+t('bdMultNote')+'</div>'
+    +'<div class="bd-note">'+t('bdLeaves')+'</div>';
+}
+
 function playerSummary(d){
   const el=d.el;
   const past=d.pastSeasons||[];
@@ -4925,6 +5250,9 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   // Build tab bar with all available sections (no Summary tab - always shown above)
   const tabs=[];
   if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
+  const bdScore=scoreBreakdown(d.p), bdXP=xpBreakdown(d);
+  if(bdXP) tabs.push({id:'bdxp', label:t('tabXP')});
+  if(bdScore) tabs.push({id:'bdscore', label:t('tabScore')});
   // Combined seasons tab (past + per-season stats)
   if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
@@ -4950,6 +5278,10 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'</div>';
     }
   }
+
+  // TAB CONTENT: breakdowns of the two headline numbers
+  if(bdXP) html+='<div class="hist-tab-content" data-tab="bdxp">'+bdXP+'</div>';
+  if(bdScore) html+='<div class="hist-tab-content" data-tab="bdscore">'+bdScore+'</div>';
 
   // TAB CONTENT: Combined Seasons (Previous Seasons + Per-Season Stats)
   if(past.length||(understat&&understat.vsClub&&understat.vsClub.length)){
@@ -5024,6 +5356,12 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   if(!past.length&&!vs.length&&!(understat&&understat.vsClub&&understat.vsClub.length)&&!hasFixtures&&!hasSummary)
     html='<div class="hist-empty">'+t('histErr')+'</div>';
   $('histBody').innerHTML=html;
+  /* The first button was always drawn active, but nothing showed its
+     content, so the modal opened on a highlighted tab over an empty panel. */
+  if(tabs.length){
+    const first=document.querySelector('#histBody .hist-tab-content[data-tab="'+tabs[0].id+'"]');
+    if(first)first.classList.add('shown');
+  }
   
   // Wire up tab buttons
   document.querySelectorAll('.sum-option-btn').forEach(btn=>{
