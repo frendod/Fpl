@@ -1006,6 +1006,7 @@ textarea:focus{border-color:var(--accent)}
 .sl-rank{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);
   border:1px solid var(--line2);border-radius:4px;padding:1px 5px;white-space:nowrap}
 .sl-yr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper)}
+.sl-part{font-size:11px;color:var(--dimmer);padding-top:2px}
 .sum-news{margin-top:8px;font-size:12px;line-height:1.4;color:var(--paper);border-left:3px solid var(--bad);padding:6px 9px;background:rgba(229,101,122,.08);border-radius:4px}
 .u-table td,.u-table th{padding:5px 5px}
 .u-table td{color:#fff}
@@ -1605,7 +1606,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-11d';
+const APP_BUILD = 'app-2026-09-11e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1742,7 +1743,7 @@ const I18N={
     cCleanSheets:'Clean sheets', cConceded:'Conceded', cSaves:'Saves', cSaves90:'Saves/90', cPensSaved:'Pens saved',
     cTackles:'Tackles', cRecoveries:'Recoveries', cDefCon:'Def Con', cThreshold:'cleared',
     cYellow:'Yellow', cRed:'Red', cFouls:'Fouls', cBonus:'Bonus', cJoined:'Joined club',
-    cShotsHdr:'Sh/box/SoT',
+    cShotsHdr:'Sh/box/SoT', cPartial:g=>'Shot detail covers gameweeks '+g+' only.',
     tabXP:'xP', tabScore:'Score',
     bdPctIn:pos=>' in '+pos, bdWt:'wt', bdOf:'of', bdEvidence:'evidence', bdGateK:'minutes gate',
     bdXMins:(m,gws)=>'Expected minutes '+m+'\u2032 of 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -2013,7 +2014,7 @@ const I18N={
     cCleanSheets:'Porter\u00edas a cero', cConceded:'Encajados', cSaves:'Paradas', cSaves90:'Paradas/90', cPensSaved:'Penaltis parados',
     cTackles:'Entradas', cRecoveries:'Recuperaciones', cDefCon:'Contrib. def.', cThreshold:'superado',
     cYellow:'Amarillas', cRed:'Rojas', cFouls:'Faltas', cBonus:'Bonus', cJoined:'Fich\u00f3',
-    cShotsHdr:'T/\u00e1rea/AP',
+    cShotsHdr:'T/\u00e1rea/AP', cPartial:g=>'El detalle de tiros cubre solo las jornadas '+g+'.',
     tabXP:'xP', tabScore:'Puntos',
     bdPctIn:pos=>' en '+pos, bdWt:'peso', bdOf:'de', bdEvidence:'evidencia', bdGateK:'filtro de minutos',
     bdXMins:(m,gws)=>'Minutos esperados '+m+'\u2032 de 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -2560,7 +2561,9 @@ const MINWIN = {
        gameweek the Action has not settled yet. Take what is there. */
     await Promise.all(want.map(async g => {
       try{
-        const r = await fetch(base + 'gw-' + g + '.json', { cache: 'force-cache' });
+        /* 'no-cache' revalidates: these files are published mid-season, so a
+           404 cached before a gameweek existed would otherwise stick. */
+        const r = await fetch(base + 'gw-' + g + '.json', { cache: 'no-cache' });
         if (!r.ok) return;
         const j = await r.json();
         if (!j || !j.players) return;
@@ -2648,7 +2651,12 @@ const XPD = {
     try{
       if (!(await this.loadEngine())) throw new Error('model/xp-engine.js did not load');
       const season = MINWIN.season(), next = state.nextGW || 1;
-      const getJ = async u => { try{ const r = await fetch(u, { cache: 'force-cache' }); return r.ok ? await r.json() : null; }catch(e){ return null; } };
+      /* 'no-cache' revalidates rather than reusing what is stored. These files
+         appear mid-season, so force-cache could pin the 404 a browser saw
+         before a gameweek was published and never look again — which is how a
+         three-gameweek player came to read "Matches 2". Revalidation is a 304
+         once the file is unchanged, so it costs nothing after the first hit. */
+      const getJ = async u => { try{ const r = await fetch(u, { cache: 'no-cache' }); return r.ok ? await r.json() : null; }catch(e){ return null; } };
       const gws = []; for (let g = 1; g < next; g++) gws.push(g);
       const [pri, ...posts] = await Promise.all([
         getJ('./history/fpl/priors/' + season + '.json'),
@@ -5309,12 +5317,16 @@ function playerSummary(d){
   /* Points */
   if(el){
     const gp=+el.points_per_game||0, starts=el.starts||0;
-    const played=(typeof XPD!=='undefined'&&XPD.status==='ready')?XPD.season(el).filter(r=>r.min>0).length:null;
-    const subsOff=(typeof XPD!=='undefined'&&XPD.status==='ready'&&XPD.season(el).filter(r=>r.x).reduce((a,r)=>a+(r.x.substitutions_off||0),0))||0;
+    /* Only a count of matches if every played gameweek is actually loaded;
+       otherwise it would silently undercount. */
+    const full=typeof XPD!=='undefined'&&XPD.status==='ready'&&XPD.loaded.length>=(state.gwPlayed||0);
+    const played=full?XPD.season(el).filter(r=>r.min>0).length:null;
+    const subsOff=full?XPD.season(el).filter(r=>r.x).reduce((a,r)=>a+(r.x.substitutions_off||0),0):null;
     html+=block('\u25a0',t('cPoints'),
       line(kv(t('cTotal'),el.total_points), kv('PPG',gp.toFixed(1)), P?rank(P.rkPts,pos):'')
       +line(kv(t('cForm'),el.form), P?rank(P.rkForm,pos):'', P?kv('xP',(P.xp1||0).toFixed(1))+' '+rank(P.rkXp,pos):'')
-      +line(kv(t('cMins'),el.minutes), played!=null?kv(t('cMatches'),played):'', kv(t('cStarts'),starts), kv(t('cSubsOff'),subsOff))
+      +line(kv(t('cMins'),el.minutes), played!=null?kv(t('cMatches'),played):'', kv(t('cStarts'),starts),
+            subsOff!=null?kv(t('cSubsOff'),subsOff):'')
     );
   }
 
@@ -5337,7 +5349,10 @@ function statsBlocks(d){
   const P=(el&&players.find(x=>x.id===el.id))||null, pos=d.pos;
   const ch=(typeof XPD!=='undefined'&&XPD.status==='ready')?XPD.season(el).filter(r=>r.x):[];
   const cs=k=>ch.reduce((a,r)=>a+(r.x[k]||0),0);
-  const mins=+el.minutes||0, per90=x=>mins?(x/mins*90).toFixed(2):'\u2014';
+  /* Shot rates are per 90 of the minutes the shot data COVERS, not the
+     season's minutes, so a partial load cannot deflate them. */
+  const chMins=ch.reduce((a,r)=>a+(r.min||0),0);
+  const mins=chMins||(+el.minutes||0), per90=x=>mins?(x/mins*90).toFixed(2):'\u2014';
   const v=x=>'<b>'+x+'</b>', kv=(k,x)=>k+' '+v(x);
   const rank=r=>r?'<span class="sl-rank">#'+r+' '+pos+'</span>':'';
   const line=(...parts)=>'<div class="sl">'+parts.filter(Boolean).join('<span class="sl-dot">\u00b7</span>')+'</div>';
@@ -5352,6 +5367,9 @@ function statsBlocks(d){
             kv('xGI/90',(+el.expected_goal_involvements_per_90||0).toFixed(2)));
   if(ch.length){
     const sh=cs('total_shots'), obox=cs('attempts_obox'), ibox=Math.max(0,sh-obox), sot=cs('shots_on_target');
+    const gws=ch.map(r=>r.gw);
+    if(gws.length<(state.gwPlayed||0))
+      att+='<div class="sl sl-part">'+t('cPartial')(gws.join(', '))+'</div>';
     const xg=+el.expected_goals||0;
     att+=line(kv(t('cShots'),sh), kv(t('cInBox'),ibox), kv(t('cOutBox'),obox));
     att+=line(kv(t('cOnTarget'),sot), sh?kv(t('cAccuracy'),Math.round(sot/sh*100)+'%'):'', sh?kv(t('cXgShot'),(xg/sh).toFixed(2)):'');
