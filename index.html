@@ -1630,7 +1630,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-11i';
+const APP_BUILD = 'app-2026-09-11k';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1845,6 +1845,7 @@ const I18N={
     sumPens:'Penalties', sumSetPiece:'Set pieces',
     sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
     histUnderstatNote:'Multi-season xG by opponent.',
+    histMixedNote:(n,season)=>'Seasons up to 2025/26 come from Understat; '+season+' ('+n+' match'+(n===1?'':'es')+') is built from this season\u2019s FPL data, so its xG is FPL\u2019s measure.',
     hSeasons:'Seasons', hApps:'Apps',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
@@ -2093,6 +2094,7 @@ const I18N={
     sumPens:'Penaltis', sumSetPiece:'Bal\u00f3n parado',
     sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
     histUnderstatNote:'xG por rival multitemporada.',
+    histMixedNote:(n,season)=>'Las temporadas hasta 2025/26 proceden de Understat; '+season+' ('+n+(n===1?' partido':' partidos')+') se construye con los datos FPL de esta temporada, as\u00ed que su xG es el de FPL.',
     hSeasons:'Temp.', hApps:'PJ',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
@@ -2670,6 +2672,8 @@ const XPD = {
           const mins = +p.minutes || 0, st = +p.starts || 0, xg = +p.expected_goals || 0, xa = +p.expected_assists || 0, dc = +p.defensive_contribution || 0;
           m.mins += mins; m.xg += xg; m.xa += xa; m.bn += +p.bonus || 0; m.yc += +p.yellow_cards || 0; m.sv += +p.saves || 0;
           (this.gw[id] || (this.gw[id] = {}))[gws[i]] = { min: mins, st, xg, xa, dc, sv: +p.saves || 0, pts: +p.total_points || 0, n,
+            g: +p.goals_scored || 0, a: +p.assists || 0,
+            legs: legs.map(L => ({ opp: L.opponent, short: L.opponentShort, home: L.venue === 'H' })),
             hit: pos && pos !== 'GKP' ? (dc / n >= (XPE.DCTHR[pos] ?? Infinity)) : null };
           m.dc += dc; m.dcMins += mins; m.dcSt += st;
           if (pos && dc / n >= (XPE.DCTHR[pos] ?? Infinity)) m.dcHit += n;
@@ -2714,6 +2718,37 @@ const XPD = {
       rows.push({ gw: g, ...f, x });
     }
     return rows;
+  },
+
+  /* This season's matches in the shape the by-opponent table expects, built
+     from our own post snapshots rather than Understat — which was scraped
+     once and stops at 2025-26. Same fields, FPL's xG rather than Understat's;
+     the table labels the season so the two are not silently mixed.
+
+     A double gameweek arrives as one row covering two matches, so its
+     minutes, xG and xA are split evenly across the legs and its goals and
+     assists are left on the first — FPL does not say which match they came
+     in, and inventing a split would be worse than putting them somewhere
+     defensible. */
+  matchRows(el){
+    if (this.status !== 'ready' || !el) return [];
+    const season = String(parseInt(MINWIN.season(), 10));
+    const teamName = id => ((bootstrap.teams || []).find(tm => tm.id === id) || {}).name || null;
+    const out = [];
+    for (const g of this.loaded) {
+      const f = (this.gw[el.id] || {})[g]; if (!f || !f.legs || !f.legs.length) continue;
+      const n = f.legs.length, c = this.ch[g], r = c && c.players[el.code];
+      const x = r ? Object.fromEntries(c.cols.map((k, i) => [k, r[i]])) : null;
+      f.legs.forEach((L, i) => {
+        const opp = teamName(L.opp); if (!opp) return;
+        out.push({ season, gw: g, team: null, opponent: opp, venue: L.home ? 'H' : 'A',
+          min: f.min / n, goals: i === 0 ? f.g : 0, assists: i === 0 ? f.a : 0,
+          xg: f.xg / n, xa: f.xa / n,
+          shots: x ? (x.total_shots || 0) / n : null, keyPasses: x ? (x.key_passes || 0) / n : null,
+          live: true });
+      });
+    }
+    return out;
   },
 
   /* A player's rates and minutes. Cached: they do not depend on the fixture. */
@@ -4932,15 +4967,58 @@ function seasonsInScope(matches, n){
   return new Set(all.slice(all.length-n));                  // last N
 }
 
+/* Understat and FPL spell clubs differently — "Manchester United" against
+   "Man Utd", "Tottenham" against "Spurs", "Ipswich" against "Ipswich Town".
+   Matching the two on exact names silently dropped 8 of the 20 clubs from
+   the by-opponent table, which is why Haaland appeared never to have faced
+   United. Normalise both sides and compare on what is left.
+
+   Normalising: lower case, strip accents and punctuation, then remove the
+   words that one source keeps and the other drops (United, City, Town,
+   Wanderers, Albion, Hotspur, FC). "Man Utd" and "Manchester United" both
+   reduce to "man"; "Ipswich" and "Ipswich Town" to "ipswich". A handful of
+   clubs collide or survive that (Man City vs Man Utd both reduce to "man"),
+   so those are pinned by hand first. */
+const CLUB_PIN={
+  'manchester united':'MUN','man utd':'MUN','man united':'MUN',
+  'manchester city':'MCI','man city':'MCI',
+  'tottenham':'TOT','tottenham hotspur':'TOT','spurs':'TOT',
+  /* Keys are the POST-strip form: punctuation is already gone by lookup
+     time, so "Nott'm Forest" arrives here as "nottm forest". */
+  'nottingham forest':'NFO','nottm forest':'NFO','notts forest':'NFO',
+  'wolverhampton wanderers':'WOL','wolves':'WOL',
+  'sheffield united':'SHU','sheffield utd':'SHU',
+  'west bromwich albion':'WBA','west brom':'WBA',
+  'brighton':'BHA','brighton and hove albion':'BHA','brighton & hove albion':'BHA',
+};
+function clubKey(name){
+  const raw=String(name||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z ]+/g,'').replace(/\s+/g,' ').trim();
+  if(CLUB_PIN[raw])return CLUB_PIN[raw];
+  return raw.replace(/\b(fc|afc|united|utd|city|town|wanderers|albion|hotspur|and|the)\b/g,'')
+    .replace(/\s+/g,' ').trim()||raw;
+}
+/* Understat opponent name → this season's FPL team, or null. */
+function fplTeamFor(name){
+  const k=clubKey(name);
+  return (bootstrap.teams||[]).find(tm=>clubKey(tm.name)===k)||null;
+}
+
 function renderVsClub(understat, filter){
   const allMatches=understat.matches||[];
   const scope=seasonsInScope(allMatches, histSeasonN);
   const matches=allMatches.filter(m=>scope.has(m.season));
   const vc=understatVsClub(matches);          // recompute vs-club within scope
   
-  // Filter opponents to only current Premier League teams
-  const currentTeams=new Set((bootstrap.teams||[]).map(t=>t.name));
-  const vcFiltered=vc.filter(c=>currentTeams.has(c.opponent));
+  /* Current Premier League opponents only — a record against a club he
+     cannot face is history, not a fixture note. Matched on normalised
+     names, and each row is labelled with FPL's spelling so the table reads
+     the same as the rest of the app. */
+  const vcFiltered=vc.map(c=>{
+    const tm=fplTeamFor(c.opponent);
+    return tm?{...c,opponent:tm.name,short:tm.short_name}:null;
+  }).filter(Boolean);
   
   const opts=vcFiltered.map(c=>c.opponent).sort();
   
@@ -4950,6 +5028,7 @@ function renderVsClub(understat, filter){
   for(let n=1;n<=Math.min(5,seasonCount);n++)
     seasonOpts+='<option value="'+n+'"'+(histSeasonN===n?' selected':'')+'>'+n+'</option>';
   const seasonSel='<select id="vsSeasonFilter" class="vs-filter vs-filter-sm">'+seasonOpts+'</select>';
+  const liveN=(understat.matches||[]).filter(m=>m.live).length;
 
   const oppSel='<select id="vsOppFilter" class="vs-filter">'
     +'<option value="">'+t('histFilterAll')+'</option>'
@@ -4972,7 +5051,7 @@ function renderVsClub(understat, filter){
       +'<td>'+tot.as+'</td><td>'+tot.xg.toFixed(1)+'</td><td>'+tot.xa.toFixed(1)+'</td><td></td></tr>'
       +'</tbody></table>';
   } else {
-    const games=matches.filter(m=>m.opponent===filter)
+    const games=matches.filter(m=>clubKey(m.opponent)===clubKey(filter))
       .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     if(!games.length){
       body='<div class="hist-empty">'+t('histNoVs')+'</div>';
@@ -4994,7 +5073,8 @@ function renderVsClub(understat, filter){
   // Return controls + body (section wrapper is handled in renderHistoryInner)
   return '<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div>'
     +body
-    +'<div style="padding:8px 2px 0;font-size:11px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
+    +'<div style="padding:8px 2px 0;font-size:11px;color:var(--dimmer)">'
+      +(liveN?t('histMixedNote')(liveN,SEASON_LABEL):t('histUnderstatNote'))+'</div>';
 }
 
 // per-season stats block (Understat): totals per season across all opponents
@@ -5349,6 +5429,15 @@ function statsBlocks(d){
 
 function renderHistoryInner(d, understat, upcomingFixtures){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
+  /* The scraped Understat record stops at 2025-26. This season is added from
+     our own post snapshots so the by-opponent view stays current — and so a
+     player who only arrived this summer, and is in no shard, still has one. */
+  const liveRows=(typeof XPD!=='undefined'&&d.el)?XPD.matchRows(d.el):[];
+  if(liveRows.length){
+    understat=Object.assign({},understat,{matches:[...((understat&&understat.matches)||[]),...liveRows]});
+    understat.vsClub=understatVsClub(understat.matches);
+    understat.hasLive=true;
+  }
   let html='';
 
   // player stats summary (current or last season) under the name
