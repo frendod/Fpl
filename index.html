@@ -993,6 +993,26 @@ textarea:focus{border-color:var(--accent)}
 .bd-tot td:first-child{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:left}
 .bd-blank td{color:var(--dimmer)}
 .bd-row2{grid-template-columns:1fr 56px}
+/* Grouped stat blocks (card-2026-09-11c). Labels are dim and small; every
+   VALUE is full white so the numbers carry the card, which is what the eye
+   is looking for. */
+.sblock{background:var(--panel2);border:1px solid var(--line2);border-left:2px solid var(--accent);
+  border-radius:8px;padding:7px 11px 9px;margin:0 0 8px}
+.sblock-h{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--accent);padding:0 0 5px}
+.sl{font-size:13px;line-height:1.65;color:var(--dim)}
+.sl b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+.sl-dot{color:var(--line2);padding:0 6px}
+.sl-rank{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent);
+  border:1px solid var(--line2);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.sl-yr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper)}
+.sum-news{margin-top:8px;font-size:12px;line-height:1.4;color:var(--paper);border-left:3px solid var(--bad);padding:6px 9px;background:rgba(229,101,122,.08);border-radius:4px}
+.u-table td,.u-table th{padding:5px 5px}
+.u-table td{color:#fff}
+.u-table td:first-child{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.u-hit{color:var(--good)!important}
+.bd-vs td,.bd-vs th{padding:5px 6px}
+.bd-vs td:first-child{text-align:left;color:var(--dim);font-size:12px}
 
 /* ─── SEASON PLAN ──────────────────────────────────────── */
 .fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
@@ -1585,7 +1605,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-11a';
+const APP_BUILD = 'app-2026-09-11d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1702,6 +1722,27 @@ const I18N={
     xpmHeadFallback:e=>'The model could not load'+(e?' ('+e+')':'')+', so xP is FPL\u2019s own figure with a fixture adjustment until it does.',
     dXpModel:'xP model', dEngine:'Engine', dPriors:'Last-season priors', dLinked:'Players linked to last season',
     dGWsFolded:'Gameweeks folded in', dMatches:'Matches rated', dLeagueXG:'League xG per team-match', dAssistRatio:'FPL assists per xA',
+    sumDuties:'Set pieces', sumPensFull:'penalties', sumCorners:'corners', sumFKs:'free kicks',
+    uTitle:'Underlying \u2014 this season', uByGW:'By gameweek', uPointsTitle:'Points by match',
+    uShots90:'Shots /90', uOnTarget:'on target', uXgShot:'xG per shot', uXgTotal:x=>'xG '+x+' in total',
+    uKP90:'Key passes /90', uBigCh:n=>n+' big chance'+(n===1?'':'s')+' created', uDefcon:'Defcon per match', uHits:(h,s)=>'threshold cleared '+h+' of '+s+' starts',
+    uMisc:'Dribbles / crosses', uOff:(o,s)=>'subbed off '+o+' of '+s+' starts', uSaves90:'Saves /90', uTotal:'in total',
+    uShSoT:'Sh/SoT', uKP:'KP', uDC:'DC', uSv:'sv', uSvH:'Saves',
+    uNote:'Shots, key passes and dribbles come from the FPL Challenge feed; xG and defensive contributions from FPL. \u2193 = substituted off, \u2713 = defcon threshold cleared.',
+    xpmVsLast:'This season vs last', xpmThis:'This season', xpmLast:y=>y, xpmStartShare:'Starts',
+    tabStats:'Stats',
+    cOwnership:'Ownership', cSelected:'Selected', cTransfers:'Transfers', cSince:'Since start',
+    cPoints:'Points', cTotal:'Total', cForm:'Form', cMins:'Mins', cStarts:'Started', cSubsOff:'Subbed off',
+    cPastSeasons:'Previous seasons', cPts:'pts', cMatches:'Matches',
+    cAttacking:'Attacking', cDefending:'Defending', cRating:'Rating',
+    cGoals:'Goals', cAssists:'Assists', cShots:'Shots', cInBox:'in box', cOutBox:'outside',
+    cOnTarget:'On target', cAccuracy:'accuracy', cXgShot:'xG/shot', cShots90:'Shots/90', cHeaded:'headed',
+    cKeyPasses:'Key passes', cCrosses:'Crosses', cDribbles:'Dribbles',
+    cBigChCreated:'Big chances created', cBigChScored:'scored', cPensWon:'Pens won',
+    cCleanSheets:'Clean sheets', cConceded:'Conceded', cSaves:'Saves', cSaves90:'Saves/90', cPensSaved:'Pens saved',
+    cTackles:'Tackles', cRecoveries:'Recoveries', cDefCon:'Def Con', cThreshold:'cleared',
+    cYellow:'Yellow', cRed:'Red', cFouls:'Fouls', cBonus:'Bonus', cJoined:'Joined club',
+    cShotsHdr:'Sh/box/SoT',
     tabXP:'xP', tabScore:'Score',
     bdPctIn:pos=>' in '+pos, bdWt:'wt', bdOf:'of', bdEvidence:'evidence', bdGateK:'minutes gate',
     bdXMins:(m,gws)=>'Expected minutes '+m+'\u2032 of 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -1952,6 +1993,27 @@ const I18N={
     xpmHeadFallback:e=>'El modelo no carg\u00f3'+(e?' ('+e+')':'')+'; mientras tanto el xP es la cifra de FPL con ajuste de calendario.',
     dXpModel:'Modelo xP', dEngine:'Motor', dPriors:'Datos previos', dLinked:'Jugadores con temporada anterior',
     dGWsFolded:'Jornadas incorporadas', dMatches:'Partidos valorados', dLeagueXG:'xG de liga por equipo y partido', dAssistRatio:'Asistencias FPL por xA',
+    sumDuties:'Balón parado', sumPensFull:'penaltis', sumCorners:'córners', sumFKs:'faltas directas',
+    uTitle:'Datos de fondo \u2014 esta temporada', uByGW:'Por jornada', uPointsTitle:'Puntos por partido',
+    uShots90:'Tiros /90', uOnTarget:'a puerta', uXgShot:'xG por tiro', uXgTotal:x=>'xG '+x+' en total',
+    uKP90:'Pases clave /90', uBigCh:n=>n+(n===1?' ocasión clara creada':' ocasiones claras creadas'), uDefcon:'Defcon por partido', uHits:(h,s)=>'umbral superado en '+h+' de '+s+' titularidades',
+    uMisc:'Regates / centros', uOff:(o,s)=>'sustituido en '+o+' de '+s+' titularidades', uSaves90:'Paradas /90', uTotal:'en total',
+    uShSoT:'T/AP', uKP:'PC', uDC:'DC', uSv:'par', uSvH:'Paradas',
+    uNote:'Tiros, pases clave y regates proceden de FPL Challenge; xG y contribuciones defensivas de FPL. \u2193 = sustituido, \u2713 = umbral defensivo superado.',
+    xpmVsLast:'Esta temporada frente a la anterior', xpmThis:'Esta temporada', xpmLast:y=>y, xpmStartShare:'Titular',
+    tabStats:'Datos',
+    cOwnership:'Propiedad', cSelected:'Seleccionado', cTransfers:'Fichajes', cSince:'Desde el inicio',
+    cPoints:'Puntos', cTotal:'Total', cForm:'Forma', cMins:'Min', cStarts:'Titular', cSubsOff:'Sustituido',
+    cPastSeasons:'Temporadas anteriores', cPts:'pts', cMatches:'Partidos',
+    cAttacking:'Ataque', cDefending:'Defensa', cRating:'Valoraci\u00f3n',
+    cGoals:'Goles', cAssists:'Asistencias', cShots:'Tiros', cInBox:'en el \u00e1rea', cOutBox:'fuera',
+    cOnTarget:'A puerta', cAccuracy:'precisi\u00f3n', cXgShot:'xG/tiro', cShots90:'Tiros/90', cHeaded:'de cabeza',
+    cKeyPasses:'Pases clave', cCrosses:'Centros', cDribbles:'Regates',
+    cBigChCreated:'Ocasiones claras creadas', cBigChScored:'marcadas', cPensWon:'Penaltis provocados',
+    cCleanSheets:'Porter\u00edas a cero', cConceded:'Encajados', cSaves:'Paradas', cSaves90:'Paradas/90', cPensSaved:'Penaltis parados',
+    cTackles:'Entradas', cRecoveries:'Recuperaciones', cDefCon:'Contrib. def.', cThreshold:'superado',
+    cYellow:'Amarillas', cRed:'Rojas', cFouls:'Faltas', cBonus:'Bonus', cJoined:'Fich\u00f3',
+    cShotsHdr:'T/\u00e1rea/AP',
     tabXP:'xP', tabScore:'Puntos',
     bdPctIn:pos=>' en '+pos, bdWt:'peso', bdOf:'de', bdEvidence:'evidencia', bdGateK:'filtro de minutos',
     bdXMins:(m,gws)=>'Minutos esperados '+m+'\u2032 de 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -2566,6 +2628,8 @@ const XPD = {
   status: 'idle',          // idle | loading | ready | unavailable
   err: null, priors: null, rules: null, T: null, assistRatio: 1,
   me: {}, loaded: [], teamCode: {}, cache: {},
+  gw: {},                  // element id → { gw: {min, st, xg, xa, dc, sv, pts, off?...} } for the player card
+  ch: {},                  // gw → Challenge file (keyed by player code)
 
   loadEngine(){
     if (typeof XPE !== 'undefined') return Promise.resolve(true);
@@ -2590,6 +2654,10 @@ const XPD = {
         getJ('./history/fpl/priors/' + season + '.json'),
         ...gws.map(g => getJ('./history/fpl/' + season + '/post/gw-' + g + '.json')),
       ]);
+      /* Challenge stats are extras for the player card, never inputs to xP,
+         so they load in the background and a missing file costs nothing. */
+      Promise.all(gws.map(g => getJ('./history/fpl/' + season + '/challenge/gw-' + g + '.json')))
+        .then(fs => { fs.forEach((f, i) => { if (f && f.keyedBy === 'code' && f.players) this.ch[gws[i]] = f; }); });
       if (!pri || !pri.pl) throw new Error('no priors file for ' + season);
       this.priors = pri; this.rules = XPE.rulesFor(season);
       this.teamCode = Object.fromEntries(bootstrap.teams.map(t => [t.id, t.code]));
@@ -2608,6 +2676,8 @@ const XPD = {
           const m = me[id] || (me[id] = blank());
           const mins = +p.minutes || 0, st = +p.starts || 0, xg = +p.expected_goals || 0, xa = +p.expected_assists || 0, dc = +p.defensive_contribution || 0;
           m.mins += mins; m.xg += xg; m.xa += xa; m.bn += +p.bonus || 0; m.yc += +p.yellow_cards || 0; m.sv += +p.saves || 0;
+          (this.gw[id] || (this.gw[id] = {}))[gws[i]] = { min: mins, st, xg, xa, dc, sv: +p.saves || 0, pts: +p.total_points || 0, n,
+            hit: pos && pos !== 'GKP' ? (dc / n >= (XPE.DCTHR[pos] ?? Infinity)) : null };
           m.dc += dc; m.dcMins += mins; m.dcSt += st;
           if (pos && dc / n >= (XPE.DCTHR[pos] ?? Infinity)) m.dcHit += n;
           /* A double arrives as one row; split it evenly into its matches. */
@@ -2638,6 +2708,19 @@ const XPD = {
       this.err = String(e && e.message || e); this.status = 'unavailable';
       console.warn('xP model unavailable, using FPL fallback:', this.err);
     }
+  },
+
+  /* One player's season, gameweek by gameweek: FPL's post snapshots joined
+     to the Challenge stats by player code. For the card only. */
+  season(el){
+    const rows = [], byGW = this.gw[el.id] || {};
+    for (const g of this.loaded){
+      const f = byGW[g]; if (!f) continue;
+      const c = this.ch[g], r = c && c.players[el.code];
+      const x = r ? Object.fromEntries(c.cols.map((k, i) => [k, r[i]])) : null;
+      rows.push({ gw: g, ...f, x });
+    }
+    return rows;
   },
 
   /* A player's rates and minutes. Cached: they do not depend on the fixture. */
@@ -2854,6 +2937,16 @@ function build(){
   players.forEach((p,i)=>p.rank=i+1);
   const posSeen={};
   players.forEach(p=>{ posSeen[p.pos]=(posSeen[p.pos]||0)+1; p.posRank=posSeen[p.pos]; });
+  /* Ranks within position on the raw FPL measures, so the card can say
+     "#3 MID" the way the numbers themselves would. */
+  [['rkPts',p=>+p.el.total_points||0],['rkForm',p=>p.form],['rkIct',p=>p.ict],['rkSel',p=>p.sel],['rkXp',p=>p.xp1]]
+    .forEach(([key,val])=>{
+      const byPos={};
+      players.forEach(p=>(byPos[p.pos]||(byPos[p.pos]=[])).push(p));
+      Object.values(byPos).forEach(list=>{
+        list.slice().sort((a,b)=>val(b)-val(a)).forEach((p,i)=>{ p[key]=i+1; });
+      });
+    });
   filtered=players.slice();
 
   xiBuildSeq++;                 // horizon cache is keyed on this
@@ -5046,9 +5139,27 @@ function xpBreakdown(d){
   if(m0.avail!=null&&m0.avail<1) inputs+=line(t('xpmAvail'), pct(m0.avail));
   if(p.pos!=='GKP') inputs+=line('xG/90', f2(r.xg90))+line('xA/90', f2(r.xa90));
   if(p.pos==='GKP') inputs+=line(t('xpmSaves90'), f2(r.sv90));
-  if(r.dcHit!=null) inputs+=line(t('xpmDcHit'), pct(r.dcHit));
+  if(r.dcHit!=null&&(p.pos==='DEF'||p.pos==='MID')) inputs+=line(t('xpmDcHit'), pct(r.dcHit));
   inputs+=line(t('xpmBonus90'), f2(r.bn90));
   inputs+='<div class="bd-line">'+srcTxt+'</div>';
+
+  /* This season against last, raw: shows whether a hot or cold start is out
+     of line with the player's own record before the model's blending. */
+  const me=XPD.me[p.id], p1=XPD.priors.pl[el.code];
+  let vs='';
+  if(p1&&p1.mins>0){
+    const r90=(n,m)=>m>0?(n/m*90).toFixed(2):'—';
+    const row=(k,a,b)=>'<tr><td>'+k+'</td><td>'+a+'</td><td>'+b+'</td></tr>';
+    const mm=me?me.mins:0;
+    let rows='';
+    if(p.pos!=='GKP') rows+=row('xG/90',me?r90(me.xg,mm):'—',r90(p1.xg,p1.mins))+row('xA/90',me?r90(me.xa,mm):'—',r90(p1.xa,p1.mins));
+    if(p.pos==='GKP') rows+=row(t('xpmSaves90'),me?r90(me.sv,mm):'—',r90(p1.sv,p1.mins));
+    rows+=row(t('xpmBonus90'),me?r90(me.bn,mm):'—',r90(p1.bn,p1.mins));
+    if((p.pos==='DEF'||p.pos==='MID')&&p1.dcSt) rows+=row(t('xpmDcHit'),me&&me.dcSt?Math.round(me.dcHit/me.dcSt*100)+'%':'—',Math.round(p1.dcHit/p1.dcSt*100)+'%');
+    rows+=row(t('xpmStartShare'),me&&me.win.length?Math.round(me.win.filter(w=>w.starts>=1).length/me.win.length*100)+'%':'—',Math.round(p1.starts/Math.max(1,p1.rows)*100)+'%');
+    vs='<div class="bd-group"><div class="bd-ghead"><span>'+t('xpmVsLast')+'</span></div>'
+      +'<table class="hist-table bd-vs"><thead><tr><th></th><th>'+t('xpmThis')+'</th><th>'+t('xpmLast')(XPD.priors.from)+'</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
 
   /* Coming gameweek, component by component */
   const LAB=t('xpmParts');
@@ -5090,6 +5201,7 @@ function xpBreakdown(d){
       +'<span class="bd-eq-txt">'+t('hGW')+start+' \u00b7 '+t('bdRun')(XP_RUN_GWS)+' '+(Number(p.xp3)||0).toFixed(1)+'</span></div>'
       +'<div class="bd-eq-sub">'+t('xpmFplRef')((p.epNext||0).toFixed(1))+'</div></div>'
     +'<div class="bd-group"><div class="bd-ghead"><span>'+t('xpmInputs')+'</span></div>'+inputs+'</div>'
+    +vs
     +legBlocks
     +'<div class="bd-group"><div class="bd-ghead"><span>'+t('bdFixtures')+'</span></div>'
       +'<table class="hist-table bd-xt"><thead><tr><th>'+t('hGW')+'</th><th>'+t('hOpp')+'</th><th>FDR</th><th>xP</th></tr></thead>'
@@ -5146,127 +5258,144 @@ function xpBreakdownFPL(d){
     +'<div class="bd-note">'+t('bdLeaves')+'</div>';
 }
 
-function playerSummary(d){
-  const el=d.el;
-  const past=d.pastSeasons||[];
-  const u=d.understat;
-  const pos=d.pos;
-  // decide season: current if any minutes this season, else most recent past
-  const curMin=el?(+el.minutes||0):0;
-  const useCurrent=curMin>0;
-  const lastPast=past.length?past[past.length-1]:null;
-
-  // helper: a greyed placeholder for unavailable fields
-  const NA='<span class="sum-na">—</span>';
-  const g=(label,val,val2,label2)=>{
-    return '<div class="sum-cell"><span class="sum-k">'+label+'</span>'
-      +'<span class="sum-v">'+(val==null?NA:val)+'</span>'
-      +(label2?'<span class="sum-k2">'+label2+'</span><span class="sum-v2">'+(val2==null?NA:val2)+'</span>':'')
-      +'</div>';
-  };
-
-  let season, pts, ppg, min, games, goals, assists, xg, xa, bonus, defcon, cs;
-  if(useCurrent && el){
-    season=SEASON_LABEL;
-    pts=el.total_points; ppg=el.points_per_game;
-    min=el.minutes; games=el.starts!=null?el.starts:null;
-    goals=el.goals_scored; assists=el.assists;
-    xg=el.expected_goals!=null?(+el.expected_goals).toFixed(2):null;
-    xa=el.expected_assists!=null?(+el.expected_assists).toFixed(2):null;
-    bonus=el.bonus; defcon=el.defensive_contribution!=null?el.defensive_contribution:null;
-    cs=el.clean_sheets!=null?el.clean_sheets:null;
-  } else if(lastPast){
-    season=lastPast.season;
-    pts=lastPast.points; ppg=(lastPast.minutes?((lastPast.points/(lastPast.minutes/90))).toFixed(1):null);
-    min=lastPast.minutes; games=lastPast.starts||null;
-    goals=lastPast.goals; assists=lastPast.assists;
-    xg=lastPast.xg!=null?lastPast.xg.toFixed(2):null;
-    xa=lastPast.xa!=null?lastPast.xa.toFixed(2):null;
-    bonus=lastPast.bonus; defcon=lastPast.defcon||null;
-    cs=lastPast.clean_sheets||null;
-  } else {
-    return '';  // nothing to show
-  }
-
-  // live-only fields (always current, from element)
-  const price=el?('£'+(el.now_cost/10).toFixed(1)+'m'):null;
-  const own=el?(el.selected_by_percent+'%'):null;
-  const tin=el?('+'+(el.transfers_in_event||0)):null;
-  const tout=el?('-'+(el.transfers_out_event||0)):null;
-  const form=el?el.form:null;
-
-  // Understat-derived shots / key passes for the shown season (if we have it)
-  let shots=null, kp=null;
-  if(u&&u.matches){
-    const seasonKey=season.split('/')[0]; // '2025/26' -> '2025'
-    const sm=u.matches.filter(m=>m.season===seasonKey);
-    if(sm.length){
-      shots=sm.reduce((a,m)=>a+(+m.shots||0),0);
-      kp=sm.reduce((a,m)=>a+(+m.keyPasses||0),0);
-      // prefer Understat xG/xA for that season if present
-      const sxg=sm.reduce((a,m)=>a+(+m.xg||0),0);
-      const sxa=sm.reduce((a,m)=>a+(+m.xa||0),0);
-      if(sxg)xg=sxg.toFixed(2); if(sxa)xa=sxa.toFixed(2);
-    }
-  }
-
-  // Build position-specific summary grid
-  let gridHtml='';
-  gridHtml+=g(t('sumPrice'),price);
-  gridHtml+=g(t('sumOwn'),own);
-  gridHtml+=g(t('sumTransfers'),tin,tout,'');
-  gridHtml+=g(t('sumPts'),pts,ppg,t('sumPPG'));
-  gridHtml+=g(t('sumMin'),min,games==null?NA:games,t('sumGames'));
-  gridHtml+=g(t('sumForm'),form,bonus,t('sumBonus'));
-  
-  // Position-specific rows
-  if(pos==='GKP' || pos==='DEF'){
-    // For GK and DEF, show Clean Sheets instead of shots/KP
-    gridHtml+=g('CS',cs);
-    gridHtml+=g(t('sumGoals'),goals,xg,'xG');
-    gridHtml+=g(t('sumAssists'),assists,xa,'xA');
-  } else {
-    // For MID and FWD
-    gridHtml+=g(t('sumGoals'),goals,xg,'xG');
-    gridHtml+=g(t('sumAssists'),assists,xa,'xA');
-    /* Shots come from the frozen Understat shards, so they exist for past
-       seasons and never for the current one. On target existed in NEITHER
-       source — it was a hardcoded placeholder that could only ever draw a
-       dash. Rather than leave a cell that is permanently empty, show what is
-       actually held: Understat's own key passes alongside the shots when the
-       displayed season is one it covers, and FPL's set-piece order when it
-       is not. Set-piece duty is published in bootstrap, useful, and shown
-       nowhere else in the app. */
-    if(shots!=null){
-      gridHtml+=g(t('sumShots'),shots,kp,t('sumKP'));
-    }else{
-      const ord=n=>{
-        const v=Number(n);
-        if(!v)return null;                       // null or 0 = not on them
-        return v+(v===1?'st':v===2?'nd':v===3?'rd':'th');
-      };
-      const pen=el?ord(el.penalties_order):null;
-      /* Corners and direct free kicks are separate orders; the lower of the
-         two is the player's best set-piece claim. */
-      const sp=el?[el.corners_and_indirect_freekicks_order,el.direct_freekicks_order]
-        .map(Number).filter(v=>v>0):[];
-      gridHtml+=g(t('sumPens'),pen,sp.length?ord(Math.min.apply(null,sp)):null,t('sumSetPiece'));
-    }
-  }
-  
-  // Defcon and defensive contributions for DEF, MID, FWD
-  if(pos==='DEF' || pos==='MID' || pos==='FWD'){
-    let defconPg=null;
-    if(defcon!=null&&games!=null&&games>0){
-      defconPg=(defcon/games).toFixed(1);
-    }
-    gridHtml+=g(t('sumDefCon'),defcon,defconPg,'per game');
-  }
-  
-  return '<div class="sum-block">'
-    +'<div class="sum-season">'+season+' '+t('sumSeasonTag')+'</div>'
-    +'<div class="sum-grid">'+gridHtml+'</div></div>';
+/* This season's underlying numbers, from FPL (xG, defcon) and the
+   Challenge feed (shots, key passes, big chances). Per 90 where a rate is
+   the useful reading; xG per shot because it separates good chances from
+   speculative ones, which raw shot counts cannot. */
+function gwDetailTable(d){
+  if(!d.el||typeof XPD==='undefined'||XPD.status!=='ready')return '';
+  const rows=XPD.season(d.el); if(!rows.length)return '';
+  const pos=d.pos, thr=(typeof XPE!=='undefined')?XPE.DCTHR[pos]:null;
+  const trs=rows.map(r=>{
+    const x=r.x||{}, sh=x.total_shots, ib=sh!=null?Math.max(0,sh-(x.attempts_obox||0)):null;
+    const dc=pos==='GKP'?r.sv:(r.dc+(r.hit&&pos!=='FWD'?' \u2713':''));
+    return '<tr><td>'+t('hGW')+r.gw+'</td><td>'+Math.round(r.min)+(x.substitutions_off?'\u2193':'')+'</td>'
+      +'<td>'+(sh!=null?sh+'/'+ib+'/'+x.shots_on_target:'\u2014')+'</td><td>'+r.xg.toFixed(2)+'</td>'
+      +'<td>'+(r.x?x.key_passes:'\u2014')+'</td><td'+(r.hit&&pos!=='FWD'?' class="u-hit"':'')+'>'+dc+'</td><td>'+r.pts+'</td></tr>';
+  }).join('');
+  return '<div class="bd-group"><div class="bd-ghead"><span>'+t('uByGW')+'</span></div>'
+    +'<table class="hist-table u-table"><thead><tr><th>'+t('hGW')+'</th><th>'+t('hMin')+'</th><th>'+t('cShotsHdr')+'</th><th>xG</th><th>'+t('uKP')+'</th>'
+    +'<th>'+(pos==='GKP'?t('uSvH'):t('uDC')+(thr&&isFinite(thr)&&pos!=='FWD'?' \u2265'+thr:''))+'</th><th>'+t('hPts')+'</th></tr></thead><tbody>'+trs+'</tbody></table>'
+    +'<div class="bd-note">'+t('uNote')+'</div></div>';
 }
+
+function playerSummary(d){
+  const el=d.el; if(!el&&!(d.pastSeasons||[]).length) return '';
+  const P=(el&&players.find(x=>x.id===el.id))||null, pos=d.pos;
+  const past=d.pastSeasons||[];
+
+  /* Stat lines in the style the numbers read aloud: a dim label, a white
+     value, several to a line where they belong together. */
+  const v=x=>'<b>'+x+'</b>';
+  const kv=(k,x)=>k+' '+v(x);
+  const rank=(r,suffix)=>r?'<span class="sl-rank">#'+r+(suffix?' '+suffix:'')+'</span>':'';
+  const line=(...parts)=>'<div class="sl">'+parts.filter(Boolean).join('<span class="sl-dot">\u00b7</span>')+'</div>';
+  const block=(icon,title,body)=>body?'<div class="sblock"><div class="sblock-h">'+icon+' '+title+'</div>'+body+'</div>':'';
+  const n0=x=>x==null?null:Math.round(x), f1=x=>x==null?null:(+x).toFixed(1), f2=x=>x==null?null:(+x).toFixed(2);
+  const kNum=x=>{const a=Math.abs(x);return (x<0?'\u2212':'+')+(a>=1000?(a/1000).toFixed(a>=10000?0:1)+'k':a);};
+
+  let html='';
+
+  /* Ownership */
+  if(el){
+    const net=(el.transfers_in_event||0)-(el.transfers_out_event||0);
+    const priced=(el.cost_change_start||0)/10;
+    html+=block('\u25c9',t('cOwnership'),
+      line(kv(t('cSelected'),(+el.selected_by_percent).toFixed(1)+'%'), P?rank(P.rkSel,pos):'')
+      +line(kv(t('cTransfers'),kNum(net)), kv(t('cSince'),(priced>=0?'+':'\u2212')+'\u00a3'+Math.abs(priced).toFixed(1)+'m'))
+    );
+  }
+
+  /* Points */
+  if(el){
+    const gp=+el.points_per_game||0, starts=el.starts||0;
+    const played=(typeof XPD!=='undefined'&&XPD.status==='ready')?XPD.season(el).filter(r=>r.min>0).length:null;
+    const subsOff=(typeof XPD!=='undefined'&&XPD.status==='ready'&&XPD.season(el).filter(r=>r.x).reduce((a,r)=>a+(r.x.substitutions_off||0),0))||0;
+    html+=block('\u25a0',t('cPoints'),
+      line(kv(t('cTotal'),el.total_points), kv('PPG',gp.toFixed(1)), P?rank(P.rkPts,pos):'')
+      +line(kv(t('cForm'),el.form), P?rank(P.rkForm,pos):'', P?kv('xP',(P.xp1||0).toFixed(1))+' '+rank(P.rkXp,pos):'')
+      +line(kv(t('cMins'),el.minutes), played!=null?kv(t('cMatches'),played):'', kv(t('cStarts'),starts), kv(t('cSubsOff'),subsOff))
+    );
+  }
+
+  /* Previous seasons, compact */
+  if(past.length){
+    const rows=past.slice(-4).map(x=>line('<span class="sl-yr">'+x.season+'</span>',
+      kv(t('cPts'),x.points), kv(t('cGoals'),x.goals), kv('A',x.assists), kv(t('cMins'),x.minutes))).join('');
+    html+=block('\u25b3',t('cPastSeasons'),rows);
+  }
+
+  const news=el&&el.news?'<div class="sum-news">'+esc(el.news)+'</div>':'';
+  return '<div class="sum-block">'+html+news+'</div>';
+}
+
+/* Attacking / Defending / Rating — this season, from FPL plus the Challenge
+   feed's shot detail. Shots are split inside and outside the box because
+   where a player shoots from is most of what separates xG per shot. */
+function statsBlocks(d){
+  const el=d.el; if(!el)return '';
+  const P=(el&&players.find(x=>x.id===el.id))||null, pos=d.pos;
+  const ch=(typeof XPD!=='undefined'&&XPD.status==='ready')?XPD.season(el).filter(r=>r.x):[];
+  const cs=k=>ch.reduce((a,r)=>a+(r.x[k]||0),0);
+  const mins=+el.minutes||0, per90=x=>mins?(x/mins*90).toFixed(2):'\u2014';
+  const v=x=>'<b>'+x+'</b>', kv=(k,x)=>k+' '+v(x);
+  const rank=r=>r?'<span class="sl-rank">#'+r+' '+pos+'</span>':'';
+  const line=(...parts)=>'<div class="sl">'+parts.filter(Boolean).join('<span class="sl-dot">\u00b7</span>')+'</div>';
+  const block=(icon,title,body)=>body?'<div class="sblock"><div class="sblock-h">'+icon+' '+title+'</div>'+body+'</div>':'';
+  const num=x=>x==null?'\u2014':x;
+
+  /* Attacking — nothing here is a keeper's job, so they skip it. */
+  let att='';
+  if(pos!=='GKP'){
+  att+=line(kv(t('cGoals'),el.goals_scored), kv('xG',(+el.expected_goals||0).toFixed(2)));
+  att+=line(kv(t('cAssists'),el.assists), kv('xA',(+el.expected_assists||0).toFixed(2)),
+            kv('xGI/90',(+el.expected_goal_involvements_per_90||0).toFixed(2)));
+  if(ch.length){
+    const sh=cs('total_shots'), obox=cs('attempts_obox'), ibox=Math.max(0,sh-obox), sot=cs('shots_on_target');
+    const xg=+el.expected_goals||0;
+    att+=line(kv(t('cShots'),sh), kv(t('cInBox'),ibox), kv(t('cOutBox'),obox));
+    att+=line(kv(t('cOnTarget'),sot), sh?kv(t('cAccuracy'),Math.round(sot/sh*100)+'%'):'', sh?kv(t('cXgShot'),(xg/sh).toFixed(2)):'');
+    att+=line(kv(t('cShots90'),per90(sh)), kv(t('cHeaded'),cs('total_headed_attempts')));
+    att+=line(kv(t('cKeyPasses'),cs('key_passes')), kv(t('cCrosses'),cs('open_play_crosses')), kv(t('cDribbles'),cs('dribbles')));
+    att+=line(kv(t('cBigChCreated'),cs('big_chances_created')), kv(t('cBigChScored'),cs('big_chances_scored')), kv(t('cPensWon'),cs('penalties_won')));
+  }
+  }
+
+  /* Defending */
+  let def='';
+  /* xGC — how much the team was expected to concede while he played — is
+     the honest companion to goals conceded: a low count behind a leaky side
+     is luck, and the model prices the expectation, not the result. */
+  const xgc=el.expected_goals_conceded!=null?(+el.expected_goals_conceded).toFixed(2):null;
+  def+=line(kv(t('cCleanSheets'),num(el.clean_sheets)), kv(t('cConceded'),num(el.goals_conceded)), xgc?kv('xGC',xgc):'');
+  if(pos==='GKP'){
+    def+=line(kv(t('cSaves'),num(el.saves)), kv(t('cSaves90'),(+el.saves_per_90||0).toFixed(2)), kv(t('cPensSaved'),num(el.penalties_saved)));
+  }else{
+    def+=line(kv(t('cTackles'),num(el.tackles)), kv(t('cRecoveries'),num(el.recoveries)), kv('CBI',num(el.clearances_blocks_interceptions)));
+    if(pos!=='FWD'){
+      const hits=(typeof XPD!=='undefined'&&XPD.status==='ready')?XPD.season(el).filter(r=>r.hit).length:null;
+      const thr=(typeof XPE!=='undefined')?XPE.DCTHR[pos]:null;
+      def+=line(kv(t('cDefCon'),num(el.defensive_contribution)), kv('DC/90',(+el.defensive_contribution_per_90||0).toFixed(2)),
+                hits!=null?kv(t('cThreshold')+(thr?' \u2265'+thr:''),hits+'\u00d7 = '+(hits*2)+' '+t('cPts')):'');
+    }
+  }
+  def+=line(kv(t('cYellow'),num(el.yellow_cards)), kv(t('cRed'),num(el.red_cards)), (ch.length&&pos!=='GKP')?kv(t('cFouls'),cs('fouls')):'');
+
+  /* Rating and duties */
+  const ordTxt=x=>{x=Number(x);return x?x+(x===1?'st':x===2?'nd':x===3?'rd':'th'):null;};
+  let rat=line(kv('ICT',(+el.ict_index||0).toFixed(1)), P?rank(P.rkIct):'', kv('BPS',num(el.bps)), kv(t('cBonus'),num(el.bonus)));
+  const duties=[[t('sumPensFull'),el.penalties_order],[t('sumFKs'),el.direct_freekicks_order],[t('sumCorners'),el.corners_and_indirect_freekicks_order]]
+    .filter(([,x])=>Number(x)>0).map(([k,x])=>kv(k,ordTxt(x)));
+  if(duties.length) rat+=line(...duties);
+  if(el.team_join_date){
+    const dt=new Date(el.team_join_date);
+    rat+=line(kv(t('cJoined'),isNaN(dt)?String(el.team_join_date).slice(0,7)
+      :dt.toLocaleDateString(LANG==='es'?'es':'en-US',{month:'short',year:'numeric'})));
+  }
+
+  return block('\u25b6',t('cAttacking'),att)+block('\u25c6',t('cDefending'),def)+block('\u2605',t('cRating'),rat);
+}
+
 
 function renderHistoryInner(d, understat, upcomingFixtures){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
@@ -5283,12 +5412,14 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   const tabs=[];
   if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
   const bdXP=xpBreakdown(d);
+  const stats=statsBlocks(d);
+  if(stats) tabs.push({id:'stats', label:t('tabStats')});
   if(bdXP) tabs.push({id:'bdxp', label:t('tabXP')});
   // Combined seasons tab (past + per-season stats)
   if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
   if(vs.length) tabs.push({id:'vsthis', label:t('histVsClub')});
-  if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
+  if(ts.length||(d.el&&XPD.status==='ready'&&XPD.season(d.el).length)) tabs.push({id:'gbg', label:t('histThis')});
   
   // Tab buttons
   if(tabs.length>0){
@@ -5309,6 +5440,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
         +'</div>';
     }
   }
+
+  if(stats) html+='<div class="hist-tab-content" data-tab="stats">'+stats+'</div>';
 
   // TAB CONTENT: breakdowns of the two headline numbers
   if(bdXP) html+='<div class="hist-tab-content" data-tab="bdxp">'+bdXP+'</div>';
@@ -5369,6 +5502,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   // TAB CONTENT: Game by Game (This Season)
   if(ts.length){
     html+='<div class="hist-tab-content" data-tab="gbg">'
+      +gwDetailTable(d)
+      +'<div class="bd-ghead" style="padding:10px 0 6px">'+t('uPointsTitle')+'</div>'
       +'<table class="hist-table"><thead><tr>'
       +'<th>'+t('hRound')+'</th><th>'+t('hOpp')+'</th><th>'+t('hVenue')+'</th><th>'+t('hPts')+'</th>'
       +'<th>'+t('hMin')+'</th><th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th>'
