@@ -1,4 +1,4 @@
-# netlify.toml — config-2026-09-10a
+# netlify.toml — config-2026-09-11a
 #
 # Site root is served as-is; the app is a single index.html.
 #
@@ -22,17 +22,20 @@
 
 [build]
   publish = "."
-  # Odds commits are excluded from triggering a deploy: nothing in the app
-  # reads history/odds yet.
+  # Deploys cost credits (15 per production deploy on the credit plans, so
+  # about 20 a month on Free), and every bot commit is a candidate. Only
+  # build when something the SITE reads has changed:
   #
-  # history/fpl is NOT excluded, as of config-2026-09-10a. The app fetches
-  # post/gw-N.json from the DEPLOYED site for the xMins window, and the weekly
-  # report will fetch pred/ and post/ the same way. Excluding them meant a new
-  # gameweek reached the repo but never the site, so the Score gate would
-  # quietly run on stale weeks until the next code push. The workflows only
-  # commit when a file is actually written — about three times a gameweek
-  # (pre, pred, post) — so this is a few static deploys a week, not hourly.
-  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/odds'"
+  #   deploys   code, history/fpl/<season>/post/ (xP and the minutes window
+  #             fetch these from the deployed site), history/fpl/priors/
+  #   skipped   history/odds, history/fpl/<season>/pre|pred|challenge,
+  #             probe/ — records for the model and the weekly report that
+  #             the app never loads
+  #
+  # Tested against every case, including a commit that mixes a skipped path
+  # with code (it deploys). config-2026-09-10a deployed on every history/fpl
+  # commit, about four a gameweek; this cuts that to one.
+  ignore = "git diff --quiet HEAD^ HEAD -- . ':(exclude)history/odds' ':(exclude,glob)history/fpl/*/pre/**' ':(exclude,glob)history/fpl/*/pred/**' ':(exclude,glob)history/fpl/*/challenge/**' ':(exclude)probe'"
 
 [functions]
   # modern ESM function syntax
