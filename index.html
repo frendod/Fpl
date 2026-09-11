@@ -931,6 +931,28 @@ textarea:focus{border-color:var(--accent)}
 .sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
 .hist-tab-content{display:none;padding:8px 18px;border-bottom:none}
 .hist-tab-content.shown{display:block}
+
+/* Wide screens: the tab strip becomes a column beside the content rather
+   than three wrapped rows above it. The modal widens to pay for the column,
+   and the strip sticks while the panel scrolls. Below 900px nothing changes
+   — on a phone the wrapped strip and a scroll are the right shape. */
+@media(min-width:900px){
+  .hist-modal{max-width:1000px}
+  .hist-body{
+    display:grid;grid-template-columns:minmax(320px,360px) minmax(0,1fr);
+    column-gap:18px;align-items:start;align-content:start;padding-right:4px;
+  }
+  /* Left column: the xP strip, the summary blocks and the tab buttons,
+     stacked in document order. Right column: the open panel, spanning the
+     full height beside them, so the tallest tab has room to breathe instead
+     of pushing everything down the page. */
+  .hist-body>*{grid-column:1}
+  .hist-body>.hist-tab-content.shown{
+    grid-column:2;grid-row:1/span 50;padding-top:0;
+    border-left:1px solid var(--line);padding-left:20px;
+  }
+  .hist-body>.sum-options{padding-left:18px}
+}
 .vs-filter{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border-radius:6px;
@@ -1007,6 +1029,7 @@ textarea:focus{border-color:var(--accent)}
   border:1px solid var(--line2);border-radius:4px;padding:1px 5px;white-space:nowrap}
 .sl-yr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper)}
 .sl-part{font-size:11px;color:var(--dimmer);padding-top:2px}
+.kvp{white-space:nowrap}
 .sum-news{margin-top:8px;font-size:12px;line-height:1.4;color:var(--paper);border-left:3px solid var(--bad);padding:6px 9px;background:rgba(229,101,122,.08);border-radius:4px}
 .u-table td,.u-table th{padding:5px 5px}
 .u-table td{color:#fff}
@@ -1606,7 +1629,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-11e';
+const APP_BUILD = 'app-2026-09-11g';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -5295,7 +5318,9 @@ function playerSummary(d){
   /* Stat lines in the style the numbers read aloud: a dim label, a white
      value, several to a line where they belong together. */
   const v=x=>'<b>'+x+'</b>';
-  const kv=(k,x)=>k+' '+v(x);
+  /* A label and its number never split across lines: half a phrase at the
+     end of a row reads as a different fact. */
+  const kv=(k,x)=>'<span class="kvp">'+k+' '+v(x)+'</span>';
   const rank=(r,suffix)=>r?'<span class="sl-rank">#'+r+(suffix?' '+suffix:'')+'</span>':'';
   const line=(...parts)=>'<div class="sl">'+parts.filter(Boolean).join('<span class="sl-dot">\u00b7</span>')+'</div>';
   const block=(icon,title,body)=>body?'<div class="sblock"><div class="sblock-h">'+icon+' '+title+'</div>'+body+'</div>':'';
@@ -5353,7 +5378,7 @@ function statsBlocks(d){
      season's minutes, so a partial load cannot deflate them. */
   const chMins=ch.reduce((a,r)=>a+(r.min||0),0);
   const mins=chMins||(+el.minutes||0), per90=x=>mins?(x/mins*90).toFixed(2):'\u2014';
-  const v=x=>'<b>'+x+'</b>', kv=(k,x)=>k+' '+v(x);
+  const v=x=>'<b>'+x+'</b>', kv=(k,x)=>'<span class="kvp">'+k+' '+v(x)+'</span>';
   const rank=r=>r?'<span class="sl-rank">#'+r+' '+pos+'</span>':'';
   const line=(...parts)=>'<div class="sl">'+parts.filter(Boolean).join('<span class="sl-dot">\u00b7</span>')+'</div>';
   const block=(icon,title,body)=>body?'<div class="sblock"><div class="sblock-h">'+icon+' '+title+'</div>'+body+'</div>':'';
