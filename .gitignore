@@ -4,3 +4,8 @@ DS_Store
 # vaastav seasons for the xP backtest; fetched on first run, a few MB each
 model/data/
 node_modules/
+
+# local probe output can carry API keys in request URLs; never commit
+history/odds/_probe/
+probe/
+xp-engine-test.mjs
