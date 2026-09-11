@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* fpl-snapshot.mjs — snapshot-2026-09-11a
+/* fpl-snapshot.mjs — snapshot-2026-09-11b
  *
  * Captures FPL API state into history/fpl/ as immutable per-gameweek JSON.
  *
@@ -48,8 +48,15 @@
  * 2026-09-11a — `challenge` command: the FPL Challenge game's feed
  * (fplchallenge.premierleague.com/api) carries Opta stats the main feed does
  * not — shots, big chances, key passes, fouls, substitutions off and more —
- * with the same player ids. Written to <season>/challenge/gw-N.json. See
- * captureChallenge for how gameweeks are isolated.
+ * Written to <season>/challenge/gw-N.json. See captureChallenge for how
+ * gameweeks are isolated.
+ *
+ * 2026-09-11b — Challenge files are keyed by player CODE, not element id.
+ * The two games share ids only for players who existed at launch; anyone
+ * added later (summer signings — ids 554 up in 2026-27) has a different id
+ * in each, which the first capture's cross-check against the post snapshots
+ * exposed. Code is the same in both. Files written by 11a (keyed by id) are
+ * detected and rewritten automatically.
  *
  * RUN probe FIRST. This project has been bitten repeatedly by hand-typed
  * field names. The probe writes untouched responses so the field lists below
@@ -57,7 +64,7 @@
  */
 
 const API = 'https://fantasy.premierleague.com/api';
-const STAMP = 'snapshot-2026-09-11a';
+const STAMP = 'snapshot-2026-09-11b';
 
 /* Browser-like headers. Bare fetch gets 403s from this API. */
 const HEADERS = {
@@ -424,7 +431,9 @@ async function capturePre() {
  *      kicks off. Gameweek N is then this file minus gw-(N-1)'s. A file
  *      saved late would fold part of N+1 in, so it is not written at all.
  *
- * Stored as a column list plus one row per player, so a gameweek is ~60KB.
+ * Stored as a column list plus one row per player, keyed by player CODE —
+ * the one identifier the Challenge game and main FPL agree on — so a
+ * gameweek is ~60KB.
  */
 const CAPI = 'https://fplchallenge.premierleague.com/api';
 const CH_FIELDS = [
@@ -444,6 +453,16 @@ async function captureChallenge() {
   if (!settled.length) { console.log('  no settled gameweek yet'); return; }
   const last = Math.max(...settled);
 
+  /* The Challenge game's own id → code map. Its element ids diverge from
+   * main FPL's for late additions, so rows are stored by code. */
+  const boot = await cget('bootstrap-static/');
+  if (!boot.json || !Array.isArray(boot.json.elements)) throw new Error(`challenge bootstrap-static ${boot.status}`);
+  const codeOf = Object.fromEntries(boot.json.elements.map(e => [e.id, e.code]));
+  const needsWrite = async path => {
+    if (FORCE || !(await exists(path))) return true;
+    try { return JSON.parse(await readFile(path, 'utf8')).keyedBy !== 'code'; } catch { return true; }
+  };
+
   /* Route 1: a per-gameweek endpoint. */
   const probeLive = await cget(`event/${last}/live/`);
   const liveEls = probeLive.json && Array.isArray(probeLive.json.elements) ? probeLive.json.elements : null;
@@ -454,14 +473,15 @@ async function captureChallenge() {
   if (liveEls && liveHasExtras) {
     for (const g of settled) {
       const path = join(OUT, season, 'challenge', `gw-${g}.json`);
-      if (!FORCE && await exists(path)) continue;
+      if (!(await needsWrite(path))) continue;
       const r = g === last ? probeLive : await cget(`event/${g}/live/`);
       const els = r.json && r.json.elements;
       if (!els) { console.log(`  gw ${g}: ${r.status}, skipped`); continue; }
       const cols = CH_FIELDS.filter(k => k in (els[0].stats || {}));
-      const players = {};
-      for (const e of els) players[e.id] = cols.map(k => Number(e.stats[k]) || 0);
-      await writeJSON(path, { schema: 'fpl-challenge/1', stamp: STAMP, season, gw: g, kind: 'gameweek',
+      const players = {}; let noCode = 0;
+      for (const e of els) { const c = codeOf[e.id]; if (c == null) { noCode++; continue; } players[c] = cols.map(k => Number(e.stats[k]) || 0); }
+      if (noCode) console.log(`  gw ${g}: ${noCode} players had no code in the Challenge list, dropped`);
+      await writeJSON(path, { schema: 'fpl-challenge/2', stamp: STAMP, season, gw: g, kind: 'gameweek', keyedBy: 'code',
         source: `${CAPI}/event/${g}/live/`, capturedAt: new Date().toISOString(), cols, players });
     }
     return;
@@ -469,20 +489,18 @@ async function captureChallenge() {
 
   /* Route 2: season totals, only while they still stop at `last`. */
   const path = join(OUT, season, 'challenge', `gw-${last}.json`);
-  if (!FORCE && await exists(path)) { console.log(`  gw ${last} already on disk`); return; }
+  if (!(await needsWrite(path))) { console.log(`  gw ${last} already on disk`); return; }
   const fx = await get(`fixtures/?event=${last + 1}`).catch(() => []);
   if (Array.isArray(fx) && fx.some(f => f.started)) {
     console.log(`  gw ${last + 1} has kicked off — totals now include it, so gw ${last} cannot be isolated; skipping`);
     return;
   }
-  const boot = await cget('bootstrap-static/');
-  if (!boot.json || !Array.isArray(boot.json.elements)) throw new Error(`challenge bootstrap-static ${boot.status}`);
   const els = boot.json.elements;
   const cols = CH_FIELDS.filter(k => k in els[0]);
   const missing = CH_FIELDS.filter(k => !(k in els[0]));
   const players = {};
-  for (const e of els) players[e.id] = cols.map(k => Number(e[k]) || 0);
-  await writeJSON(path, { schema: 'fpl-challenge/1', stamp: STAMP, season, gw: last, kind: 'season-totals',
+  for (const e of els) players[e.code] = cols.map(k => Number(e[k]) || 0);
+  await writeJSON(path, { schema: 'fpl-challenge/2', stamp: STAMP, season, gw: last, kind: 'season-totals', keyedBy: 'code',
     note: `totals through gameweek ${last}; gameweek ${last} alone = this minus gw-${last - 1}`,
     source: `${CAPI}/bootstrap-static/`, capturedAt: new Date().toISOString(),
     liveEndpoint: { status: probeLive.status, statKeys: liveKeys },
