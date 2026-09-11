@@ -1382,19 +1382,11 @@ tbody tr.dead td:first-child{padding-left:26px}
       <div class="masthead-meta">
         <div class="evidence" id="evidenceToggle" title="Click to expand">
           <div class="evidence-top">
-            <div class="evidence-label" id="i18n-evidenceBlend">Evidence blend</div>
+            <div class="evidence-label" id="i18n-evidenceBlend">xP model</div>
             <div class="evidence-state" id="stateLabel">Not loaded</div>
           </div>
-          <div class="blend-track" role="img" aria-label="Proportion of evidence from last season versus this season" id="blendTrack">
-            <div class="blend-prior" id="blendPrior" style="width:100%">Last season</div>
-            <div class="blend-live" id="blendLive" style="width:0%">This season</div>
-          </div>
-          <div class="blend-legend" id="blendLegend">
-            <span id="legendPrior">prior 100%</span>
-            <span id="legendLive">live 0%</span>
-          </div>
           <div class="evidence-note" id="evidenceNote">
-            Load data to begin. Before a ball is kicked, form, points per game, ICT and bonus are all zero — so those inputs carry no weight and the engine leans on last season's expected goals, squad price and fixtures instead. Live inputs phase in over the first eight gameweeks.
+            Expected FPL points from minutes, xG, xA, clean sheets, defensive contributions and bonus, each a blend of this season with last.
           </div>
         </div>
         <div class="data-status" id="dataStatusToggle" title="Click to expand">
@@ -1473,14 +1465,6 @@ tbody tr.dead td:first-child{padding-left:26px}
   </div>
 
   <div class="view" id="view-xi">
-    <!-- WEIGHTS IN XI TAB -->
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title" data-i18n="weights">Weights</div>
-        <div class="preset-strip" id="presets"></div>
-      </div>
-      <div id="weightBody"></div>
-    </div>
     <!-- SQUAD BUILD -->
     <div id="xiBody"></div>
   </div>
@@ -1520,7 +1504,6 @@ tbody tr.dead td:first-child{padding-left:26px}
             <th class="sortable" data-sort="xp1" aria-sort="descending" data-i18n="thXP" id="thXP">xP</th>
             <th class="sortable" data-sort="xp3" data-i18n="thXP3" id="thXP3">xP3</th>
             <th class="sortable" data-sort="epNext" data-i18n="thFPL" id="thFPL">FPL</th>
-            <th class="sortable" data-sort="score" data-i18n="thScore">Score</th>
             <th class="sortable" data-sort="xMinsNext" data-i18n="thMins">Mins</th>
             <th class="sortable" data-sort="xg90">xG/90</th>
             <th class="sortable" data-sort="xa90">xA/90</th>
@@ -1574,7 +1557,7 @@ tbody tr.dead td:first-child{padding-left:26px}
             <label class="plabel" for="pasteFx" data-i18n="fxOptional">fixtures — optional</label>
             <textarea id="pasteFx" placeholder="Paste here" style="min-height:56px"></textarea>
           </div>
-          <button class="btn" id="pasteRun" style="margin-top:14px" data-i18n="scorePasted">Score pasted data</button>
+          <button class="btn" id="pasteRun" style="margin-top:14px" data-i18n="scorePasted">Load pasted data</button>
         </div>
       </div>
     </div>
@@ -1602,7 +1585,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-10d';
+const APP_BUILD = 'app-2026-09-11a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1612,7 +1595,7 @@ const I18N={
   en:{
     tagline:'Ranks every player on weighted evidence, then scales by how likely they are to play. How much of that evidence comes from this season depends on how much season there has been.',
     engineA:'FPL', engineB:'Model',
-    evidenceBlend:'Evidence blend',
+    evidenceBlend:'xP model',
     dataStatus:'Data loaded', dataStatusIdle:'Not loaded', dataStatusLoading:'Loading',
     notLoaded:'Not loaded', coldStart:'Cold start', warmingUp:'Warming up', liveData:'Live data',
     lastSeason:'Last season', thisSeason:'This season', priorShort:'Temp. pasada', liveShort:'Esta temp.',
@@ -1625,7 +1608,7 @@ const I18N={
     loadData:'Load data', pasteInstead:'Paste data instead', loading:'Loading', reload:'Reload', dataSource:'Data source',
     fetching:'Fetching', tryingLive:'Trying live API', checkingCache:'Checking cache',
     readingUnderstat:'Reading Understat', scoring:'Scoring',
-    pasteData:'Paste data', scorePasted:'Score pasted data',
+    pasteData:'Paste data', scorePasted:'Load pasted data',
     pasteIntro:'Use this when the network is blocked — common inside the Claude app.',
     pasteStep1a:'Open ', pasteStep1b:' in Safari or Chrome, not the Claude app.',
     pasteStep2:'Select all, copy, paste into the first box.',
@@ -1713,6 +1696,12 @@ const I18N={
     xpmExpGoals:'Expected score',
     xpmFplRef:v=>'FPL\u2019s own figure: '+v,
     xpmNote:v=>'Model '+v+': FPL scoring rules applied to minutes, xG, xA, clean sheets, defensive contributions and bonus, each a blend of this season with last. Tested walk-forward on 2024-25 and 2025-26.',
+    xpmHead:{idle:'Starting',loading:'Loading',ready:'Ready',unavailable:'FPL fallback'},
+    xpmHeadNote:'Expected FPL points from minutes, xG, xA, clean sheets, defensive contributions and bonus, each a blend of this season with last.',
+    xpmHeadReady:(v,gws,linked,n)=>'Model '+v+(gws.length?', gameweeks '+gws[0]+'\u2013'+gws[gws.length-1]+' folded in':', no gameweeks played yet')+'. '+linked+' of '+n+' players carry last season\u2019s FPL record; the rest start from players of their position and price.',
+    xpmHeadFallback:e=>'The model could not load'+(e?' ('+e+')':'')+', so xP is FPL\u2019s own figure with a fixture adjustment until it does.',
+    dXpModel:'xP model', dEngine:'Engine', dPriors:'Last-season priors', dLinked:'Players linked to last season',
+    dGWsFolded:'Gameweeks folded in', dMatches:'Matches rated', dLeagueXG:'League xG per team-match', dAssistRatio:'FPL assists per xA',
     tabXP:'xP', tabScore:'Score',
     bdPctIn:pos=>' in '+pos, bdWt:'wt', bdOf:'of', bdEvidence:'evidence', bdGateK:'minutes gate',
     bdXMins:(m,gws)=>'Expected minutes '+m+'\u2032 of 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -1734,14 +1723,14 @@ const I18N={
     bdKindOther:'ep_next does not reconcile to form for this player. FPL\u2019s figure is used as published.',
     bdAsIs:'as-is', bdSplit:n=>'\u00f7'+n, bdBlank:'blank', bdRun:n=>'Next '+n, bdPerGW:'/GW',
     bdMultNote:'The coming gameweek takes ep_next as-is. Later gameweeks multiply it by a fixture factor measured by position and difficulty on two seasons of FPL data.',
-    bdLeaves:'Not in xP: underlying xG, the xMins window, last season. Those are in Score.',
+    bdLeaves:'This is the fallback projection; the model adds xG, xA, minutes, clean sheets and defensive contributions once it loads.',
     histXPLegend:'Right-hand figure is xP for that fixture: expected FPL points from minutes, xG, xA, clean sheets, defensive contributions and bonus, against that opponent. The xP tab shows the working.',
     sqObjective:'Optimise on', sqObjScore:'Score', sqObjXP:'xP',
     sqObjNote:n=>n===1?'Built for a single gameweek. Discs and the table show projected points for that week, and a club without a fixture drops out entirely.'
       :'Built for '+n+' gameweeks. Discs show the per-gameweek average; the table breaks it out week by week. A blank counts against a player in the total.',
     sqWindow:'Gameweeks', sqSpan:'Span', sqTotal:'Total',
     sqWindowHint:'Played gameweeks cannot be selected \u2014 the window starts at the next one.',
-    sqObjHint:'xP builds for expected FPL points over the chosen gameweeks \u2014 minutes, xG, xA, clean sheets, defensive contributions and bonus, fixture by fixture. Score ranks on weighted evidence and is being retired.',
+    sqObjHint:'The squad is built on xP: expected FPL points over the chosen gameweeks, fixture by fixture.',
     diagnostics:'Diagnostics', diagMeta:'What the engine actually found',
     capTitle:'Captain', capMeta:'Highest xP this gameweek, available, starting',
     valTitle:'Best value', valMeta:'xP over 3 gameweeks per million',
@@ -1856,7 +1845,7 @@ const I18N={
   es:{
     tagline:'Clasifica a cada jugador según evidencia ponderada y luego ajusta por su probabilidad de jugar. Cuánta de esa evidencia procede de esta temporada depende de cuánta temporada se ha disputado.',
     engineA:'Motor de', engineB:'Puntuación',
-    evidenceBlend:'Mezcla de evidencia',
+    evidenceBlend:'Modelo xP',
     dataStatus:'Datos cargados', dataStatusIdle:'Sin cargar', dataStatusLoading:'Cargando',
     notLoaded:'Sin cargar', coldStart:'Arranque frío', warmingUp:'Calentando', liveData:'Datos actuales',
     lastSeason:'Temp. pasada', thisSeason:'Esta temp.', priorShort:'Temp. pasada', liveShort:'Esta temp.',
@@ -1869,7 +1858,7 @@ const I18N={
     loadData:'Cargar datos', pasteInstead:'Pegar datos', loading:'Cargando', reload:'Recargar', dataSource:'Fuente de datos',
     fetching:'Obteniendo', tryingLive:'Probando API en vivo', checkingCache:'Revisando caché',
     readingUnderstat:'Leyendo Understat', scoring:'Puntuando',
-    pasteData:'Pegar datos', scorePasted:'Puntuar datos pegados',
+    pasteData:'Pegar datos', scorePasted:'Cargar datos pegados',
     pasteIntro:'Usa esto cuando la red está bloqueada — habitual dentro de la app de Claude.',
     pasteStep1a:'Abre ', pasteStep1b:' en Safari o Chrome, no en la app de Claude.',
     pasteStep2:'Selecciona todo, copia y pega en el primer recuadro.',
@@ -1957,6 +1946,12 @@ const I18N={
     xpmExpGoals:'Marcador esperado',
     xpmFplRef:v=>'Cifra propia de FPL: '+v,
     xpmNote:v=>'Modelo '+v+': reglas de puntuaci\u00f3n de FPL aplicadas a minutos, xG, xA, porter\u00edas a cero, contribuciones defensivas y bonus, cada uno mezclando esta temporada con la anterior. Probado jornada a jornada en 2024-25 y 2025-26.',
+    xpmHead:{idle:'Iniciando',loading:'Cargando',ready:'Listo',unavailable:'Respaldo FPL'},
+    xpmHeadNote:'Puntos FPL esperados a partir de minutos, xG, xA, porter\u00edas a cero, contribuciones defensivas y bonus, mezclando esta temporada con la anterior.',
+    xpmHeadReady:(v,gws,linked,n)=>'Modelo '+v+(gws.length?', jornadas '+gws[0]+'\u2013'+gws[gws.length-1]+' incorporadas':', a\u00fan sin jornadas jugadas')+'. '+linked+' de '+n+' jugadores tienen registro FPL de la temporada anterior; el resto parte de jugadores de su posici\u00f3n y precio.',
+    xpmHeadFallback:e=>'El modelo no carg\u00f3'+(e?' ('+e+')':'')+'; mientras tanto el xP es la cifra de FPL con ajuste de calendario.',
+    dXpModel:'Modelo xP', dEngine:'Motor', dPriors:'Datos previos', dLinked:'Jugadores con temporada anterior',
+    dGWsFolded:'Jornadas incorporadas', dMatches:'Partidos valorados', dLeagueXG:'xG de liga por equipo y partido', dAssistRatio:'Asistencias FPL por xA',
     tabXP:'xP', tabScore:'Puntos',
     bdPctIn:pos=>' en '+pos, bdWt:'peso', bdOf:'de', bdEvidence:'evidencia', bdGateK:'filtro de minutos',
     bdXMins:(m,gws)=>'Minutos esperados '+m+'\u2032 de 90'+(gws?' ('+gws+')':'')+' \u2192',
@@ -1978,14 +1973,14 @@ const I18N={
     bdKindOther:'ep_next no cuadra con la forma de este jugador. Se usa la cifra de FPL tal cual.',
     bdAsIs:'tal cual', bdSplit:n=>'\u00f7'+n, bdBlank:'sin partido', bdRun:n=>'Pr\u00f3x. '+n, bdPerGW:'/J',
     bdMultNote:'La pr\u00f3xima jornada usa ep_next tal cual. Las siguientes lo multiplican por un factor de calendario medido por posici\u00f3n y dificultad en dos temporadas de FPL.',
-    bdLeaves:'Fuera del xP: xG subyacente, la ventana de minutos y la temporada anterior. Eso est\u00e1 en Puntos.',
+    bdLeaves:'Esta es la proyecci\u00f3n de respaldo; el modelo a\u00f1ade xG, xA, minutos, porter\u00edas a cero y contribuciones defensivas al cargar.',
     histXPLegend:'La cifra de la derecha es el xP de ese partido: puntos FPL esperados a partir de minutos, xG, xA, porter\u00edas a cero, contribuciones defensivas y bonus, contra ese rival. La pesta\u00f1a xP muestra el c\u00e1lculo.',
     sqObjective:'Optimizar por', sqObjScore:'Puntos', sqObjXP:'xP',
     sqObjNote:n=>n===1?'Construido para una sola jornada. Los discos y la tabla muestran los puntos proyectados de esa semana, y un club sin partido desaparece.'
       :'Construido para '+n+' jornadas. Los discos muestran el promedio por jornada; la tabla lo desglosa semana a semana. Una jornada en blanco penaliza en el total.',
     sqWindow:'Jornadas', sqSpan:'Rango', sqTotal:'Total',
     sqWindowHint:'Las jornadas jugadas no se pueden elegir: la ventana empieza en la siguiente.',
-    sqObjHint:'xP construye seg\u00fan los puntos FPL esperados en las jornadas elegidas \u2014 minutos, xG, xA, porter\u00edas a cero, contribuciones defensivas y bonus, partido a partido. Puntos ordena por evidencia ponderada y se va a retirar.',
+    sqObjHint:'El equipo se construye con xP: puntos FPL esperados en las jornadas elegidas, partido a partido.',
     diagnostics:'Diagnóstico', diagMeta:'Lo que el motor encontró realmente',
     capTitle:'Capitán', capMeta:'Mayor xP esta jornada, disponible, titular',
     valTitle:'Mejor valor', valMeta:'xP en 3 jornadas por millón',
@@ -2113,8 +2108,8 @@ function setLang(l){
   document.documentElement.lang=l;
   applyStaticI18n();
   document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===l)));
-  if(typeof players!=='undefined'&&players.length){renderWeights();renderAll();}
-  else{renderWeights();paintState();}
+  if(typeof players!=='undefined'&&players.length){renderAll();}
+  else{paintState();}
   if(typeof renderLeagues==='function')renderLeagues();
 }
 
@@ -2157,7 +2152,6 @@ let players=[], filtered=[], page=1, sortKey='xp1', sortAsc=false;
 let state={mode:'unloaded',gwPlayed:0,liveWeight:0,nextGW:1};
 let fields={defcon:null,defconParts:[],starts:false};
 let diag={};
-let scoreCtx=null;             // weights and denominators from the last build(), for the modal
 let highlightGood5Weeks=false;  // toggle for highlighting 5+ week good fixture runs
 let fdrTheme='dark';  // 'dark' or 'light' theme for fixture difficulty colors
 
@@ -2638,6 +2632,7 @@ const XPD = {
       this.T = XPE.teamRatings(matches, team, {});
       this.assistRatio = (aThis + 60 * pri.assistRatio) / (xaThis + 60);
       this.me = me; this.cache = {}; this.matches = matches.length;
+      this.linked = bootstrap.elements.filter(e => pri.pl[e.code]).length;
       this.status = 'ready';
     }catch(e){
       this.err = String(e && e.message || e); this.status = 'unavailable';
@@ -2740,13 +2735,6 @@ function getPlayingPercentage(p){
 }
 
 /* ══ WEIGHTING ═════════════════════════════════════════ */
-function effWeight(key){
-  const w=WEIGHTS[key]||0, av=FEATURES[key].avail;
-  if(av==='live')return w*state.liveWeight;
-  if(av==='played')return state.gwPlayed>0?w:0;
-  if(av==='cold')return w*(1-state.liveWeight);
-  return w;
-}
 
 /* ══ BUILD & SCORE ═════════════════════════════════════ */
 function build(){
@@ -2840,57 +2828,9 @@ function build(){
     };
   });
 
-  // Percentile every feature. No hardcoded ceilings anywhere.
-  const byPos=p=>p.pos;
-  const P={
-    form  :percentiles(raw,p=>p.form),
-    ppg   :percentiles(raw,p=>p.ppg),
-    ict   :percentiles(raw,p=>p.ict),
-    bps   :percentiles(raw,p=>p.bps,byPos),
-    defcon:percentiles(raw,p=>p.defcon,byPos),
-    xg90  :percentiles(raw,p=>p.xg90,byPos),
-    xa90  :percentiles(raw,p=>p.xa90,byPos),
-    xgdiff:percentiles(raw,p=>p.xgdiff,byPos),
-    fdr   :percentiles(raw,p=>p.fdrKnown?-p.fdr:0),   // easier fixtures rank higher
-    home  :percentiles(raw,p=>p.homeShare),
-    mins  :percentiles(raw,p=>p.mins),
-    /* Ranked on ownership itself, so the weight's sign carries the intent:
-       negative penalises the crowd (rewards differentials), positive follows
-       it. Until app-2026-09-10a this ranked on -sel, which double-negated —
-       the default -8 and the Differential preset's -30 both quietly favoured
-       template picks, the opposite of what the slider hint promises. */
-    own   :percentiles(raw,p=>p.sel),
-    mom   :percentiles(raw,p=>managers?p.momRate:p.mom),
-    price :percentiles(raw,p=>p.price),
-  };
-
-  const keys=Object.keys(FEATURES).filter(k=>FEATURES[k].role!=='gate');
-  const denom=keys.reduce((s,k)=>s+Math.abs(effWeight(k)),0)||1;
-  /* Everything the Score tab in the player modal needs to redo the sum by
-     hand. Captured here rather than recomputed there, so the breakdown is the
-     arithmetic that produced the number, not a second copy of it. */
-  const eff={}; keys.forEach(k=>eff[k]=effWeight(k));
-  scoreCtx={eff, denom, expo:clamp((WEIGHTS.mins||0)/25,0,2),
-    liveWeight:state.liveWeight, gwPlayed:state.gwPlayed, mode:state.mode,
-    minwin:MINWIN.status==='ready'?MINWIN.loaded.slice():null};
-
+  /* Score — the weighted-percentile ranking — was removed in app-2026-09-11a.
+     Everything is ranked and optimised on xP, which is in points. */
   players=raw.map(p=>{
-    const parts={};
-    let sum=0;
-    keys.forEach(k=>{
-      const w=effWeight(k);
-      if(w===0)return;
-      const pct=P[k][p.id];
-      const c=(w/denom)*pct;
-      parts[k]=c;
-      sum+=c;
-    });
-    // Availability gate. Exponent 0 ignores minutes entirely; 1 is fully
-    // multiplicative; above 1 punishes rotation risk harder.
-    const expo=clamp((WEIGHTS.mins||0)/25,0,2);
-    const gate=expo===0?1:Math.pow(clamp(p.mins,0,1),expo);
-    const evid=clamp(sum,0,1)*10;
-    const score=evid*gate;
     /* Projected points, attached once per build so the table, the modal and
        the optimiser cannot drift apart. xp1 is the coming gameweek; xp3 is
        the run the squad optimiser uses, because a squad picked on one
@@ -2898,7 +2838,7 @@ function build(){
     const xp1=projectedPoints(p,xpNextGW());
     const xp3=projectedRun(p,XP_RUN_GWS);
     /* Expected minutes next gameweek: the xP model's, with the injury flag
-       applied, once it is loaded; the Score gate's share of 90 until then. */
+       applied, once it is loaded; the fallback minutes estimate until then. */
     let xMinsNext=(p.mins||0)*90;
     if(XPD.status==='ready'){
       const m=XPD.inputs(p).mins;
@@ -2906,21 +2846,14 @@ function build(){
     }
     return Object.assign(p,{
       xMinsNext:Math.round(xMinsNext*10)/10,
-      score:Math.round(score*10)/10,
       xp1:Math.round(xp1*100)/100,
       xp3:Math.round(xp3*100)/100,
-      gate,
-      evid,
-      parts,
-      pct:{xg90:P.xg90[p.id],defcon:P.defcon[p.id],mins:P.mins[p.id],bps:P.bps[p.id]},
-      pctAll:Object.fromEntries(keys.map(k=>[k,P[k][p.id]])),
     });
-  }).sort((a,b)=>b.score-a.score);
+  }).sort((a,b)=>(b.xp1-a.xp1)||(b.xp3-a.xp3));
 
   players.forEach((p,i)=>p.rank=i+1);
   const posSeen={};
   players.forEach(p=>{ posSeen[p.pos]=(posSeen[p.pos]||0)+1; p.posRank=posSeen[p.pos]; });
-  scoreCtx.posN=posSeen; scoreCtx.n=players.length;
   filtered=players.slice();
 
   xiBuildSeq++;                 // horizon cache is keyed on this
@@ -2944,98 +2877,18 @@ function paintState(){
   document.documentElement.style.setProperty('--accent',accent);
   document.documentElement.style.setProperty('--accent-soft',
     'rgba('+parseInt(accent.slice(1,3),16)+','+parseInt(accent.slice(3,5),16)+','+parseInt(accent.slice(5,7),16)+',.14)');
-
-  const pp=Math.round((1-lw)*100), lp=100-pp;
-  $('blendPrior').style.width=pp+'%';
-  $('blendLive').style.width=lp+'%';
-  $('blendPrior').textContent=pp>18?t('lastSeason'):'';
-  $('blendLive').textContent=lp>18?t('thisSeason'):'';
-  $('legendPrior').textContent=t('priorPct')(pp);
-  $('legendLive').textContent=t('livePct')(lp);
-
-  const labels={unloaded:t('notLoaded'),cold:t('coldStart'),blend:t('warmingUp'),live:t('liveData')};
-  $('stateLabel').textContent=labels[state.mode]||state.mode;
-
-  let note;
-  if(state.mode==='cold'){
-    note=t('noteCold');
-  }else if(state.mode==='blend'){
-    note=t('noteBlend')(state.gwPlayed,RAMP_GWS,Math.round(lw*100));
-  }else{
-    note=t('noteLive');
-  }
-  $('evidenceNote').textContent=note;
+  /* The masthead reports the xP model: which numbers are on screen. */
+  const st=typeof XPD!=='undefined'?XPD.status:'idle';
+  const L=t('xpmHead');
+  $('stateLabel').textContent=!bootstrap?t('notLoaded'):(L[st]||st);
+  $('evidenceNote').textContent=st==='ready'
+    ? t('xpmHeadReady')(XPE.STAMP, XPD.loaded, XPD.linked, (bootstrap.elements||[]).length)
+    : st==='unavailable' ? t('xpmHeadFallback')(XPD.err) : t('xpmHeadNote');
 }
 
-function renderWeights(){
-  const strip=$('presets');
-  const pnames={balanced:'pBalanced',form:'pForm',fixtures:'pFixtures',threat:'pThreat',defensive:'pDefensive',differential:'pDifferential'};
-  strip.innerHTML=Object.keys(PRESETS).map(k=>{
-    return '<button class="preset" data-preset="'+k+'" aria-pressed="'+(k===activePreset)+'">'+t(pnames[k])+'</button>';
-  }).join('');
-
-  const F=t('F');
-  $('weightBody').innerHTML=GROUPS.map(g=>{
-    const rows=Object.keys(FEATURES).filter(k=>FEATURES[k].group===g.id).map(k=>{
-      const f=FEATURES[k],w=WEIGHTS[k];
-      const label=(F[k]&&F[k][0])||f.label;
-      const hint=(F[k]&&F[k][1])||'';
-      const dead=(f.avail==='live'&&state.liveWeight===0)||(f.avail==='cold'&&state.liveWeight===1);
-      const tags=[];
-      if(f.avail==='live')tags.push('<span class="wtag live">'+t('tagLive')+'</span>');
-      if(f.avail==='played')tags.push('<span class="wtag live">'+t('tagPlayed')+'</span>');
-      if(f.avail==='cold')tags.push('<span class="wtag cold">'+t('tagCold')+'</span>');
-      if(f.scope==='pos')tags.push('<span class="wtag pos">'+t('tagPos')+'</span>');
-      return '<div class="wrow'+(dead?' muted':'')+'">'
-        +'<div class="wrow-top"><span class="wname">'+label+' '+tags.join(' ')+'</span>'
-        +'<span class="wval" id="wv-'+k+'">'+w+'</span></div>'
-        +'<input type="range" id="w-'+k+'" min="'+(k==='own'?-50:0)+'" max="50" value="'+w+'" aria-label="'+label+' '+t('weightLabel')+'">'
-        +(hint?'<span class="whint">'+hint+'</span>':'')
-        +'</div>';
-    }).join('');
-    return '<details class="wgroup-details"><summary><span class="wgroup-name">'+t(g.nameK)+'</span>'
-      +'<span class="wgroup-desc">'+t(g.descK)+'</span></summary><div class="wgrid">'+rows+'</div></details>';
-  }).join('');
-
-  strip.querySelectorAll('.preset').forEach(b=>{
-    b.addEventListener('click',()=>applyPreset(b.dataset.preset));
-  });
-  Object.keys(FEATURES).forEach(k=>{
-    const el=$('w-'+k);
-    if(el)el.addEventListener('input',()=>{
-      WEIGHTS[k]=parseInt(el.value,10);
-      $('wv-'+k).textContent=WEIGHTS[k];
-      activePreset=null;
-      document.querySelectorAll('.preset').forEach(b=>b.setAttribute('aria-pressed','false'));
-      if(players.length)rescore();
-    });
-  });
-}
-
-function applyPreset(name){
-  Object.assign(WEIGHTS,PRESETS[name]);
-  activePreset=name;
-  Object.keys(FEATURES).forEach(k=>{
-    const el=$('w-'+k); if(el)el.value=WEIGHTS[k];
-    const lab=$('wv-'+k); if(lab)lab.textContent=WEIGHTS[k];
-  });
-  document.querySelectorAll('.preset').forEach(b=>
-    b.setAttribute('aria-pressed',String(b.dataset.preset===name)));
-  if(players.length)rescore();
-}
-
-function rescore(){ if(!bootstrap)return; build(); renderAll(); }
-
-/* ══ RENDER: outputs ═══════════════════════════════════ */
-function confDots(p){
-  const on=Math.round(state.liveWeight*3);
-  let h='<div class="conf" title="'+(p.matchedPrior?t('confMatched'):t('confFpl'))+'">';
-  for(let i=0;i<3;i++)h+='<i class="'+(i<on?'on':(p.matchedPrior?'prior':''))+'"></i>';
-  return h+'</div>';
-}
 
 function pickCard(title,note,list,metaFn,valFn){
-  valFn=valFn||(p=>p.score);
+  valFn=valFn||(p=>p.xp1);
   if(!list.length)return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div></div><div class="empty">'+t('nothingQ')+'</div></div>';
   const rows=list.map((p,i)=>
     '<div class="prow phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pidx'+(i===0?' lead':'')+'">'+(i+1)+'</div>'
@@ -4088,7 +3941,7 @@ function ensureHorizon(){
 const xpLegs=p=>(xpH.byId[p.id]||{legs:[]}).legs;
 const xpTotal=p=>(xpH.byId[p.id]||{total:0}).total;
 
-const objVal=p=>xiObjective==='xp'?xpTotal(p):(Number(p.score)||0);
+const objVal=p=>xpTotal(p);
 
 /* What the pitch discs print. objVal over a multi-week window is a SUM, and
    putting that straight on a disc was a mistake: it landed in the slot where
@@ -4257,11 +4110,11 @@ let lockedIds=new Set();     // player ids locked into the Best XI squad
    which matters because the model is about to be tuned, and a re-derivation
    would quietly rewrite history every time it was.
 
-   Three XIs are frozen, because the report's sharpest test is what each
-   objective's team actually scored:
-     score   the Score optimiser
+   Two XIs are frozen, because the report's sharpest test is what each
+   team actually scored:
      xp1     xP over the coming gameweek only
      xp3     xP over the default three-week horizon
+   (Until app-2026-09-11a a third, Score-optimised XI was recorded too.)
 
    Nothing in the app calls this. It borrows the optimiser's globals and puts
    every one of them back, whether or not the optimiser throws.
@@ -4281,18 +4134,18 @@ window.fplLedger=function(){
       objTotal:Math.round(r.xiScore*100)/100};
   };
   let xi;
-  try{ xi={score:pick('score',saved.span), xp1:pick('xp',1), xp3:pick('xp',3)}; }
+  try{ xi={xp1:pick('xp',1), xp3:pick('xp',3)}; }
   finally{
     xiObjective=saved.obj; xiSpan=saved.span; xiStart=saved.start; lockedIds=saved.locks;
     xpH.key=null;
   }
   const r3=v=>Math.round(v*1000)/1000;
-  const cols=['score','xp1','xp3','epNext','mins','gate','evid','price','pos','teamId','status','rank','posRank'];
+  const cols=['xp1','xp3','epNext','xMinsNext','price','pos','teamId','status','rank','posRank'];
   const rows={};
   players.forEach(p=>{
-    rows[p.id]=[p.score,p.xp1,p.xp3,p.epNext,r3(p.mins),r3(p.gate),r3(p.evid||0),p.price,p.pos,p.teamId,p.status,p.rank,p.posRank];
+    rows[p.id]=[p.xp1,p.xp3,p.epNext,p.xMinsNext,p.price,p.pos,p.teamId,p.status,p.rank,p.posRank];
   });
-  return {schema:'fpl-pred/1', build:APP_BUILD, gw:xpNextGW(), capturedAt:new Date().toISOString(),
+  return {schema:'fpl-pred/2', build:APP_BUILD, gw:xpNextGW(), capturedAt:new Date().toISOString(),
     state:{mode:state.mode, gwPlayed:state.gwPlayed, liveWeight:state.liveWeight, nextGW:state.nextGW},
     weights:Object.assign({},WEIGHTS), preset:activePreset,
     minwin:MINWIN.status==='ready'?MINWIN.loaded.slice():null, minwinStatus:MINWIN.status,
@@ -4373,12 +4226,7 @@ function renderXI(){
 
   // objective switch — what the optimiser is maximising
   const objBar='<div class="objbar">'
-    +'<span class="objbar-title">'+t('sqObjective')+'</span>'
-    +'<span class="objseg">'
-    +'<button data-obj="xp" aria-pressed="'+(xiObjective==='xp')+'">'+t('sqObjXP')+'</button>'
-    +'<button data-obj="score" aria-pressed="'+(xiObjective==='score')+'">'+t('sqObjScore')+'</button>'
-    +'</span>'
-    +'<span class="objbar-hint">'+(xiObjective==='xp'?t('sqObjNote')(xiSpanEff()):t('sqObjHint'))+'</span></div>'
+    +'<span class="objbar-hint">'+t('sqObjHint')+' '+t('sqObjNote')(xiSpanEff())+'</span></div>'
     +horizonBar();
 
   // locked-players bar + hint (always shown at top of the tab)
@@ -4559,16 +4407,7 @@ function loadState(){
       /* 'xp3' is the name this setting had in app-2026-09-06a, when the span
          was fixed at three. Migrate rather than drop it, or anyone who had
          picked xP silently lands back on Score. */
-      /* Before app-2026-09-10d every visit saved whatever objective was on
-         screen, so a stored 'score' is usually just the old default rather
-         than a choice. Honour it only if it was saved by a build that
-         defaulted to xP (objV 2); otherwise the switch to xP never reaches
-         anyone who has used the app before. */
-      let savedObj=state.xiObjective==='xp3'?'xp':state.xiObjective;
-      if(savedObj==='score'&&!(state.objV>=2))savedObj='xp';
-      if((savedObj==='xp'||savedObj==='score')&&savedObj!==xiObjective){
-        xiObjective=savedObj; objChanged=true;
-      }
+      /* Score was removed in app-2026-09-11a; a saved 'score' objective is ignored. */
       if(Number.isFinite(state.xiSpan)){
         const sp=clamp(state.xiSpan,XI_SPAN_MIN,XI_SPAN_MAX);
         if(sp!==xiSpan){xiSpan=sp; objChanged=true;}
@@ -4608,14 +4447,6 @@ function wireLockControls(){
      every renderTable, and the objective strip is still in the DOM from the
      last renderXI — a listener would be added again on each pass and one click
      would fire a rebuild several times over. */
-  document.querySelectorAll('.objseg [data-obj]').forEach(b=>{
-    b.onclick=()=>{
-      const v=b.dataset.obj;
-      if(v===xiObjective)return;
-      xiObjective=v;
-      renderXI(); saveState();
-    };
-  });
   document.querySelectorAll('.objseg [data-gwstep]').forEach(b=>{
     b.onclick=()=>{
       if(b.disabled)return;
@@ -4703,7 +4534,6 @@ function renderTable(){
   const hasDef=!!(fields.defcon||fields.defconParts.length);
 
   $('tableBody').innerHTML=slice.length?slice.map((p,i)=>{
-    const cls=p.score>=6.5?'sc':p.score>=4.5?'sc mid':'sc lo';
     const pctNum=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
@@ -4716,16 +4546,15 @@ function renderTable(){
     +'<td class="sc">'+xpCell(p.xp1)+'</td>'
     +'<td class="mono">'+xpCell(p.xp3)+'</td>'
     +'<td class="mono" style="color:var(--dim)">'+(p.epNext||0).toFixed(1)+'</td>'
-    +'<td class="'+cls+'" style="opacity:.6">'+p.score.toFixed(1)+'</td>'
     +'<td class="mono">'+Math.round(p.xMinsNext||0)+'\u2032</td>'
     +'<td class="mono">'+p.xg90.toFixed(2)+'</td>'
     +'<td class="mono">'+p.xa90.toFixed(2)+'</td>'
-    +'<td class="mono">'+(hasDef?Math.round(p.pct.defcon*100)+'%':'—')+'</td>'
+    +'<td class="mono">'+(hasDef?p.defcon:'—')+'</td>'
     +'<td class="mono">'+(p.fdrKnown?p.fdr.toFixed(1):'—')+'</td>'
     +'<td class="mono" style="color:var(--dim)">'+p.sel.toFixed(1)+'%</td>'
     +'<td class="mono" style="color:'+(p.mom>0?'var(--good)':p.mom<0?'var(--bad)':'var(--dimmer)')+'">'
       +(p.mom>0?'+':'')+(Math.abs(p.mom)>=1000?(p.mom/1000).toFixed(1)+'k':p.mom)+'</td></tr>';
-  }).join(''):'<tr><td colspan="15" class="empty">'+t('noMatch')+'</td></tr>';
+  }).join(''):'<tr><td colspan="14" class="empty">'+t('noMatch')+'</td></tr>';
 
   // taps handled globally by the delegated .phist listener (covers every view)
   wireLockControls();
@@ -5148,7 +4977,7 @@ function playerProjection(d){
 
    Two tabs in the player modal that redo the headline numbers by hand. Both
    read what build() already attached to the player row (pctAll, parts, evid,
-   gate, minsD) and the scoreCtx it left behind, so they show the arithmetic
+   minsD), so they show the arithmetic
    that produced the number rather than a second implementation of it. If the
    two ever disagree, the engine is right and this is the bug.
 ════════════════════════════════════════════════════════ */
@@ -5161,78 +4990,6 @@ function bdSigned(v,dp){
   return (Number(r)>0?'+':Number(r)<0?'\u2212':'')+Math.abs(Number(r)).toFixed(dp);
 }
 
-function scoreBreakdown(p){
-  if(!p||!p.pctAll||!scoreCtx)return '';
-  const ctx=scoreCtx, F=t('F')||{};
-  const RAW={
-    form:p=>p.form.toFixed(1), ppg:p=>p.ppg.toFixed(1), ict:p=>p.ict.toFixed(1),
-    bps:p=>String(p.bps), xg90:p=>p.xg90.toFixed(2), xa90:p=>p.xa90.toFixed(2),
-    xgdiff:p=>bdSigned(p.xgdiff,2), defcon:p=>String(p.defcon),
-    fdr:p=>p.fdrKnown?p.fdr.toFixed(1):'\u2014',
-    home:p=>p.fdrKnown?Math.round(p.homeShare*p.fdrCount)+'/'+p.fdrCount:'\u2014',
-    own:p=>p.sel.toFixed(1)+'%', mom:p=>bdFmtK(p.mom), price:p=>'\u00a3'+p.price.toFixed(1),
-  };
-  const on=[], off=[];
-  Object.keys(ctx.eff).forEach(k=>(ctx.eff[k]===0?off:on).push(k));
-
-  const rows=GROUPS.map(g=>{
-    const ks=on.filter(k=>FEATURES[k].group===g.id);
-    if(!ks.length)return '';
-    const sub=ks.reduce((a,k)=>a+(p.parts[k]||0)*10,0);
-    const body=ks.map(k=>{
-      const f=FEATURES[k], pct=p.pctAll[k], c=(p.parts[k]||0)*10;
-      const share=ctx.eff[k]/ctx.denom*100;
-      const label=(F[k]&&F[k][0])||f.label;
-      const pctTxt='p'+Math.round(pct*100)+(f.scope==='pos'?t('bdPctIn')(p.pos):'');
-      return '<div class="bd-row">'
-        +'<div class="bd-l"><span class="bd-name">'+esc(label)+'</span>'
-        +'<span class="bd-sub">'+RAW[k](p)+' \u00b7 '+pctTxt+' \u00b7 '+t('bdWt')+' '
-          +bdSigned(share,0).replace('+','')+'%</span></div>'
-        +'<div class="bd-bar"><i style="width:'+Math.round(pct*100)+'%"></i></div>'
-        +'<div class="bd-v'+(c<0?' neg':'')+'">'+bdSigned(c,2)+'</div></div>';
-    }).join('');
-    return '<div class="bd-group"><div class="bd-ghead"><span>'+t(g.nameK)+'</span>'
-      +'<span class="bd-v">'+bdSigned(sub,2)+'</span></div>'+body+'</div>';
-  }).join('');
-
-  /* The gate. Shown as its own block because it multiplies rather than adds,
-     and that is the single most misread thing about the Score. */
-  const md=p.minsD||{};
-  const pctS=v=>Math.round(v*100)+'%';
-  const minsLine=md.src==='xmins'
-    ? t('bdXMins')(Math.round(md.xm), ctx.minwin&&ctx.minwin.length
-        ? t('hGW')+ctx.minwin[0]+(ctx.minwin.length>1?'\u2013'+ctx.minwin[ctx.minwin.length-1]:'')
-        : '')
-    : t('bdSeasonRate')(pctS(md.rate||0));
-  const gateBlock='<div class="bd-group"><div class="bd-ghead"><span>'+t('bdGateK')+'</span>'
-      +'<span class="bd-v">\u00d7'+p.gate.toFixed(2)+'</span></div>'
-    +'<div class="bd-line">'+minsLine+' <b>'+(md.rate||0).toFixed(2)+'</b></div>'
-    +'<div class="bd-line">\u00d7 '+t('bdStatus')+' <b>'+pctS(md.statusMult==null?1:md.statusMult)+'</b>'
-      +' \u00d7 '+t('bdCop')+' <b>'+pctS(md.copMult==null?1:md.copMult)+'</b>'
-      +' = '+t('bdSecurity')+' <b>'+(p.mins||0).toFixed(2)+'</b></div>'
-    +'<div class="bd-line">'+t('bdExpo')((WEIGHTS.mins||0), ctx.expo.toFixed(2))
-      +' \u2192 <b>\u00d7'+p.gate.toFixed(2)+'</b></div>'
-    +'</div>';
-
-  const head='<div class="bd-eq">'
-    +'<div class="bd-eq-main"><span class="bd-big">'+p.score.toFixed(1)+'</span>'
-    +'<span class="bd-eq-txt">= '+p.evid.toFixed(2)+' '+t('bdEvidence')
-      +' \u00d7 '+p.gate.toFixed(2)+' '+t('bdGateK')+'</span></div>'
-    +'<div class="bd-eq-sub">#'+p.rank+' '+t('bdOf')+' '+ctx.n
-      +' \u00b7 #'+p.posRank+' '+p.pos+'</div></div>';
-
-  /* Only claim the xG blend when a prior actually matched. The Understat
-     loader has been a stub for a while, so on the live site nobody matches
-     and xg90/xa90 are this season's FPL figures alone. */
-  const xgNote=(diag.matched||diag.matchedPrior)?t('bdXgBlend'):t('bdXgLive');
-  const ramp=ctx.mode==='blend'
-    ? '<div class="bd-note">'+t('bdRamp')(ctx.gwPlayed, RAMP_GWS, Math.round(ctx.liveWeight*100))+' '+xgNote+'</div>'
-    : (ctx.gwPlayed>0&&!(diag.matched||diag.matchedPrior)?'<div class="bd-note">'+xgNote+'</div>':'');
-  const offNote=off.length
-    ? '<div class="bd-note">'+t('bdOff')+' '+off.map(k=>esc((F[k]&&F[k][0])||FEATURES[k].label)).join(', ')+'</div>' : '';
-
-  return head+ramp+rows+gateBlock+offNote+'<div class="bd-note">'+t('bdScoreNote')+'</div>';
-}
 
 /* What ep_next actually is, for this player. Worked out against the FPL
    fields rather than asserted: measured on the GW4 pre-deadline snapshot,
@@ -5525,9 +5282,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   // Build tab bar with all available sections (no Summary tab - always shown above)
   const tabs=[];
   if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
-  const bdScore=scoreBreakdown(d.p), bdXP=xpBreakdown(d);
+  const bdXP=xpBreakdown(d);
   if(bdXP) tabs.push({id:'bdxp', label:t('tabXP')});
-  if(bdScore) tabs.push({id:'bdscore', label:t('tabScore')});
   // Combined seasons tab (past + per-season stats)
   if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
@@ -5556,7 +5312,6 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 
   // TAB CONTENT: breakdowns of the two headline numbers
   if(bdXP) html+='<div class="hist-tab-content" data-tab="bdxp">'+bdXP+'</div>';
-  if(bdScore) html+='<div class="hist-tab-content" data-tab="bdscore">'+bdScore+'</div>';
 
   // TAB CONTENT: Combined Seasons (Previous Seasons + Per-Season Stats)
   if(past.length||(understat&&understat.vsClub&&understat.vsClub.length)){
@@ -5659,29 +5414,22 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 
 function renderDiag(){
   const row=(k,v,cls)=>'<div class="drow"><span class="dk">'+k+'</span><span class="dv '+(cls||'')+'">'+v+'</span></div>';
-  const uL=uLive.n||0, uP=uPrior.n||0;
-  const defSrc=fields.defcon?fields.defcon
-    :fields.defconParts.length?t('dSummed')(fields.defconParts.join(', ')):t('dNotFound');
-  const ofN=t('ofN'), pl=t('dPlayers');
+  const ok=XPD.status==='ready', n=(bootstrap&&bootstrap.elements||[]).length;
   $('diagBody').innerHTML=
-     row(t('dSeasonState'),state.mode)
+     row(t('dXpModel'),(t('xpmHead')[XPD.status]||XPD.status)+(XPD.err?' \u2014 '+XPD.err:''),ok?'ok':XPD.status==='loading'?'warn':'off')
+    +row(t('dEngine'),typeof XPE!=='undefined'?XPE.STAMP:'\u2014',typeof XPE!=='undefined'?'ok':'off')
+    +row(t('dPriors'),XPD.priors?XPD.priors.stamp+' \u00b7 '+XPD.priors.from:'\u2014',XPD.priors?'ok':'off')
+    +row(t('dLinked'),ok?XPD.linked+t('ofN')+n:'\u2014',ok&&XPD.linked/n>.7?'ok':'warn')
+    +row(t('dGWsFolded'),ok?(XPD.loaded.join(', ')||t('dNone')):'\u2014',ok&&XPD.loaded.length?'ok':'warn')
+    +row(t('dMatches'),ok?XPD.matches:'\u2014')
+    +row(t('dLeagueXG'),ok?XPD.T.avg.toFixed(2):'\u2014')
+    +row(t('dAssistRatio'),ok?XPD.assistRatio.toFixed(2):'\u2014')
     +row(t('dGwPlayed'),state.gwPlayed)
     +row(t('dNextGw'),state.nextGW)
-    +row(t('dLiveWeight'),Math.round(state.liveWeight*100)+'%')
-    +row(t('dScored'),diag.pool||0)
-    +row(t('dDefField'),defSrc,fields.defcon?'ok':fields.defconParts.length?'warn':'off')
-    +row(t('dStartsField'),fields.starts?t('dYes'):t('dNo'),fields.starts?'ok':'warn')
-    +row(t('dUnderstatLive'),uL?uL+pl:t('dUnavail'),uL?'ok':'warn')
-    +row(t('dUnderstatPrior'),uP?uP+pl:t('dUnavail'),uP?'ok':'warn')
-    +row(t('dMatched'),(diag.matched||0)+ofN+(diag.pool||0),
-        (diag.matched/(diag.pool||1))>.5?'ok':'warn')
-    +row(t('dMatchedPrior'),(diag.matchedPrior||0)+ofN+(diag.pool||0),
-        (diag.matchedPrior/(diag.pool||1))>.5?'ok':'warn')
-    +row(t('dFixturesKnown'),(diag.fdrKnown||0)+ofN+(diag.pool||0),diag.fdrKnown?'ok':'off')
     +row(t('dProxy'),diag.proxyUsed?('#'+diag.proxyUsed):t('dNone'));
 }
 
-function renderAll(){ paintState(); renderWeights(); renderPicks(); renderXI(); applyFilters(); renderPlan(); renderDiag(); }
+function renderAll(){ paintState(); renderPicks(); renderXI(); applyFilters(); renderPlan(); renderDiag(); }
 
 /* ══ SEASON PLAN ═══════════════════════════════════════
    Chips come in two sets. The first expires at the Gameweek 19
@@ -7381,7 +7129,6 @@ function applyStaticI18n(){
 applyStaticI18n();
 document.documentElement.lang=LANG;
 document.querySelectorAll('.langbtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===LANG)));
-renderWeights();
 paintState();
 
 // stamp the build so you can confirm which index.html is live

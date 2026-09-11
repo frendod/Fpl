@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* fpl-snapshot.mjs — snapshot-2026-09-10b
+/* fpl-snapshot.mjs — snapshot-2026-09-11a
  *
  * Captures FPL API state into history/fpl/ as immutable per-gameweek JSON.
  *
@@ -45,13 +45,19 @@
  * 2026-09-10b — adds `code`, FPL's stable cross-season player id, as the join
  * key to last season's FPL data.
  *
+ * 2026-09-11a — `challenge` command: the FPL Challenge game's feed
+ * (fplchallenge.premierleague.com/api) carries Opta stats the main feed does
+ * not — shots, big chances, key passes, fouls, substitutions off and more —
+ * with the same player ids. Written to <season>/challenge/gw-N.json. See
+ * captureChallenge for how gameweeks are isolated.
+ *
  * RUN probe FIRST. This project has been bitten repeatedly by hand-typed
  * field names. The probe writes untouched responses so the field lists below
  * can be checked against reality before anything trusts them.
  */
 
 const API = 'https://fantasy.premierleague.com/api';
-const STAMP = 'snapshot-2026-09-10b';
+const STAMP = 'snapshot-2026-09-11a';
 
 /* Browser-like headers. Bare fetch gets 403s from this API. */
 const HEADERS = {
@@ -406,10 +412,88 @@ async function capturePre() {
 
 /* ── MAIN ─────────────────────────────────────────────────────────────── */
 
-const commands = { probe, post: capturePost, pre: capturePre };
+/* ── CHALLENGE ────────────────────────────────────────────────────────────
+ * The Challenge feed's player list holds SEASON TOTALS. To get one
+ * gameweek's stats there are two routes, tried in this order:
+ *
+ *   1. event/N/live/ — if the Challenge feed mirrors the main feed's
+ *      per-gameweek endpoint, each gameweek comes out directly and every
+ *      settled gameweek can be backfilled. Whether it exists, and what it
+ *      carries, is recorded in the file either way.
+ *   2. Season totals, saved right after gameweek N settles and before N+1
+ *      kicks off. Gameweek N is then this file minus gw-(N-1)'s. A file
+ *      saved late would fold part of N+1 in, so it is not written at all.
+ *
+ * Stored as a column list plus one row per player, so a gameweek is ~60KB.
+ */
+const CAPI = 'https://fplchallenge.premierleague.com/api';
+const CH_FIELDS = [
+  'minutes', 'starts', 'total_shots', 'shots_on_target', 'attempts_obox', 'total_headed_attempts',
+  'big_chances_created', 'big_chances_scored', 'key_passes', 'open_play_crosses', 'dribbles',
+  'attempted_passes', 'completed_passes', 'fouls', 'fouls_won', 'interceptions', 'successful_tackles',
+  'substitutions_off', 'penalties_won', 'outside_box_goals', 'winning_goals', 'bps',
+];
+async function cget(path) {
+  const res = await fetch(`${CAPI}/${path}`, { headers: { ...HEADERS, Referer: 'https://fplchallenge.premierleague.com/' } });
+  return { ok: res.ok, status: res.status, json: res.ok ? await res.json().catch(() => null) : null };
+}
+async function captureChallenge() {
+  const season = currentSeason();
+  const main = await get('bootstrap-static/');
+  const settled = main.events.filter(e => e.data_checked).map(e => e.id);
+  if (!settled.length) { console.log('  no settled gameweek yet'); return; }
+  const last = Math.max(...settled);
+
+  /* Route 1: a per-gameweek endpoint. */
+  const probeLive = await cget(`event/${last}/live/`);
+  const liveEls = probeLive.json && Array.isArray(probeLive.json.elements) ? probeLive.json.elements : null;
+  const liveKeys = liveEls && liveEls[0] && liveEls[0].stats ? Object.keys(liveEls[0].stats) : [];
+  const liveHasExtras = CH_FIELDS.filter(k => k !== 'minutes' && k !== 'starts' && k !== 'bps').some(k => liveKeys.includes(k));
+  console.log(`  event/${last}/live/: ${probeLive.status}${liveEls ? `, ${liveEls.length} players, extra stats ${liveHasExtras ? 'YES' : 'no'}` : ''}`);
+
+  if (liveEls && liveHasExtras) {
+    for (const g of settled) {
+      const path = join(OUT, season, 'challenge', `gw-${g}.json`);
+      if (!FORCE && await exists(path)) continue;
+      const r = g === last ? probeLive : await cget(`event/${g}/live/`);
+      const els = r.json && r.json.elements;
+      if (!els) { console.log(`  gw ${g}: ${r.status}, skipped`); continue; }
+      const cols = CH_FIELDS.filter(k => k in (els[0].stats || {}));
+      const players = {};
+      for (const e of els) players[e.id] = cols.map(k => Number(e.stats[k]) || 0);
+      await writeJSON(path, { schema: 'fpl-challenge/1', stamp: STAMP, season, gw: g, kind: 'gameweek',
+        source: `${CAPI}/event/${g}/live/`, capturedAt: new Date().toISOString(), cols, players });
+    }
+    return;
+  }
+
+  /* Route 2: season totals, only while they still stop at `last`. */
+  const path = join(OUT, season, 'challenge', `gw-${last}.json`);
+  if (!FORCE && await exists(path)) { console.log(`  gw ${last} already on disk`); return; }
+  const fx = await get(`fixtures/?event=${last + 1}`).catch(() => []);
+  if (Array.isArray(fx) && fx.some(f => f.started)) {
+    console.log(`  gw ${last + 1} has kicked off — totals now include it, so gw ${last} cannot be isolated; skipping`);
+    return;
+  }
+  const boot = await cget('bootstrap-static/');
+  if (!boot.json || !Array.isArray(boot.json.elements)) throw new Error(`challenge bootstrap-static ${boot.status}`);
+  const els = boot.json.elements;
+  const cols = CH_FIELDS.filter(k => k in els[0]);
+  const missing = CH_FIELDS.filter(k => !(k in els[0]));
+  const players = {};
+  for (const e of els) players[e.id] = cols.map(k => Number(e[k]) || 0);
+  await writeJSON(path, { schema: 'fpl-challenge/1', stamp: STAMP, season, gw: last, kind: 'season-totals',
+    note: `totals through gameweek ${last}; gameweek ${last} alone = this minus gw-${last - 1}`,
+    source: `${CAPI}/bootstrap-static/`, capturedAt: new Date().toISOString(),
+    liveEndpoint: { status: probeLive.status, statKeys: liveKeys },
+    cols, missing, players });
+  console.log(`  season totals through gw ${last}, ${Object.keys(players).length} players${missing.length ? `, missing: ${missing.join(', ')}` : ''}`);
+}
+
+const commands = { probe, post: capturePost, pre: capturePre, challenge: captureChallenge };
 
 if (!commands[cmd]) {
-  console.log('usage: node fpl-snapshot.mjs <probe|post|pre> [--from N] [--to N] [--within M] [--out dir] [--season s] [--force] [--dry]');
+  console.log('usage: node fpl-snapshot.mjs <probe|post|pre|challenge> [--from N] [--to N] [--within M] [--out dir] [--season s] [--force] [--dry]');
   process.exit(1);
 }
 

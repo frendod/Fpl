@@ -1,4 +1,4 @@
-# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-10a
+# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-11a
 #
 # Captures FPL state into history/fpl/ without anyone having to remember.
 #
@@ -73,6 +73,12 @@ jobs:
         if: steps.pred.outputs.due == 'true'
         continue-on-error: true
         run: node predict-snapshot.mjs capture --within 150 ${{ inputs.pred_now && '--force' || '' }}
+
+      # FPL Challenge's extra Opta stats (shots, big chances, key passes...).
+      # Its own step so a Challenge failure never costs the FPL captures.
+      - name: Capture Challenge stats
+        continue-on-error: true
+        run: node fpl-snapshot.mjs challenge
 
       # Outcomes. Exits silently until data_checked flips, which happens once
       # bonus has been applied — usually a few hours after the last match.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* predict-snapshot.mjs — predict-2026-09-10a
+/* predict-snapshot.mjs — predict-2026-09-11a
  *
  * Freezes what FPL Rock predicts for the coming gameweek, inside the same
  * pre-deadline window as `fpl-snapshot.mjs pre`, into:
@@ -42,7 +42,7 @@
 import { mkdir, writeFile, access, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-const STAMP = 'predict-2026-09-10a';
+const STAMP = 'predict-2026-09-11a';
 const API = 'https://fantasy.premierleague.com/api';
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
@@ -176,8 +176,8 @@ async function capture() {
   if (DRY) { log(`  [dry] would write ${d.path} (${led.counts.players} players, build ${led.build})`); return; }
   await mkdir(dirname(d.path), { recursive: true });
   await writeFile(d.path, JSON.stringify(out) + '\n', 'utf8');
-  log(`  wrote ${d.path} — ${led.counts.players} players, build ${led.build}, ` +
-      `XI totals score ${led.xi.score?.objTotal} / xp1 ${led.xi.xp1?.objTotal} / xp3 ${led.xi.xp3?.objTotal}`);
+  log(`  wrote ${d.path} — ${led.counts.players} players, build ${led.build}, xP model ${led.xpModel ? led.xpModel.status : 'n/a'}, ` +
+      `XI totals ${Object.entries(led.xi || {}).map(([k, x]) => `${k} ${x ? x.objTotal : '—'}`).join(' / ')}`);
 }
 
 const commands = { check, capture };
