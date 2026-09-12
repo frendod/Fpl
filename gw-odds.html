@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#10151c">
+<title>GW Odds — FPL Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* odds-page-2026-09-12a — companion to index.html, same token system */
+:root{
+  --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
+  --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
+  --paper:#ffffff; --dim:#9aa3ad; --dimmer:#6b7480;
+  --good:#4ec9a0; --bad:#e5657a; --accent:#d9a441; --accent-soft:rgba(217,164,65,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink); color:var(--paper);
+  font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:16px; line-height:1.5;
+  min-height:100vh; overscroll-behavior-y:none;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(180deg,transparent 0 39px,rgba(232,228,220,.022) 39px 40px);
+}
+.wrap{
+  position:relative;z-index:1;max-width:720px;margin:0 auto;
+  padding:calc(24px + env(safe-area-inset-top)) 20px 40px;
+}
+.masthead{margin-bottom:22px}
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.eyebrow a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line2)}
+.eyebrow a:hover{color:var(--accent);border-color:var(--accent)}
+h1{
+  font-family:'Instrument Serif',Georgia,serif;font-size:34px;font-weight:400;
+  letter-spacing:.005em;margin-top:6px;color:var(--paper);
+}
+h1 em{font-style:italic;color:var(--accent)}
+.subline{
+  margin-top:6px;font-size:13.5px;color:var(--dim);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.subline b{color:var(--paper);font-weight:600}
+.pill{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  padding:3px 8px;border:1px solid var(--line2);border-radius:20px;color:var(--dim);
+}
+.pill.live{color:var(--good);border-color:rgba(78,201,160,.35)}
+.pill.stale{color:var(--bad);border-color:rgba(229,101,122,.35)}
+
+.state{
+  margin-top:40px;text-align:center;color:var(--dim);font-size:14px;
+}
+.state .mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dimmer);margin-top:8px}
+.retry{
+  margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;
+  padding:9px 18px;border:1px solid var(--accent);color:var(--accent);background:transparent;
+  border-radius:3px;cursor:pointer;
+}
+.retry:hover{background:var(--accent);color:var(--ink)}
+
+.day{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
+  color:var(--dimmer);margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);
+  text-transform:uppercase;
+}
+.day:first-of-type{margin-top:8px}
+
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:16px 16px 14px;margin-bottom:10px;
+}
+.card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.kickoff{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:.04em}
+.movecue{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.04em;color:var(--accent);
+}
+
+.teams{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
+.team{display:flex;align-items:center;gap:8px;min-width:0}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.team-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs{font-family:'Instrument Serif',serif;font-style:italic;color:var(--dimmer);font-size:14px;flex-shrink:0}
+
+.score-row{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:14px 0 12px}
+.score-main{
+  font-family:'Instrument Serif',serif;font-size:32px;color:var(--accent);letter-spacing:.02em;
+}
+.score-alt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dimmer)}
+
+.probbar{height:6px;border-radius:3px;overflow:hidden;display:flex;background:var(--panel2)}
+.probbar > span{height:100%}
+.seg-h{background:var(--accent)}
+.seg-d{background:var(--line2)}
+.seg-a{background:var(--bad)}
+.problabels{
+  display:flex;justify-content:space-between;margin-top:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.02em;
+}
+.problabels b{color:var(--paper);font-weight:600}
+
+footer{
+  margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dimmer);
+  line-height:1.7;
+}
+footer a{color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a></div>
+    <h1>Gameweek <em id="gwNum">—</em> odds</h1>
+    <div class="subline" id="subline">Loading fixtures…</div>
+  </div>
+
+  <div id="content"></div>
+
+  <footer id="footer" style="display:none">
+    Implied probabilities are devigged from the 1X2 market; predicted scores are the
+    shortest-priced Correct Score line. Both come from the same book (Bet365, or Unibet
+    where Bet365 wasn't available) and are pre-lineups — they can move again before
+    kickoff. Not betting advice.
+  </footer>
+
+</div>
+
+<script>
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-12a';
+const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
+
+const CLUB_COLORS = {
+  ARS:'#EF0107', AVL:'#95BFE5', BOU:'#DA291C', BRE:'#E30613', BHA:'#0057B8',
+  CHE:'#034694', COV:'#78BFFA', CRY:'#1B458F', EVE:'#003399', FUL:'#000000',
+  HUL:'#F5A12D', IPS:'#3A64A3', LEE:'#FFCD00', LIV:'#C8102E', MCI:'#6CABDD',
+  MUN:'#DA291C', NEW:'#241F20', NFO:'#DD0000', SUN:'#EB172B', TOT:'#132257',
+  WHU:'#7A263A', WOL:'#FDB913', BUR:'#6C1D45',
+};
+
+// Bookmaker full names -> the short codes above. Keyed on a normalised
+// (lowercased, punctuation-stripped) name so "AFC Bournemouth" / "Bournemouth"
+// both resolve, same idea as odds-snapshot.mjs's own TEAM_ALIASES.
+const NAME_TO_SHORT = {
+  'arsenal':'ARS','arsenal fc':'ARS',
+  'aston villa':'AVL',
+  'bournemouth':'BOU','afc bournemouth':'BOU',
+  'brentford':'BRE','brentford fc':'BRE',
+  'brighton':'BHA','brighton and hove albion':'BHA','brighton hove albion':'BHA','brighton & hove albion':'BHA',
+  'chelsea':'CHE','chelsea fc':'CHE',
+  'coventry':'COV','coventry city':'COV',
+  'crystal palace':'CRY',
+  'everton':'EVE','everton fc':'EVE',
+  'fulham':'FUL','fulham fc':'FUL',
+  'hull':'HUL','hull city':'HUL',
+  'ipswich':'IPS','ipswich town':'IPS',
+  'leeds':'LEE','leeds united':'LEE',
+  'liverpool':'LIV','liverpool fc':'LIV',
+  'manchester city':'MCI','man city':'MCI',
+  'manchester united':'MUN','man utd':'MUN','man united':'MUN',
+  'newcastle':'NEW','newcastle united':'NEW',
+  'nottingham forest':'NFO',"nott'm forest":'NFO',
+  'sunderland':'SUN','sunderland afc':'SUN',
+  'tottenham':'TOT','tottenham hotspur':'TOT','spurs':'TOT',
+  'west ham':'WHU','west ham united':'WHU',
+  'wolves':'WOL','wolverhampton wanderers':'WOL',
+  'burnley':'BUR',
+};
+function norm(s){ return (s||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim(); }
+function shortOf(name){ return NAME_TO_SHORT[norm(name)] || null; }
+function clubColor(short){ return CLUB_COLORS[short] || '#9ca3af'; }
+
+function currentSeason(d){
+  d = d || new Date();
+  const y = d.getUTCFullYear();
+  const start = d.getUTCMonth() >= 6 ? y : y - 1;
+  return start + '-' + String((start + 1) % 100).padStart(2, '0');
+}
+
+const qs = new URLSearchParams(location.search);
+
+async function getJSON(url, opts){
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(url + ' — ' + r.status);
+  return r.json();
+}
+
+// Find the next unfinished gameweek via the site's own proxy (same origin,
+// no CORS). Falls back to a manual ?gw=&season= override so this page still
+// works if the function isn't deployed alongside it.
+async function findGameweek(){
+  const gwOverride = qs.get('gw');
+  const seasonOverride = qs.get('season');
+  if (gwOverride) return { gw: Number(gwOverride), season: seasonOverride || currentSeason(), deadline: null };
+
+  const b = await getJSON('/api/fpl', { cache: 'no-store' });
+  const events = (b.bootstrap && b.bootstrap.events) || [];
+  const next = events.find(e => e.is_next) || events.find(e => !e.finished);
+  if (!next) throw new Error('no upcoming gameweek in bootstrap-static');
+  return { gw: next.id, season: currentSeason(), deadline: next.deadline_time };
+}
+
+// Odds captures land as gw-N-early / gw-N-late / gw-N-adhoc. Prefer the most
+// recent point on the clock; fall back down the list if a file is missing.
+async function fetchOddsFile(season, gw, point){
+  const url = `${REPO_RAW}/${season}/pre/gw-${gw}-${point}.json`;
+  try { return await getJSON(url); } catch(e){ return null; }
+}
+async function fetchOdds(season, gw){
+  const order = ['late', 'adhoc', 'early'];
+  let primary = null, primaryPoint = null;
+  for (const p of order){
+    primary = await fetchOddsFile(season, gw, p);
+    if (primary){ primaryPoint = p; break; }
+  }
+  if (!primary) return null;
+  // For the movement note, always compare against 'early' if it exists and
+  // isn't the file we already picked.
+  let early = primaryPoint === 'early' ? primary : await fetchOddsFile(season, gw, 'early');
+  return { primary, primaryPoint, early };
+}
+
+function bestBook(ev){
+  const b = (ev && ev.bookmakers) || {};
+  return b['Bet365'] || b['Unibet'] || b['Bet365 (no latency)'] || Object.values(b)[0] || [];
+}
+function marketByName(book, name){ return book.find(m => m.name === name) || null; }
+
+function implied(ml){
+  const h = 1/parseFloat(ml.home), d = 1/parseFloat(ml.draw), a = 1/parseFloat(ml.away);
+  const t = h + d + a;
+  return { h: h/t*100, d: d/t*100, a: a/t*100 };
+}
+function topScore(cs){
+  if (!cs || !cs.odds || !cs.odds.length) return null;
+  return cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds))[0];
+}
+
+function rowFor(mapping, oddsFile){
+  const ev = oddsFile && oddsFile.odds ? oddsFile.odds[String(mapping.oddsEvent)] : null;
+  if (!ev) return null;
+  const book = bestBook(ev);
+  const ml = marketByName(book, 'ML');
+  const cs = marketByName(book, 'Correct Score');
+  const row = {
+    home: mapping.oddsHome, away: mapping.oddsAway, kickoff: mapping.kickoff,
+    fixtureId: mapping.fplFixture,
+  };
+  if (ml) row.probs = implied(ml.odds[0]);
+  const top = topScore(cs);
+  if (top){
+    row.score = top.label;
+    const alts = cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds)).slice(1,3);
+    row.alts = alts.map(a => a.label);
+  }
+  return row;
+}
+
+function fmtKickoff(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('en-GB', {
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }) + ' local';
+}
+function dayKey(iso){
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+}
+
+function moveNote(nowRow, earlyRow){
+  if (!nowRow || !earlyRow || !nowRow.probs || !earlyRow.probs) return null;
+  const dh = nowRow.probs.h - earlyRow.probs.h;
+  const da = nowRow.probs.a - earlyRow.probs.a;
+  const big = Math.abs(dh) >= Math.abs(da) ? dh : -da;
+  if (Math.max(Math.abs(dh), Math.abs(da)) < 2) return null;
+  const side = Math.abs(dh) >= Math.abs(da)
+    ? (dh > 0 ? nowRow.home : nowRow.away)
+    : (da > 0 ? nowRow.away : nowRow.home);
+  const val = Math.abs(dh) >= Math.abs(da) ? dh : da;
+  return `Moved ${val > 0 ? '+' : ''}${val.toFixed(0)}pt toward ${side} since the early line`;
+}
+
+function render(gw, season, capture, rowsByDay){
+  document.getElementById('gwNum').textContent = gw;
+
+  const sub = document.getElementById('subline');
+  const pointLabel = { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture' }[capture.point] || capture.point;
+  const age = capture.capturedAt ? timeAgo(capture.capturedAt) : null;
+  sub.innerHTML =
+    `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
+    (age ? `<span>captured <b>${age}</b></span>` : '') +
+    `<span>Season ${season}</span>`;
+
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  Object.keys(rowsByDay).forEach(day => {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    dayEl.textContent = day;
+    content.appendChild(dayEl);
+
+    rowsByDay[day].forEach(({row, note}) => {
+      const hShort = shortOf(row.home), aShort = shortOf(row.away);
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const probs = row.probs;
+      const probHtml = probs ? `
+        <div class="probbar">
+          <span class="seg-h" style="width:${probs.h}%"></span>
+          <span class="seg-d" style="width:${probs.d}%"></span>
+          <span class="seg-a" style="width:${probs.a}%"></span>
+        </div>
+        <div class="problabels">
+          <span><b>${probs.h.toFixed(0)}%</b> ${row.home}</span>
+          <span><b>${probs.d.toFixed(0)}%</b> draw</span>
+          <span><b>${probs.a.toFixed(0)}%</b> ${row.away}</span>
+        </div>` : `<div class="problabels" style="justify-content:center">No odds captured for this fixture</div>`;
+
+      card.innerHTML = `
+        <div class="card-top">
+          <span class="kickoff">${fmtKickoff(row.kickoff)}</span>
+          ${note ? `<span class="movecue">${note}</span>` : ''}
+        </div>
+        <div class="teams">
+          <div class="team"><span class="dot" style="background:${clubColor(hShort)}"></span><span class="team-name">${row.home}</span></div>
+          <span class="vs">v</span>
+          <div class="team" style="justify-content:flex-end"><span class="team-name">${row.away}</span><span class="dot" style="background:${clubColor(aShort)}"></span></div>
+        </div>
+        ${row.score ? `
+        <div class="score-row">
+          <span class="score-main">${row.score}</span>
+          ${row.alts && row.alts.length ? `<span class="score-alt">next: ${row.alts.join(', ')}</span>` : ''}
+        </div>` : ''}
+        ${probHtml}
+      `;
+      content.appendChild(card);
+    });
+  });
+
+  document.getElementById('footer').style.display = 'block';
+}
+
+function timeAgo(iso){
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.round(mins/60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.round(hrs/24) + 'd ago';
+}
+
+function showState(msg, mono){
+  document.getElementById('content').innerHTML =
+    `<div class="state">${msg}${mono ? `<div class="mono">${mono}</div>` : ''}
+     <div><button class="retry" onclick="location.reload()">RETRY</button></div></div>`;
+  document.getElementById('footer').style.display = 'none';
+}
+
+async function load(){
+  try{
+    const { gw, season } = await findGameweek();
+    const oddsData = await fetchOdds(season, gw);
+    if (!oddsData){
+      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json`);
+      document.getElementById('gwNum').textContent = gw;
+      return;
+    }
+    const { primary, primaryPoint, early } = oddsData;
+
+    const rowsByDay = {};
+    (primary.mapping || []).forEach(m => {
+      const row = rowFor(m, primary);
+      if (!row) return;
+      const earlyRow = early ? rowFor(m, early) : null;
+      const note = primaryPoint !== 'early' ? moveNote(row, earlyRow) : null;
+      const day = dayKey(row.kickoff);
+      (rowsByDay[day] = rowsByDay[day] || []).push({ row, note });
+    });
+    Object.values(rowsByDay).forEach(list => list.sort((a,b) => new Date(a.row.kickoff) - new Date(b.row.kickoff)));
+
+    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay);
+  } catch(e){
+    showState('Couldn\'t load odds.', e.message);
+  }
+}
+
+load();
+</script>
+</body>
+</html>
