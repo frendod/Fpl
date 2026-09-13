@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-13a — companion to index.html, same token system */
+/* odds-page-2026-09-13b — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -162,7 +162,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-13a';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-13b';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -256,7 +256,7 @@ async function fetchOddsFile(season, gw, point){
   try { return await getJSON(url); } catch(e){ return null; }
 }
 async function fetchOdds(season, gw){
-  const order = ['late', 'adhoc', 'early'];
+  const order = ['late', 'adhoc', 'early', 'preview'];
   let primary = null, primaryPoint = null;
   for (const p of order){
     primary = await fetchOddsFile(season, gw, p);
@@ -342,7 +342,7 @@ function render(gw, season, capture, rowsByDay){
   document.getElementById('gwNum').textContent = gw;
 
   const sub = document.getElementById('subline');
-  const pointLabel = { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture' }[capture.point] || capture.point;
+  const pointLabel = { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture' }[capture.point] || capture.point;
   const age = capture.capturedAt ? timeAgo(capture.capturedAt) : null;
   sub.innerHTML =
     `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
@@ -460,7 +460,7 @@ async function load(){
     if (!oddsData){
       document.getElementById('gwNum').textContent = gw;
       renderNav(gw, season);
-      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json`);
+      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json, gw-${gw}-preview.json`);
       return;
     }
     const { primary, primaryPoint, early } = oddsData;
