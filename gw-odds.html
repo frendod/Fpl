@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-13d — companion to index.html, same token system */
+/* odds-page-2026-09-13e — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -162,7 +162,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-13d';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-13e';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -239,10 +239,16 @@ function resolveGw(bundle){
 }
 
 // Map fplFixture id -> final score, for gameweeks that have been played.
+//
+// Accepts finished_provisional as well as finished: FPL sets the provisional
+// flag when a match ends and only clears it to `finished` once bonus points
+// are confirmed, so between those two moments a played match has real scores
+// but finished === false. Scores do not change across that gap.
 function scoresById(bundle){
   const map = {};
   (bundle.fixtures || []).forEach(f => {
-    if (f.finished && f.team_h_score != null && f.team_a_score != null){
+    const done = f.finished || f.finished_provisional;
+    if (done && f.team_h_score != null && f.team_a_score != null){
       map[f.id] = { h: f.team_h_score, a: f.team_a_score };
     }
   });
@@ -338,7 +344,7 @@ function moveNote(nowRow, earlyRow){
   return `Moved ${val > 0 ? '+' : ''}${val.toFixed(0)}pt toward ${side} since the early line`;
 }
 
-function render(gw, season, capture, rowsByDay){
+function render(gw, season, capture, rowsByDay, resultsError){
   document.getElementById('gwNum').textContent = gw;
 
   const sub = document.getElementById('subline');
@@ -347,7 +353,8 @@ function render(gw, season, capture, rowsByDay){
   sub.innerHTML =
     `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
     (age ? `<span>captured <b>${age}</b></span>` : '') +
-    `<span>Season ${season}</span>`;
+    `<span>Season ${season}</span>` +
+    (resultsError ? `<span class="pill stale" title="${resultsError}">results unavailable</span>` : '');
 
   renderNav(gw, season);
 
@@ -440,20 +447,23 @@ function showState(msg, mono){
 }
 
 async function load(){
-  let gw, season, scoreMap = {};
+  let gw, season, scoreMap = {}, resultsError = null;
   try{
     const bundle = await loadBundle();
     gw = resolveGw(bundle);
     season = qs.get('season') || currentSeason();
     scoreMap = scoresById(bundle);
   } catch(e){
-    // The site's own proxy is down or unreachable (e.g. previewing this file
-    // off-origin). A manual ?gw=&season= still gets you a working page, just
-    // without the nav's live "next gw" default and without score overlays.
+    // The site's own proxy is down or unreachable. Without ?gw= there is
+    // nothing to render at all, so that is a hard stop. With ?gw= the odds
+    // still render — but results come from this same call, so they will be
+    // missing. Record that and say so in the header rather than silently
+    // showing a played gameweek as though it had no results.
     const gwOverride = qs.get('gw');
     if (!gwOverride){ showState('Couldn\'t reach the app\'s data.', e.message); return; }
     gw = Number(gwOverride);
     season = qs.get('season') || currentSeason();
+    resultsError = e.message;
   }
 
   try{
@@ -467,9 +477,11 @@ async function load(){
     const { primary, primaryPoint, early } = oddsData;
 
     const rowsByDay = {};
+    let played = 0;
     (primary.mapping || []).forEach(m => {
       const row = rowFor(m, primary, scoreMap);
       if (!row) return;
+      if (row.actual) played++;
       const earlyRow = early ? rowFor(m, early, scoreMap) : null;
       const note = (primaryPoint !== 'early' && !row.actual) ? moveNote(row, earlyRow) : null;
       const day = dayKey(row.kickoff);
@@ -477,7 +489,23 @@ async function load(){
     });
     Object.values(rowsByDay).forEach(list => list.sort((a,b) => new Date(a.row.kickoff) - new Date(b.row.kickoff)));
 
-    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay);
+    // Diagnostic for the "played gameweek shows no results" case: says whether
+    // the results feed was empty (proxy failed / gameweek genuinely unplayed)
+    // or populated but not joining to these fixture ids (an id mismatch).
+    try {
+      console.log(
+        `%cGW${gw}: ${played}/${(primary.mapping||[]).length} fixtures matched a result` +
+        ` — ${Object.keys(scoreMap).length} finished fixtures in the results feed` +
+        (resultsError ? ` — results feed FAILED: ${resultsError}` : ''),
+        'color:#d9a441'
+      );
+      if (!played && !resultsError && Object.keys(scoreMap).length){
+        console.log('  odds fixture ids:', (primary.mapping||[]).map(m => m.fplFixture));
+        console.log('  finished fixture ids:', Object.keys(scoreMap).map(Number));
+      }
+    } catch(e){}
+
+    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay, resultsError);
   } catch(e){
     document.getElementById('gwNum').textContent = gw;
     renderNav(gw, season);
