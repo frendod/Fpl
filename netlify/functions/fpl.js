@@ -6,7 +6,7 @@
 //   /api/fpl                     -> bundle of bootstrap-static + fixtures
 //   /api/fpl?path=entry/123/     -> passthrough to that FPL endpoint
 
-const BUILD = 'fpl-v4';
+const BUILD = 'fpl-v5';
 const FPL = 'https://fantasy.premierleague.com/api/';
 
 // FPL answers bootstrap-static to almost anything, but guards the entry and
@@ -59,6 +59,40 @@ function recall(path) {
   if (!hit) return null;
   if (Date.now() - hit.at > STALE_TTL_MS) { LAST_GOOD.delete(path); return null; }
   return hit;
+}
+
+// Last resort, below the in-memory cache: the copy the hourly GitHub workflow
+// captured. A cold instance has an empty LAST_GOOD, so without this a block
+// landing on a first request still shows an error.
+//
+// Read from raw.githubusercontent.com rather than from this site, deliberately.
+// history/fpl is excluded from the Netlify build trigger (see netlify.toml), so
+// a snapshot commit does not deploy — the file exists in the repo but not in
+// the published site. raw is current the moment the workflow pushes.
+const RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/fpl/entry/';
+
+// Must stay byte-identical to slug() in entry-snapshot.mjs. If the two drift,
+// the fallback finds nothing and fails silently.
+function slug(path) {
+  return path.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') + '.json';
+}
+
+async function fromRepo(path) {
+  // Only entry paths are snapshotted; everything else would be a guaranteed
+  // 404 and a wasted round trip.
+  if (!/^entry\//.test(path)) return null;
+  try {
+    const res = await fetch(RAW + slug(path), {
+      headers: { 'accept': 'application/json' },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return null;
+    const body = await res.text();
+    JSON.parse(body); // do not serve a half-written or HTML body as FPL data
+    return body;
+  } catch (e) {
+    return null;
+  }
 }
 
 // Logs a failed round to Netlify's function log (Logs & metrics → Functions →
@@ -193,9 +227,23 @@ export default async (req) => {
             }),
           });
         }
+        // Nothing in memory — cold instance, or the block outlasted the TTL.
+        // Fall back to the workflow's committed capture.
+        const repo = await fromRepo(path);
+        if (repo) {
+          logRound(path, 'served-repo', [{ source: 'github-raw' }]);
+          return new Response(repo, {
+            status: 200,
+            headers: Object.assign({}, HEADERS, {
+              'x-fpl-stale': 'true',
+              'x-fpl-source': 'repo-snapshot',
+              'netlify-cdn-cache-control': 'no-store',
+            }),
+          });
+        }
+
         return fail('refused by FPL', 502, { diagnostics: got.attempts, path });
       }
-
       const text = await got.res.text();
       remember(path, text);
       return new Response(text, {
