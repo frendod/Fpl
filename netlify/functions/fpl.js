@@ -6,7 +6,7 @@
 //   /api/fpl                     -> bundle of bootstrap-static + fixtures
 //   /api/fpl?path=entry/123/     -> passthrough to that FPL endpoint
 
-const BUILD = 'fpl-v2';
+const BUILD = 'fpl-v3';
 const FPL = 'https://fantasy.premierleague.com/api/';
 
 // FPL answers bootstrap-static to almost anything, but guards the entry and
@@ -36,10 +36,23 @@ const PROFILES = [
 // Sticky across requests on a warm instance, so the probe cost is paid once.
 let WORKING = null;
 
-// Fetch an FPL url, walking the profiles until one is accepted. Returns the
-// response plus a per-attempt log, so a failure explains itself instead of
-// surfacing as a bare 403 in the UI.
-async function fplFetch(path) {
+// Logs a failed round to Netlify's function log (Logs & metrics → Functions →
+// fpl → Function log). Only fires when a whole profile walk came back empty,
+// so a normal successful fetch writes nothing and the log stays readable.
+function logRound(path, round, attempts) {
+  console.error(JSON.stringify({
+    build: BUILD,
+    time: new Date().toISOString(),
+    path,
+    round,
+    attempts,
+  }));
+}
+
+// Walk every profile once. Separated from fplFetch so the retry loop below can
+// repeat the whole walk rather than just the last profile — a transient edge
+// block rejects all four identically, so retrying one is pointless.
+async function walkProfiles(path) {
   const order = WORKING
     ? [PROFILES.find(p => p.name === WORKING), ...PROFILES.filter(p => p.name !== WORKING)]
     : PROFILES;
@@ -57,6 +70,47 @@ async function fplFetch(path) {
     }
   }
   return { res: null, via: null, attempts };
+}
+
+// Fetch an FPL url, walking the profiles until one is accepted. Returns the
+// response plus a per-attempt log, so a failure explains itself instead of
+// surfacing as a bare 403 in the UI.
+//
+// Why the retry loop: until fpl-v3 this walked the four profiles once, back to
+// back, with no delay — the whole thing finished inside a second. FPL's edge
+// intermittently refuses a datacenter IP outright for a few seconds, which
+// rejected all four attempts identically and surfaced as a 502 in the UI, even
+// though a manual retry moments later always worked. The backoff gives that
+// block time to clear. Three rounds at 0/700/1800ms keeps the worst case near
+// three seconds, well inside the function's time budget.
+const ROUND_DELAYS = [0, 700, 1800];
+
+async function fplFetch(path) {
+  let last = { res: null, via: null, attempts: [] };
+  for (let round = 0; round < ROUND_DELAYS.length; round++) {
+    if (ROUND_DELAYS[round]) await new Promise(r => setTimeout(r, ROUND_DELAYS[round]));
+
+    const got = await walkProfiles(path);
+    if (got.res) {
+      // Recovered on a later round. Worth logging: if this shows up often the
+      // block is not as transient as assumed and needs a real fix.
+      if (round) logRound(path, round + 1, [{ recovered: true, via: got.via }]);
+      return got;
+    }
+
+    logRound(path, round + 1, got.attempts);
+    // The remembered profile is only worth keeping while it works. If a whole
+    // round failed, clear it so the next round re-probes from the top rather
+    // than leading with a profile FPL has just rejected.
+    WORKING = null;
+    // A clean 404 or 400 will not improve on a retry — only keep going while
+    // the failures look like blocking (403/429/5xx) or outright network errors.
+    const retryable = got.attempts.some(a =>
+      a.error || a.status === 403 || a.status === 429 || a.status >= 500);
+    last = got;
+    if (!retryable) break;
+  }
+  return last;
 }
 
 // Only endpoints the app actually uses. This keeps the function from being
