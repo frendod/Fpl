@@ -1,4 +1,4 @@
-# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-11a
+# .github/workflows/fpl-snapshot.yml — snapshot-2026-09-13a
 #
 # Captures FPL state into history/fpl/ without anyone having to remember.
 #
@@ -74,11 +74,14 @@ jobs:
         continue-on-error: true
         run: node predict-snapshot.mjs capture --within 150 ${{ inputs.pred_now && '--force' || '' }}
 
-      # FPL Challenge's extra Opta stats (shots, big chances, key passes...).
-      # Its own step so a Challenge failure never costs the FPL captures.
-      - name: Capture Challenge stats
+      # Endpoints Netlify cannot reach. FPL's edge returns an empty 403 to the
+      # function's IP for entry/* paths regardless of request headers (proved by
+      # fpl-v3: twelve attempts across four header profiles, all 403), but this
+      # runner is not blocked. The function falls back to what gets committed
+      # here. continue-on-error because a miss must not cost the pre/post files.
+      - name: Capture entry fallback
         continue-on-error: true
-        run: node fpl-snapshot.mjs challenge
+        run: node entry-snapshot.mjs --entry 185282
 
       # Outcomes. Exits silently until data_checked flips, which happens once
       # bonus has been applied — usually a few hours after the last match.
