@@ -10,7 +10,7 @@
 // So: read the body as text first, decide what happened, and pass the upstream
 // status through. A 403 should look like a 403.
 
-const BUILD = 'proxy-v2';
+const BUILD = 'proxy-v3';
 
 // Netlify Functions v2 lets a function declare its own route, so this does not
 // depend on a redirect rule in netlify.toml existing or being correct. Without
@@ -68,17 +68,22 @@ export default async (req) => {
 
   const target = 'https://fantasy.premierleague.com/api/' + clean;
 
-  // FPL intermittently returns an empty body or a 429 to cloud IPs. One retry
-  // clears most of it; more than that just burns the function's time budget.
+  // FPL intermittently returns an empty body, a 429, or a flat 502/403 to
+  // cloud IPs. Backoff gives the edge block more real time to clear between
+  // tries than a flat delay did. Every failed attempt is logged (visible in
+  // Netlify's function log) so we can tell whether this is truly transient
+  // or a pattern worth a real fix (e.g. a rotating proxy).
+  const BACKOFF_MS = [0, 600, 1500];
   let last = { status: 0, body: '' };
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt) await new Promise(r => setTimeout(r, 600));
+  for (let attempt = 0; attempt < BACKOFF_MS.length; attempt++) {
+    if (BACKOFF_MS[attempt]) await new Promise(r => setTimeout(r, BACKOFF_MS[attempt]));
 
     let res;
     try {
       res = await fetch(target, { headers: UA });
     } catch (e) {
       last = { status: 502, body: 'fetch threw: ' + (e && e.message || e) };
+      logFailure(attempt, clean, last.status, last.body);
       continue;
     }
 
@@ -88,16 +93,21 @@ export default async (req) => {
     last = { status: res.status, body: text };
 
     if (!res.ok) {
+      logFailure(attempt, clean, res.status, text);
       // 4xx other than 429 will not improve on a retry.
       if (res.status !== 429 && res.status < 500) break;
       continue;
     }
 
-    if (!text || !text.trim()) continue; // empty 200 — throttling, retry
+    if (!text || !text.trim()) {
+      logFailure(attempt, clean, res.status, '(empty 200 body)');
+      continue; // empty 200 — throttling, retry
+    }
 
     try {
       JSON.parse(text); // validate before handing it on
     } catch (e) {
+      logFailure(attempt, clean, res.status, '(unparseable body) ' + text.slice(0, 100));
       continue; // truncated or an HTML error page
     }
 
@@ -115,6 +125,20 @@ export default async (req) => {
     { path: clean }
   );
 };
+
+// Logs to Netlify's function log (Functions → fpl-proxy → logs in the
+// dashboard). Not persisted or aggregated — good for "is this happening
+// right now and to what," not for long-range frequency stats.
+function logFailure(attempt, path, status, bodySnippet) {
+  console.error(JSON.stringify({
+    build: BUILD,
+    time: new Date().toISOString(),
+    attempt: attempt + 1,
+    path,
+    status,
+    body: (bodySnippet || '').slice(0, 150),
+  }));
+}
 
 function fail(status, message, headers, extra) {
   return new Response(
