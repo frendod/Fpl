@@ -6,7 +6,7 @@
 //   /api/fpl                     -> bundle of bootstrap-static + fixtures
 //   /api/fpl?path=entry/123/     -> passthrough to that FPL endpoint
 
-const BUILD = 'fpl-v3';
+const BUILD = 'fpl-v4';
 const FPL = 'https://fantasy.premierleague.com/api/';
 
 // FPL answers bootstrap-static to almost anything, but guards the entry and
@@ -35,6 +35,31 @@ const PROFILES = [
 
 // Sticky across requests on a warm instance, so the probe cost is paid once.
 let WORKING = null;
+
+// Last good body per path, held on the warm instance. This is the answer to
+// the fpl-v3 finding: when FPL's edge refuses, it refuses every header profile
+// identically with an empty 403, and three rounds of backoff over ~3s did not
+// outlast it. Headers and retries cannot beat an IP-level block, but the block
+// is intermittent — the same path succeeds minutes either side of it. So keep
+// the last accepted body and serve that instead of failing.
+//
+// Deliberately in-memory rather than a store: no dependency, no new
+// infrastructure, and it covers the case that actually hurts, which is a block
+// landing between two working requests. A cold instance has nothing cached and
+// still fails; the repo snapshot is what covers that, not this.
+const LAST_GOOD = new Map();
+const STALE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function remember(path, body) {
+  LAST_GOOD.set(path, { body, at: Date.now() });
+}
+
+function recall(path) {
+  const hit = LAST_GOOD.get(path);
+  if (!hit) return null;
+  if (Date.now() - hit.at > STALE_TTL_MS) { LAST_GOOD.delete(path); return null; }
+  return hit;
+}
 
 // Logs a failed round to Netlify's function log (Logs & metrics → Functions →
 // fpl → Function log). Only fires when a whole profile walk came back empty,
@@ -150,9 +175,29 @@ export default async (req) => {
         return fail('path not allowed: ' + path, 400);
 
       const got = await fplFetch(path);
-      if (!got.res) return fail('refused by FPL', 502, { diagnostics: got.attempts, path });
+
+      if (!got.res) {
+        // Blocked. Serve the last accepted copy rather than a 502 — for entry
+        // and picks data, minutes-old truth beats an error screen. The headers
+        // say it is stale so the app can label it; the body stays byte-identical
+        // to what FPL would have sent, since callers parse it as FPL's own shape.
+        const stale = recall(path);
+        if (stale) {
+          logRound(path, 'served-stale', [{ age_ms: Date.now() - stale.at }]);
+          return new Response(stale.body, {
+            status: 200,
+            headers: Object.assign({}, HEADERS, {
+              'x-fpl-stale': 'true',
+              'x-fpl-fetched-at': new Date(stale.at).toISOString(),
+              'netlify-cdn-cache-control': 'no-store',
+            }),
+          });
+        }
+        return fail('refused by FPL', 502, { diagnostics: got.attempts, path });
+      }
 
       const text = await got.res.text();
+      remember(path, text);
       return new Response(text, {
         status: 200,
         headers: Object.assign({}, HEADERS, {
@@ -168,11 +213,44 @@ export default async (req) => {
       fplFetch('bootstrap-static/'),
       fplFetch('fixtures/'),
     ]);
-    if (!bs.res) return fail('bootstrap refused by FPL', 502, { diagnostics: bs.attempts });
-    if (!fx.res) return fail('fixtures refused by FPL', 502, { diagnostics: fx.attempts });
 
-    const bootstrap = await bs.res.json();
-    const fixtures = await fx.res.json();
+    // Same stale fallback as passthrough. The bundle is a shape this function
+    // builds itself, so the staleness can go in the body where the app will
+    // actually see it, rather than only in a header.
+    if (!bs.res || !fx.res) {
+      const sBs = recall('bootstrap-static/');
+      const sFx = recall('fixtures/');
+      if (sBs) {
+        logRound('bundle', 'served-stale', [{ age_ms: Date.now() - sBs.at }]);
+        let bootstrap = null, fixtures = [];
+        try { bootstrap = JSON.parse(sBs.body); } catch (e) {}
+        if (sFx) { try { fixtures = JSON.parse(sFx.body); } catch (e) {} }
+        if (bootstrap) {
+          return new Response(JSON.stringify({
+            build: BUILD,
+            via: 'stale-cache',
+            stale: true,
+            fetched_at: new Date(sBs.at).toISOString(),
+            bootstrap,
+            fixtures: Array.isArray(fixtures) ? fixtures : [],
+          }), { status: 200, headers: Object.assign({}, HEADERS, {
+            'x-fpl-stale': 'true',
+            'netlify-cdn-cache-control': 'no-store',
+          }) });
+        }
+      }
+      if (!bs.res) return fail('bootstrap refused by FPL', 502, { diagnostics: bs.attempts });
+      return fail('fixtures refused by FPL', 502, { diagnostics: fx.attempts });
+    }
+
+    const bsText = await bs.res.text();
+    const fxText = await fx.res.text();
+    remember('bootstrap-static/', bsText);
+    remember('fixtures/', fxText);
+
+    let bootstrap = null, fixtures = [];
+    try { bootstrap = JSON.parse(bsText); } catch (e) {}
+    try { fixtures = JSON.parse(fxText); } catch (e) {}
 
     if (!bootstrap || !Array.isArray(bootstrap.elements) || !bootstrap.elements.length)
       return fail('bootstrap payload malformed', 502);
