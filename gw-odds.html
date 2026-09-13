@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-12a — companion to index.html, same token system */
+/* odds-page-2026-09-13a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -56,6 +56,19 @@ h1 em{font-style:italic;color:var(--accent)}
 .pill.live{color:var(--good);border-color:rgba(78,201,160,.35)}
 .pill.stale{color:var(--bad);border-color:rgba(229,101,122,.35)}
 
+.gwnav{
+  display:flex;align-items:center;gap:14px;margin-top:14px;
+}
+.gwnav a{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--dim);
+  text-decoration:none;padding:6px 10px;border:1px solid var(--line2);border-radius:3px;
+}
+.gwnav a:hover{color:var(--accent);border-color:var(--accent)}
+.gwnav a.disabled{opacity:.3;pointer-events:none}
+.gwnav .cur{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--dimmer);
+}
+
 .state{
   margin-top:40px;text-align:center;color:var(--dim);font-size:14px;
 }
@@ -90,11 +103,24 @@ h1 em{font-style:italic;color:var(--accent)}
 .team-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vs{font-family:'Instrument Serif',serif;font-style:italic;color:var(--dimmer);font-size:14px;flex-shrink:0}
 
-.score-row{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:14px 0 12px}
+.score-row{display:flex;align-items:baseline;justify-content:center;gap:10px;margin:14px 0 12px;flex-wrap:wrap}
 .score-main{
   font-family:'Instrument Serif',serif;font-size:32px;color:var(--accent);letter-spacing:.02em;
 }
+.score-main.played{color:var(--dimmer);text-decoration:line-through;text-decoration-thickness:1.5px}
 .score-alt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dimmer)}
+.actual-score{
+  font-family:'Instrument Serif',serif;font-size:32px;letter-spacing:.02em;
+}
+.actual-score.hit{color:var(--good)}
+.actual-score.miss{color:var(--paper)}
+.result-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  padding:2px 6px;border-radius:3px;margin-left:2px;text-transform:uppercase;
+}
+.result-tag.exact{background:rgba(78,201,160,.16);color:var(--good)}
+.result-tag.outcome{background:var(--accent-soft);color:var(--accent)}
+.result-tag.wrong{background:rgba(229,101,122,.14);color:var(--bad)}
 
 .probbar{height:6px;border-radius:3px;overflow:hidden;display:flex;background:var(--panel2)}
 .probbar > span{height:100%}
@@ -136,7 +162,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-12a';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-13a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -194,19 +220,33 @@ async function getJSON(url, opts){
   return r.json();
 }
 
-// Find the next unfinished gameweek via the site's own proxy (same origin,
-// no CORS). Falls back to a manual ?gw=&season= override so this page still
-// works if the function isn't deployed alongside it.
-async function findGameweek(){
-  const gwOverride = qs.get('gw');
-  const seasonOverride = qs.get('season');
-  if (gwOverride) return { gw: Number(gwOverride), season: seasonOverride || currentSeason(), deadline: null };
+// Always pull the site's own bundle — bootstrap (for the next-gw pointer)
+// plus the full-season fixtures list, which already carries team_h_score /
+// team_a_score for anything finished. Same origin, no CORS, no extra call.
+async function loadBundle(){
+  return getJSON('/api/fpl', { cache: 'no-store' });
+}
 
-  const b = await getJSON('/api/fpl', { cache: 'no-store' });
-  const events = (b.bootstrap && b.bootstrap.events) || [];
+// Resolve which gameweek to show: an explicit ?gw= wins, otherwise the
+// bootstrap's next/current unfinished event.
+function resolveGw(bundle){
+  const gwOverride = qs.get('gw');
+  if (gwOverride) return Number(gwOverride);
+  const events = (bundle.bootstrap && bundle.bootstrap.events) || [];
   const next = events.find(e => e.is_next) || events.find(e => !e.finished);
   if (!next) throw new Error('no upcoming gameweek in bootstrap-static');
-  return { gw: next.id, season: currentSeason(), deadline: next.deadline_time };
+  return next.id;
+}
+
+// Map fplFixture id -> final score, for gameweeks that have been played.
+function scoresById(bundle){
+  const map = {};
+  (bundle.fixtures || []).forEach(f => {
+    if (f.finished && f.team_h_score != null && f.team_a_score != null){
+      map[f.id] = { h: f.team_h_score, a: f.team_a_score };
+    }
+  });
+  return map;
 }
 
 // Odds captures land as gw-N-early / gw-N-late / gw-N-adhoc. Prefer the most
@@ -245,7 +285,9 @@ function topScore(cs){
   return cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds))[0];
 }
 
-function rowFor(mapping, oddsFile){
+function outcomeOf(h, a){ return h > a ? 'H' : (a > h ? 'A' : 'D'); }
+
+function rowFor(mapping, oddsFile, scoreMap){
   const ev = oddsFile && oddsFile.odds ? oddsFile.odds[String(mapping.oddsEvent)] : null;
   if (!ev) return null;
   const book = bestBook(ev);
@@ -261,6 +303,15 @@ function rowFor(mapping, oddsFile){
     row.score = top.label;
     const alts = cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds)).slice(1,3);
     row.alts = alts.map(a => a.label);
+  }
+  const actual = scoreMap && scoreMap[mapping.fplFixture];
+  if (actual){
+    row.actual = `${actual.h}-${actual.a}`;
+    if (row.score){
+      const [ph, pa] = row.score.split('-').map(Number);
+      row.exact = (ph === actual.h && pa === actual.a);
+      row.outcomeHit = outcomeOf(ph, pa) === outcomeOf(actual.h, actual.a);
+    }
   }
   return row;
 }
@@ -279,7 +330,6 @@ function moveNote(nowRow, earlyRow){
   if (!nowRow || !earlyRow || !nowRow.probs || !earlyRow.probs) return null;
   const dh = nowRow.probs.h - earlyRow.probs.h;
   const da = nowRow.probs.a - earlyRow.probs.a;
-  const big = Math.abs(dh) >= Math.abs(da) ? dh : -da;
   if (Math.max(Math.abs(dh), Math.abs(da)) < 2) return null;
   const side = Math.abs(dh) >= Math.abs(da)
     ? (dh > 0 ? nowRow.home : nowRow.away)
@@ -298,6 +348,8 @@ function render(gw, season, capture, rowsByDay){
     `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
     (age ? `<span>captured <b>${age}</b></span>` : '') +
     `<span>Season ${season}</span>`;
+
+  renderNav(gw, season);
 
   const content = document.getElementById('content');
   content.innerHTML = '';
@@ -338,8 +390,11 @@ function render(gw, season, capture, rowsByDay){
         </div>
         ${row.score ? `
         <div class="score-row">
-          <span class="score-main">${row.score}</span>
-          ${row.alts && row.alts.length ? `<span class="score-alt">next: ${row.alts.join(', ')}</span>` : ''}
+          <span class="score-main${row.actual ? ' played' : ''}">${row.score}</span>
+          ${row.actual ? `
+            <span class="actual-score ${row.exact ? 'hit' : 'miss'}">${row.actual}</span>
+            <span class="result-tag ${row.exact ? 'exact' : (row.outcomeHit ? 'outcome' : 'wrong')}">${row.exact ? 'exact' : (row.outcomeHit ? 'right result' : 'missed')}</span>
+          ` : (row.alts && row.alts.length ? `<span class="score-alt">next: ${row.alts.join(', ')}</span>` : '')}
         </div>` : ''}
         ${probHtml}
       `;
@@ -348,6 +403,24 @@ function render(gw, season, capture, rowsByDay){
   });
 
   document.getElementById('footer').style.display = 'block';
+}
+
+function gwUrl(gw, season){ return `?gw=${gw}&season=${encodeURIComponent(season)}`; }
+
+function renderNav(gw, season){
+  let nav = document.getElementById('gwnav');
+  if (!nav){
+    nav = document.createElement('div');
+    nav.id = 'gwnav';
+    nav.className = 'gwnav';
+    document.querySelector('.masthead').appendChild(nav);
+  }
+  const prevDisabled = gw <= 1 ? 'disabled' : '';
+  nav.innerHTML = `
+    <a class="${prevDisabled}" href="${gwUrl(gw - 1, season)}">‹ GW ${gw - 1}</a>
+    <span class="cur">viewing GW ${gw}</span>
+    <a href="${gwUrl(gw + 1, season)}">GW ${gw + 1} ›</a>
+  `;
 }
 
 function timeAgo(iso){
@@ -366,22 +439,38 @@ function showState(msg, mono){
 }
 
 async function load(){
+  let gw, season, scoreMap = {};
   try{
-    const { gw, season } = await findGameweek();
+    const bundle = await loadBundle();
+    gw = resolveGw(bundle);
+    season = qs.get('season') || currentSeason();
+    scoreMap = scoresById(bundle);
+  } catch(e){
+    // The site's own proxy is down or unreachable (e.g. previewing this file
+    // off-origin). A manual ?gw=&season= still gets you a working page, just
+    // without the nav's live "next gw" default and without score overlays.
+    const gwOverride = qs.get('gw');
+    if (!gwOverride){ showState('Couldn\'t reach the app\'s data.', e.message); return; }
+    gw = Number(gwOverride);
+    season = qs.get('season') || currentSeason();
+  }
+
+  try{
     const oddsData = await fetchOdds(season, gw);
     if (!oddsData){
-      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json`);
       document.getElementById('gwNum').textContent = gw;
+      renderNav(gw, season);
+      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json`);
       return;
     }
     const { primary, primaryPoint, early } = oddsData;
 
     const rowsByDay = {};
     (primary.mapping || []).forEach(m => {
-      const row = rowFor(m, primary);
+      const row = rowFor(m, primary, scoreMap);
       if (!row) return;
-      const earlyRow = early ? rowFor(m, early) : null;
-      const note = primaryPoint !== 'early' ? moveNote(row, earlyRow) : null;
+      const earlyRow = early ? rowFor(m, early, scoreMap) : null;
+      const note = (primaryPoint !== 'early' && !row.actual) ? moveNote(row, earlyRow) : null;
       const day = dayKey(row.kickoff);
       (rowsByDay[day] = rowsByDay[day] || []).push({ row, note });
     });
@@ -389,6 +478,8 @@ async function load(){
 
     render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay);
   } catch(e){
+    document.getElementById('gwNum').textContent = gw;
+    renderNav(gw, season);
     showState('Couldn\'t load odds.', e.message);
   }
 }
