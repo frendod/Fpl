@@ -809,6 +809,22 @@ textarea:focus{border-color:var(--accent)}
 .fix-dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 /* MY TEAM pitch extras */
 .xp-note{padding:6px 20px 8px;font-size:10.5px;line-height:1.35;color:var(--dimmer);border-bottom:1px solid var(--line)}
+
+/* ─── NO TRANSFERS / NO CHIPS TOGGLE ────────────────────── */
+.mt-nt{padding:10px 20px;border-bottom:1px solid var(--line)}
+.mt-nt-btn{width:100%;padding:9px 12px;background:transparent;border:1px solid var(--line2);
+  border-radius:6px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  letter-spacing:.04em;cursor:pointer;text-align:center;transition:border-color .15s,color .15s}
+.mt-nt-btn:hover{border-color:var(--accent);color:var(--paper)}
+.mt-nt-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.mt-nt-body{margin-top:10px;font-size:12.5px}
+.mt-nt-loading,.mt-nt-err{color:var(--dim);font-style:italic;font-size:11.5px}
+.mt-nt-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0}
+.mt-nt-row b{font-family:'IBM Plex Mono',monospace}
+.mt-nt-diff b{font-size:13.5px}
+.mt-nt-diff.pos b{color:var(--live)}
+.mt-nt-diff.neg b{color:var(--fire)}
+.mt-nt-note{margin-top:8px;font-size:10px;line-height:1.4;color:var(--dimmer)}
 .pcnote{font-family:'IBM Plex Mono',monospace;font-size:8px;
   letter-spacing:.06em;color:var(--dim);line-height:1;min-height:8px;text-align:center}
 .pcnote{font-size:clamp(6px,12.5cqw,10px)}
@@ -1176,6 +1192,8 @@ table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){width:46px}
 table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){width:24%}
 table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:60px}
 table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:68px}
+table.lg-stand th:nth-child(7),table.lg-stand td:nth-child(7){width:52px}
+table.lg-stand th:nth-child(8),table.lg-stand td:nth-child(8){width:60px}
 
 .lg-mgrwrap{display:flex;align-items:center;gap:6px;min-width:0}
 .lg-mgrname{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1193,6 +1211,8 @@ table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:68px}
   table.lg-stand th:nth-child(4),table.lg-stand td:nth-child(4){display:none}
   table.lg-stand th:nth-child(5),table.lg-stand td:nth-child(5){width:46px}
   table.lg-stand th:nth-child(6),table.lg-stand td:nth-child(6){width:54px}
+  table.lg-stand th:nth-child(7),table.lg-stand td:nth-child(7){width:44px}
+  table.lg-stand th:nth-child(8),table.lg-stand td:nth-child(8){width:50px}
   .lg-mgrteam{display:block;font-size:10.5px;color:var(--dim);margin-top:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .lg-me .lg-mgrteam{color:var(--accent)}
@@ -1602,7 +1622,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-13a';
+const APP_BUILD = 'app-2026-09-13c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1682,6 +1702,7 @@ const I18N={
     lgModeOwn:'Standings & ownership', lgModePlayer:'Player lookup', lgModeCap:'Captains',
     lgStandings:'Standings', lgOwnership:'Ownership across the league',
     lgRk:'Rk', lgManager:'Manager', lgTeamCol:'Team', lgGwCol:'GW', lgTotalCol:'Total', lgYouTag:'YOU',
+    lgInPlayCol:'Live', lgToStartCol:'To Play',
     lgOwned:'Owned', lgEO:'EO', lgBenched:'Benched', lgCapt:'Capt', lgYou:'You', lgOnBench:'(bench)',
     lgEONote:'EO is effective ownership: the mean multiplier across every team in the league, your own included, so a bench player counts 0, a captain 2 and a triple captain 3. The You column shows what you did with the player.',
     lgSearchPh:'Search player…', lgNoMatch:'No player matches that.', lgOwnedBy:'owned by',
@@ -1822,6 +1843,15 @@ const I18N={
     mtLoadingGw:gw=>'Loading GW '+gw+'\u2026', mtGwUnavail:gw=>'GW '+gw+' unavailable',
     mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Projected: '+n+' xP',
     mtNoChip:'No chip in play',
+    mtNoTransShow:"What if you'd made no changes?",
+    mtNoTransHide:'Hide no-changes comparison',
+    mtNoTransLoading:'Playing out your season with no transfers or chips\u2026',
+    mtNoTransErr:'Could not work this out \u2014 try again in a moment.',
+    mtNoTransErrWhy:msg=>'Could not work this out ('+msg+') \u2014 try again in a moment.',
+    mtNoTransBaseline:'No transfers, no chips',
+    mtNoTransActual:'Your actual total',
+    mtNoTransDiff:'Difference',
+    mtNoTransNote:'Your Gameweek 1 squad, played every week since with ordinary autosubs and the captain armband \u2014 no transfers, wildcards, or chips.',
     mtAutosub:'autosub', mtSubIn:'\u2713 sub',
     mtXpNext:"xP = expected points, FPL's own estimate for this gameweek.",
     mtXpLater:gw=>'xP = expected points. Beyond next gameweek FPL publishes no figure, so this is a '
@@ -1926,6 +1956,7 @@ const I18N={
     lgModeOwn:'Clasificación y propiedad', lgModePlayer:'Buscar jugador', lgModeCap:'Capitanes',
     lgStandings:'Clasificación', lgOwnership:'Propiedad en la liga',
     lgRk:'Pos', lgManager:'Mánager', lgTeamCol:'Equipo', lgGwCol:'J', lgTotalCol:'Total', lgYouTag:'TÚ',
+    lgInPlayCol:'En juego', lgToStartCol:'Por jugar',
     lgOwned:'Propiedad', lgEO:'PE', lgBenched:'Banquillo', lgCapt:'Cap', lgYou:'Tú', lgOnBench:'(banq.)',
     lgEONote:'PE es la propiedad efectiva: el multiplicador medio de todos los equipos de la liga, incluido el tuyo, así que un suplente cuenta 0, un capitán 2 y un triple capitán 3. La columna Tú muestra qué hiciste tú con ese jugador.',
     lgSearchPh:'Buscar jugador…', lgNoMatch:'Ningún jugador coincide.', lgOwnedBy:'lo tienen',
@@ -2063,6 +2094,15 @@ const I18N={
     mtLoadingGw:gw=>'Cargando J'+gw+'\u2026', mtGwUnavail:gw=>'J'+gw+' no disponible',
     mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Previsi\u00f3n: '+n+' xP',
     mtNoChip:'Sin comod\u00edn activo',
+    mtNoTransShow:'\u00bfQu\u00e9 pasar\u00eda si no hubieras hecho nada?',
+    mtNoTransHide:'Ocultar comparaci\u00f3n sin cambios',
+    mtNoTransLoading:'Calculando tu temporada sin fichajes ni comodines\u2026',
+    mtNoTransErr:'No se pudo calcular \u2014 int\u00e9ntalo de nuevo en un momento.',
+    mtNoTransErrWhy:msg=>'No se pudo calcular ('+msg+') \u2014 int\u00e9ntalo de nuevo en un momento.',
+    mtNoTransBaseline:'Sin fichajes, sin comodines',
+    mtNoTransActual:'Tu total real',
+    mtNoTransDiff:'Diferencia',
+    mtNoTransNote:'Tu plantilla de la Jornada 1, jugada cada semana desde entonces con suplencias autom\u00e1ticas normales y el brazalete de capit\u00e1n \u2014 sin fichajes, comodines ni wildcard.',
     mtAutosub:'suplencia', mtSubIn:'\u2713 entra',
     mtXpNext:'xP = puntos esperados, la estimaci\u00f3n de la propia FPL para esta jornada.',
     mtXpLater:gw=>'xP = puntos esperados. M\u00e1s all\u00e1 de la pr\u00f3xima jornada la FPL no publica cifras, '
@@ -3171,7 +3211,8 @@ async function loadUserTeam(fplId, bust){
       currentEvent:currentGW,
       activeChip:picksData.active_chip||null,
       rank:overallRank,
-      rankByGw:rankByGw
+      rankByGw:rankByGw,
+      noTransfers:{open:false,status:'idle',data:null,error:null}
     };
     
     $('gwSelect').max=38;
@@ -3666,6 +3707,7 @@ function renderUserTeam(){
     +metaRow('ID '+esc(String(userTeam.entryId)),
              shownRank?'Rank #'+Number(shownRank).toLocaleString():'')
     +'</div>';
+  html+=noTransfersHTML();
   if(fut){
     const oneAhead=userTeam.gw<=(userTeam.currentEvent||0)+1;
     html+='<div class="xp-note">'
@@ -3858,6 +3900,153 @@ function applyAutosubs(picks){
   
   return autosubs;
 }
+
+/* ══ NO TRANSFERS / NO CHIPS COMPARISON ═══════════════════
+   "What would this season look like if you'd done nothing?" — freeze the
+   squad exactly as it was picked for Gameweek 1, play it out gw-by-gw with
+   ordinary autosubs and the captain/vice armband rule, and never touch a
+   chip. Compared against the manager's real season total.
+
+   This is independent of whichever gameweek the pitch is currently showing
+   (userTeam.gw) — it always covers the whole season to date
+   (userTeam.currentEvent) — so navigating gameweeks does not invalidate it,
+   only loading a different team does.
+════════════════════════════════════════════════════════ */
+function toggleNoTransfers(){
+  if(!userTeam.noTransfers)userTeam.noTransfers={open:false,status:'idle',data:null,error:null};
+  userTeam.noTransfers.open=!userTeam.noTransfers.open;
+  if(userTeam.noTransfers.open&&userTeam.noTransfers.status==='idle'){
+    computeNoTransfers();
+  }else{
+    renderUserTeam();
+  }
+}
+
+function noTransfersHTML(){
+  const nt=userTeam.noTransfers||{open:false,status:'idle',data:null,error:null};
+  let h='<div class="mt-nt">'
+    +'<button type="button" class="mt-nt-btn" data-notrans-toggle aria-expanded="'+(nt.open?'true':'false')+'">'
+    +esc(nt.open?t('mtNoTransHide'):t('mtNoTransShow'))+'</button>';
+  if(nt.open){
+    if(nt.status==='loading'){
+      h+='<div class="mt-nt-body mt-nt-loading">'+esc(t('mtNoTransLoading'))+'</div>';
+    }else if(nt.status==='error'){
+      h+='<div class="mt-nt-body mt-nt-err">'+esc(nt.error?t('mtNoTransErrWhy')(nt.error):t('mtNoTransErr'))+'</div>';
+    }else if(nt.status==='ready'&&nt.data){
+      const d=nt.data;
+      const hasActual=d.actualTotal!=null;
+      const diff=hasActual?(d.actualTotal-d.total):null;
+      h+='<div class="mt-nt-body">'
+        +'<div class="mt-nt-row"><span>'+esc(t('mtNoTransBaseline'))+'</span><b>'+d.total+'</b></div>'
+        +(hasActual?'<div class="mt-nt-row"><span>'+esc(t('mtNoTransActual'))+'</span><b>'+d.actualTotal+'</b></div>':'')
+        +(diff!=null?'<div class="mt-nt-row mt-nt-diff '+(diff>=0?'pos':'neg')+'">'
+          +'<span>'+esc(t('mtNoTransDiff'))+'</span><b>'+(diff>0?'+':'')+diff+'</b></div>':'')
+        +'<div class="mt-nt-note">'+esc(t('mtNoTransNote'))+'</div>'
+        +'</div>';
+    }
+  }
+  return h+'</div>';
+}
+
+// Best eligible bench player, in the same position, that actually played —
+// mirrors applyAutosubs' own-position rule above, just against a fixed
+// historical squad instead of the live one.
+function noTransfersAutosub(bench,usedSubs,pos,rowFor){
+  let best=null,bestPts=-Infinity;
+  bench.forEach(b=>{
+    if(usedSubs.has(b.element))return;
+    const pl=players.find(x=>x.id===b.element);
+    if(!pl||pl.pos!==pos)return;
+    const row=rowFor(b.element);
+    if(!row||row.minutes<=0)return;
+    if(row.points>bestPts){best=b;bestPts=row.points;}
+  });
+  return best;
+}
+
+async function computeNoTransfers(){
+  if(!userTeam.noTransfers)userTeam.noTransfers={open:false,status:'idle',data:null,error:null};
+  const nt=userTeam.noTransfers;
+  nt.status='loading'; nt.data=null; nt.error=null;
+  renderUserTeam();
+  try{
+    const entryId=userTeam.entryId, throughGW=userTeam.currentEvent;
+    if(!entryId||!throughGW)throw new Error('no team loaded');
+
+    // Gameweek 1 picks — the frozen baseline. Free Hit cannot be played in
+    // GW1, so unlike loadUserTeam there is no chip-reversion case to handle
+    // here; whatever GW1 shows is simply the starting squad.
+    const picksRes=await fetch('/api/fpl?path='+encodeURIComponent('entry/'+entryId+'/event/1/picks/'));
+    if(!picksRes.ok)throw new Error('status '+picksRes.status);
+    const picksData=await picksRes.json();
+    if(!picksData.picks||!picksData.picks.length)throw new Error('no GW1 picks');
+    const base=picksData.picks;
+
+    // The real season total, for the comparison line.
+    const entryRes=await fetch('/api/fpl?path='+encodeURIComponent('entry/'+entryId+'/'));
+    const entryData=entryRes.ok?await entryRes.json():null;
+    const actualTotal=(entryData&&entryData.summary_overall_points!=null)?entryData.summary_overall_points:null;
+
+    // One history fetch per frozen player, cached and shared with every other
+    // part of the app that reads a player's season — nothing extra to fetch
+    // week by week.
+    const histories={};
+    await Promise.all(base.map(async p=>{
+      let byRound={};
+      try{
+        const h=await fetchPlayerHistory(p.element);
+        const rows=(h&&(h.thisSeason||h.history))||[];
+        rows.forEach(r=>{byRound[r.round]={points:r.points||0,minutes:r.minutes||0}});
+      }catch(e){ /* leave this player blank for every round rather than fail the whole thing */ }
+      histories[p.element]=byRound;
+    }));
+
+    const starters=base.filter(p=>p.position<12);
+    const bench=base.filter(p=>p.position>=12).sort((a,b)=>a.position-b.position);
+    const posOf=el=>{const pl=players.find(x=>x.id===el);return pl?pl.pos:null};
+    const captainPick=base.find(p=>p.is_captain);
+    const vicePick=base.find(p=>p.is_vice_captain);
+    const captainEl=captainPick?captainPick.element:null;
+    const viceEl=vicePick?vicePick.element:null;
+
+    let total=0;
+    for(let gw=1; gw<=throughGW; gw++){
+      const rowFor=el=>(histories[el]||{})[gw];
+      const usedSubs=new Set();
+      let weekScore=0;
+
+      starters.forEach(st=>{
+        const row=rowFor(st.element);
+        const mins=row?row.minutes:0;
+        const pts=row?row.points:0;
+        if(mins>0||pts<0){
+          weekScore+=pts;                                    // played, or carded while benched
+        }else{
+          const sub=noTransfersAutosub(bench,usedSubs,posOf(st.element),rowFor);
+          if(sub){ weekScore+=rowFor(sub.element).points; usedSubs.add(sub.element); }
+        }
+      });
+
+      // Armband: doubles the captain if they played; otherwise it passes to
+      // the vice, exactly as FPL does. It never falls to whoever autosubbed
+      // in for either of them.
+      const capRow=rowFor(captainEl);
+      const viceRow=rowFor(viceEl);
+      if(capRow&&capRow.minutes>0) weekScore+=capRow.points;
+      else if(viceRow&&viceRow.minutes>0) weekScore+=viceRow.points;
+
+      total+=weekScore;
+    }
+
+    nt.status='ready';
+    nt.data={total:total, actualTotal:actualTotal, throughGW:throughGW};
+  }catch(e){
+    nt.status='error';
+    nt.error=e.message;
+  }
+  renderUserTeam();
+}
+
 // Overall rank appropriate to the gameweek in view.
 //   current gameweek -> the live overall rank from the entry summary
 //   past gameweek    -> the rank as it stood when that week was scored
@@ -6333,6 +6522,37 @@ function lgClear(){
 const LG_CHIP={'3xc':'TC','bboost':'BB','freehit':'FH','wildcard':'WC','manager':'AM'};
 function lgChip(c){ return c?(LG_CHIP[String(c).toLowerCase()]||String(c).toUpperCase()):''; }
 
+// A club's fixture status for one gameweek, from the fixtures already in
+// state — no extra request. Doubles/blanks are handled by looking at every
+// fixture that club has that week, not just the first one.
+function lgClubStatus(teamId,gw){
+  if(!fixtures||!fixtures.length)return 'none';
+  const fx=fixtures.filter(f=>f.event===gw&&(f.team_h===teamId||f.team_a===teamId));
+  if(!fx.length)return 'none';                       // blank gameweek for this club
+  if(fx.every(f=>f.finished||f.finished_provisional))return 'done';
+  if(fx.some(f=>f.started&&!(f.finished||f.finished_provisional)))return 'live';
+  return 'upcoming';
+}
+
+// "In Play" / "To Start" counts for a manager's starting XI this gameweek,
+// same idea as the official app's columns. Read off the nominal XI (picks'
+// position 1-11) rather than applying autosubs — that mirrors what the rest
+// of this table already shows for that manager. A club with no fixture this
+// week (blank) counts toward neither, since that player has nothing left to
+// give either way.
+function lgPlayCounts(picks,gw){
+  let inPlay=0,toStart=0;
+  (picks||[]).forEach(pk=>{
+    if(pk[1]>11)return;                               // bench
+    const p=(typeof players!=='undefined'&&players.length)?players.find(x=>x.id===pk[0]):null;
+    const st=p?lgClubStatus(p.teamId,gw):'upcoming';
+    if(st==='live')inPlay++;
+    else if(st==='upcoming')toStart++;
+  });
+  return {inPlay:inPlay,toStart:toStart};
+}
+
+
 /* ── fetching ─────────────────────────────────────────── */
 // Which standings page holds this manager. FPL paginates 50 to a page and
 // entry_rank is the rank the leagues list already gave us, so no request is
@@ -6607,6 +6827,15 @@ function lgPaneOwn(lid){
   const d=LG.data[lid], ix=lgIndex(lid);
   const meId=String(LG.entryId);
 
+  // Live play status per row, recomputed each render since it moves during
+  // a gameweek (upcoming -> live -> done) without any new data being fetched.
+  d.rows.forEach(r=>{
+    if(r.picks&&r.picks.length){
+      const c=lgPlayCounts(r.picks,LG.gw);
+      r.inplay=c.inPlay; r.tostart=c.toStart;
+    }
+  });
+
   // Standings sort. Rank ascending is the default because that is the league
   // table; GW and Total open descending, since on those the big number wins.
   const st=LG.stand[lid]||{key:'rank',asc:true};
@@ -6627,6 +6856,7 @@ function lgPaneOwn(lid){
   const standings='<div class="tscroll"><table class="lg-stand"><thead><tr>'
     +sth('rank',t('lgRk'))+'<th></th><th>'+esc(t('lgManager'))+'</th>'
     +'<th>'+esc(t('lgTeamCol'))+'</th>'+sth('gwp',t('lgGwCol'))+sth('tot',t('lgTotalCol'))
+    +sth('inplay',t('lgInPlayCol'))+sth('tostart',t('lgToStartCol'))
     +'</tr></thead><tbody>'
     +sortedRows.map(r=>{
       const isMe=String(r.entry)===meId;
@@ -6644,7 +6874,9 @@ function lgPaneOwn(lid){
         + '</span><span class="lg-mgrteam">'+esc(r.team)+'</span></td>'
         +'<td>'+esc(r.team)+'</td>'
         +'<td class="mono">'+(r.gwp==null?'\u2014':r.gwp)+'</td>'
-        +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td></tr>';
+        +'<td class="mono">'+(r.tot==null?'\u2014':r.tot)+'</td>'
+        +'<td class="mono">'+(dead?'\u2014':(r.inplay||0))+'</td>'
+        +'<td class="mono">'+(dead?'\u2014':(r.tostart||0))+'</td></tr>';
     }).join('')
     +'</tbody></table></div>'
     +lgTray(lid);
@@ -7445,6 +7677,9 @@ document.addEventListener('change',e=>{
 });
 // one delegated handler: any .phist element in any view opens that player's history
 document.addEventListener('click',e=>{
+  const ntBtn=e.target.closest('[data-notrans-toggle]');
+  if(ntBtn){ e.stopPropagation(); toggleNoTransfers(); return; }
+
   const el=e.target.closest('.phist');
   if(el&&el.dataset.pid){
     openHistory(el.dataset.pid, decodeURIComponent(el.dataset.pname||''));
