@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-13c — companion to index.html, same token system */
+/* odds-page-2026-09-13d — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -145,7 +145,7 @@ footer a{color:var(--dim)}
 <div class="wrap">
 
   <div class="masthead">
-    <div class="eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a></div>
+    <div class="eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a><span>·</span><span id="buildStamp" style="color:var(--dimmer)">—</span></div>
     <h1>Gameweek <em id="gwNum">—</em> odds</h1>
     <div class="subline" id="subline">Loading fixtures…</div>
   </div>
@@ -162,7 +162,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-13c';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-13d';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -486,6 +486,14 @@ async function load(){
 }
 
 load();
+
+// Stamp the build so you can confirm which gw-odds.html is live — same
+// pattern as index.html's buildStamp.
+(function(){
+  const el = document.getElementById('buildStamp');
+  if (el) el.textContent = ODDS_PAGE_BUILD;
+  try { console.log('%cGW Odds build: ' + ODDS_PAGE_BUILD, 'color:#d9a441;font-weight:bold'); } catch(e){}
+})();
 </script>
 </body>
 </html>
