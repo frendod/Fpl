@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-13e — companion to index.html, same token system */
+/* odds-page-2026-09-16a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -121,6 +121,23 @@ h1 em{font-style:italic;color:var(--accent)}
 .result-tag.exact{background:rgba(78,201,160,.16);color:var(--good)}
 .result-tag.outcome{background:var(--accent-soft);color:var(--accent)}
 .result-tag.wrong{background:rgba(229,101,122,.14);color:var(--bad)}
+.modal-note{
+  text-align:center;font-size:11.5px;color:var(--dimmer);line-height:1.45;
+  margin:-4px 0 12px;padding:0 4px;
+}
+.derived{
+  display:flex;gap:18px;justify-content:center;align-items:flex-start;
+  margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
+}
+.d-col{display:flex;flex-direction:column;gap:3px;text-align:right}
+.d-col.d-names{text-align:left}
+.d-label{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  color:var(--dimmer);text-transform:uppercase;margin-bottom:2px;
+}
+.d-val{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--paper)}
+.d-val.strong{color:var(--good);font-weight:600}
+.d-name{color:var(--dim)}
 
 .probbar{height:6px;border-radius:3px;overflow:hidden;display:flex;background:var(--panel2)}
 .probbar > span{height:100%}
@@ -153,16 +170,18 @@ footer a{color:var(--dim)}
   <div id="content"></div>
 
   <footer id="footer" style="display:none">
-    Implied probabilities are devigged from the 1X2 market; predicted scores are the
-    shortest-priced Correct Score line. Both come from the same book (Bet365, or Unibet
-    where Bet365 wasn't available) and are pre-lineups — they can move again before
-    kickoff. Not betting advice.
+    Implied probabilities are devigged from the 1X2 market. The headline score is
+    the most likely scoreline within the outcome the market favours, so it always
+    agrees with the bar above it. xG and clean-sheet figures are derived from the
+    whole correct-score distribution and are the numbers worth acting on — a single
+    scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
+    one book (Bet365, or Unibet as fallback) and captured pre-lineups. Not betting advice.
   </footer>
 
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-13e';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-16a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -286,12 +305,85 @@ function implied(ml){
   const t = h + d + a;
   return { h: h/t*100, d: d/t*100, a: a/t*100 };
 }
-function topScore(cs){
-  if (!cs || !cs.odds || !cs.odds.length) return null;
-  return cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds))[0];
-}
 
 function outcomeOf(h, a){ return h > a ? 'H' : (a > h ? 'A' : 'D'); }
+
+/* Devig the Correct Score book into real probabilities.
+ *
+ * Every scoreline's implied probability is 1/odds, and those sum to well over
+ * 100% because the overround is baked in. Dividing by the total strips it out
+ * proportionally, which is crude — books do not pad every line equally — but
+ * it is the same normalisation used on the 1X2 market above, so the two stay
+ * comparable. Returns [{label, h, a, outcome, p}], p in percent. */
+function devigCorrectScore(cs){
+  if (!cs || !cs.odds || !cs.odds.length) return [];
+  const rows = [];
+  let total = 0;
+  cs.odds.forEach(o => {
+    const parts = String(o.label).split('-');
+    if (parts.length !== 2) return;
+    const h = Number(parts[0]), a = Number(parts[1]);
+    if (!Number.isFinite(h) || !Number.isFinite(a)) return;
+    const raw = 1 / parseFloat(o.odds);
+    if (!Number.isFinite(raw)) return;
+    total += raw;
+    rows.push({ label: o.label, h, a, outcome: outcomeOf(h, a), raw });
+  });
+  if (!total) return [];
+  rows.forEach(r => { r.p = r.raw / total * 100; });
+  return rows.sort((x, y) => y.p - x.p);
+}
+
+/* Pick the headline scoreline, conditioned on the favoured outcome.
+ *
+ * The plain modal scoreline is a bad headline: 1-1 wins it in most fixtures
+ * because draw probability concentrates into a few buckets while a favourite's
+ * is spread across 1-0, 2-1, 2-0, 3-1 and so on. So a fixture priced 48/27/25
+ * to the home side still shows "1-1", which reads as a predicted draw and
+ * contradicts the bar right beneath it.
+ *
+ * Instead: take the outcome the 1X2 market actually favours, then show the most
+ * likely scoreline *within* that outcome. The headline now always agrees with
+ * the probability bar. The overall modal score is not discarded — it moves to
+ * the secondary line, flagged when it disagrees, so the honest number stays
+ * visible. */
+function headlineScore(csRows, probs){
+  if (!csRows.length) return null;
+  const modal = csRows[0];
+  if (!probs) return { pick: modal, modal, conditioned: false };
+
+  const fav = probs.h >= probs.d && probs.h >= probs.a ? 'H'
+            : (probs.a >= probs.d ? 'A' : 'D');
+  const pick = csRows.find(r => r.outcome === fav) || modal;
+  return { pick, modal, conditioned: pick.label !== modal.label, fav };
+}
+
+/* Derived quantities from the devigged correct-score book.
+ *
+ * These are the numbers that actually drive FPL returns. A scoreline pick is
+ * one ~8% bucket; these aggregate the whole distribution, so they are far more
+ * stable and far more useful:
+ *
+ *   lambda   expected goals for each side  -> attacker returns
+ *   cs       probability of a clean sheet  -> defender and keeper returns
+ *
+ * Caveat worth remembering: the proportional devig above spreads the overround
+ * evenly across scorelines, but books pad longshots harder. That biases these
+ * figures slightly. Treat them as good to about a tenth of a goal, not to two
+ * decimals. The book also stops around six goals a side, which truncates a
+ * negligible tail. */
+function derived(csRows){
+  if (!csRows.length) return null;
+  let lamH = 0, lamA = 0, csH = 0, csA = 0;
+  csRows.forEach(r => {
+    const p = r.p / 100;
+    lamH += p * r.h;
+    lamA += p * r.a;
+    if (r.a === 0) csH += p;   // home keep a clean sheet: away failed to score
+    if (r.h === 0) csA += p;
+  });
+  return { lamH, lamA, csH: csH * 100, csA: csA * 100 };
+}
 
 function rowFor(mapping, oddsFile, scoreMap){
   const ev = oddsFile && oddsFile.odds ? oddsFile.odds[String(mapping.oddsEvent)] : null;
@@ -304,12 +396,24 @@ function rowFor(mapping, oddsFile, scoreMap){
     fixtureId: mapping.fplFixture,
   };
   if (ml) row.probs = implied(ml.odds[0]);
-  const top = topScore(cs);
-  if (top){
-    row.score = top.label;
-    const alts = cs.odds.slice().sort((x,y) => parseFloat(x.odds) - parseFloat(y.odds)).slice(1,3);
-    row.alts = alts.map(a => a.label);
+
+  const csRows = devigCorrectScore(cs);
+  row.derived = derived(csRows);
+  const head = headlineScore(csRows, row.probs);
+  if (head){
+    row.score = head.pick.label;
+    row.scoreP = head.pick.p;
+    row.modal = head.modal.label;
+    row.modalP = head.modal.p;
+    row.conditioned = head.conditioned;
+    // Runners-up within the same outcome as the headline — the other ways the
+    // favoured result could land, rather than a mixed bag across all outcomes.
+    row.alts = csRows
+      .filter(r => r.outcome === head.pick.outcome && r.label !== head.pick.label)
+      .slice(0, 2)
+      .map(r => r.label);
   }
+
   const actual = scoreMap && scoreMap[mapping.fplFixture];
   if (actual){
     row.actual = `${actual.h}-${actual.a}`;
@@ -401,9 +505,28 @@ function render(gw, season, capture, rowsByDay, resultsError){
           ${row.actual ? `
             <span class="actual-score ${row.exact ? 'hit' : 'miss'}">${row.actual}</span>
             <span class="result-tag ${row.exact ? 'exact' : (row.outcomeHit ? 'outcome' : 'wrong')}">${row.exact ? 'exact' : (row.outcomeHit ? 'right result' : 'missed')}</span>
-          ` : (row.alts && row.alts.length ? `<span class="score-alt">next: ${row.alts.join(', ')}</span>` : '')}
-        </div>` : ''}
+          ` : `<span class="score-alt">${row.scoreP != null ? row.scoreP.toFixed(0) + '%' : ''}${row.alts && row.alts.length ? ` · then ${row.alts.join(', ')}` : ''}</span>`}
+        </div>
+        ${!row.actual && row.conditioned ? `<div class="modal-note">most likely single score is ${row.modal}${row.modalP != null ? ` (${row.modalP.toFixed(0)}%)` : ''}, but the draw splits fewer ways than the favourite's wins</div>` : ''}` : ''}
         ${probHtml}
+        ${row.derived ? `
+        <div class="derived">
+          <div class="d-col">
+            <div class="d-label">xG</div>
+            <div class="d-val">${row.derived.lamH.toFixed(2)}</div>
+            <div class="d-val">${row.derived.lamA.toFixed(2)}</div>
+          </div>
+          <div class="d-col">
+            <div class="d-label">clean sheet</div>
+            <div class="d-val${row.derived.csH >= 40 ? ' strong' : ''}">${row.derived.csH.toFixed(0)}%</div>
+            <div class="d-val${row.derived.csA >= 40 ? ' strong' : ''}">${row.derived.csA.toFixed(0)}%</div>
+          </div>
+          <div class="d-col d-names">
+            <div class="d-label">&nbsp;</div>
+            <div class="d-val d-name">${hShort || row.home}</div>
+            <div class="d-val d-name">${aShort || row.away}</div>
+          </div>
+        </div>` : ''}
       `;
       content.appendChild(card);
     });
