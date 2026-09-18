@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-09-13a
+/* odds-snapshot.mjs — odds-2026-09-18a
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -72,7 +72,8 @@
  *   --season <s>      season folder name (default derived from date)
  *   --bookmakers <l>  comma-separated (default Bet365,Unibet)
  *   --point <p>       force a capture point (early|late|preview), bypassing the clock
- *   --any             capture regardless of the clock, tagged 'adhoc'
+ *   --any             capture regardless of the clock; claims an open band whose
+ *                     capture is still missing, otherwise tagged 'adhoc'
  *   --force           overwrite files that already exist
  *   --dry             fetch and report, write nothing
  *
@@ -449,8 +450,28 @@ async function capturePre() {
     }
     console.log(`  forced capture point: ${point}`);
   } else if (has('any')) {
-    point = 'adhoc';
-    console.log('  --any: capturing regardless of clock, tagged adhoc');
+    /* --any means "capture now, whatever the clock says". But when the clock
+     * happens to be inside a real band, tagging the result 'adhoc' throws away
+     * the fact that it IS that band's capture — the data is identical, only the
+     * filename differs, and downstream the file is then treated as a curiosity
+     * rather than the late capture the model actually wants.
+     *
+     * So: if a band is open and its file does not exist yet, claim it. That is
+     * the case where a manual run is standing in for a cron that did not fire,
+     * which is the main reason anyone reaches for --any near a deadline.
+     *
+     * If the band's file already exists, fall back to 'adhoc' so the manual run
+     * cannot clobber a good scheduled capture. Same if no band is open — which
+     * is --any's original purpose, capturing well outside the schedule. */
+    const band = mins == null ? null : CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
+    if (band && !await exists(join(OUT, season, 'pre', `gw-${next.id}-${band.point}.json`))) {
+      point = band.point;
+      console.log(`  --any: ${mins}m out is inside the "${point}" band and that capture is missing — claiming it`);
+    } else {
+      point = 'adhoc';
+      const why = band ? `"${band.point}" already captured` : 'no band open';
+      console.log(`  --any: capturing regardless of clock, tagged adhoc (${why})`);
+    }
   } else {
     if (mins == null) { console.log('  no deadline on this event, skipping'); return; }
     const band = CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
@@ -556,7 +577,7 @@ async function capturePre() {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-09-13a',
+    stamp: 'odds-2026-09-18a',
     season, gw: next.id,
     capturePoint: point,
     capturedAt: now.toISOString(),
