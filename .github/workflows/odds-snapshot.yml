@@ -1,7 +1,8 @@
-# .github/workflows/odds-snapshot.yml — odds-2026-09-10a
+# .github/workflows/odds-snapshot.yml — odds-2026-09-18a
 #
 # Captures pre-deadline betting odds into history/odds/, twice per gameweek.
 #
+#   preview opportunistic, as soon as the previous gameweek opens
 #   early   ~24h before the deadline
 #   late    ~1.5h before the deadline
 #
@@ -33,7 +34,7 @@ on:
   workflow_dispatch:
     inputs:
       any:
-        description: 'Capture now, ignoring the clock (saved as gw-N-adhoc.json; does not block the early/late captures)'
+        description: 'Capture now, ignoring the clock (claims an open band whose capture is missing, e.g. late; otherwise saved as gw-N-adhoc.json)'
         type: boolean
         default: false
 
