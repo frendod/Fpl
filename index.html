@@ -1640,7 +1640,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-19c';
+const APP_BUILD = 'app-2026-09-19d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4096,12 +4096,13 @@ async function computeNoTransfers(){
       });
 
       // Armband: doubles the captain if they played; otherwise it passes to
-      // the vice, exactly as FPL does. It never falls to whoever autosubbed
-      // in for either of them.
+      // the vice, exactly as FPL does — but only once the captain's fixture
+      // has finished, same rule as effectiveCaptainId. History rows for a
+      // gameweek still in progress can otherwise read as a false blank.
       const capRow=rowFor(captainEl);
       const viceRow=rowFor(viceEl);
       if(capRow&&capRow.minutes>0) weekScore+=capRow.points;
-      else if(viceRow&&viceRow.minutes>0) weekScore+=viceRow.points;
+      else if(viceRow&&viceRow.minutes>0&&playerFixtureDone(captainEl,gw)) weekScore+=viceRow.points;
 
       total+=weekScore;
     }
@@ -4177,7 +4178,26 @@ async function computeRolled(){
     if(!res.ok)throw new Error('status '+res.status);
     const prevData=await res.json();
     if(!prevData.picks||!prevData.picks.length)throw new Error('no GW'+(gw-1)+' picks');
-    const basePicks=prevData.picks;
+    let basePicks=prevData.picks;
+
+    // Free Hit is a one-week loan of a squad — FPL reverts the manager to
+    // whatever they had the week before as soon as the FH gameweek ends. So
+    // if GW(gw-1) was played on Free Hit, those aren't players the manager
+    // actually owned going into this gameweek; the real "did nothing"
+    // baseline is the squad from two gameweeks back instead. Same fix already
+    // applied to loadUserTeam's future-gameweek projections above.
+    const wasFreeHit=prevData.active_chip&&String(prevData.active_chip).toLowerCase()==='freehit';
+    if(wasFreeHit&&gw-2>=1){
+      try{
+        const res2=await fetch('/api/fpl?path='+encodeURIComponent('entry/'+entryId+'/event/'+(gw-2)+'/picks/'));
+        if(res2.ok){
+          const prevData2=await res2.json();
+          if(prevData2.picks&&prevData2.picks.length)basePicks=prevData2.picks;
+        }
+      }catch(e){
+        console.warn('Could not fetch pre-Free Hit squad for rolled comparison:',e.message);
+      }
+    }
 
     // This gameweek's points/minutes for each of those players, from cached
     // season history — same source the season-long comparison uses, so no
@@ -4263,10 +4283,24 @@ function captainMultiplier(){
   return (userTeam.activeChip&&String(userTeam.activeChip).toLowerCase()==='3xc')?3:2;
 }
 
-// Which pick actually carries the armband. FPL promotes the vice-captain when
-// the captain plays no minutes, so both the card badge and the total have to
-// follow that promotion — otherwise a blanked captain leaves the doubled points
-// attached to the wrong player.
+// Whether a player's own fixture(s) for a gameweek are finished. Gates the
+// vice-captain promotion below — a captain reading 0 minutes mid-gameweek may
+// simply not have kicked off yet, not blanked, so the armband must not move
+// until it's certain their match is over.
+function playerFixtureDone(elementId,gw){
+  const pl=players.find(x=>x.id===elementId);
+  if(!pl)return true; // unknown player — nothing to wait on
+  const list=(fixtures||[]).filter(f=>f.event===gw&&(f.team_h===pl.teamId||f.team_a===pl.teamId));
+  if(!list.length)return true; // blank gameweek — no fixture to wait on
+  // finished_provisional flips as soon as the match ends, ahead of bonus —
+  // see mtFixtures above for why that's the right signal here too.
+  return list.every(f=>f.finished||f.finished_provisional);
+}
+
+// Which pick actually carries the armband. FPL promotes the vice-captain only
+// once the captain's own fixture has finished with them recording no minutes
+// — never just because they haven't scored yet — so both the card badge and
+// the total have to follow that same rule.
 function effectiveCaptainId(){
   const picks=userTeam.picks||[];
   const cap=picks.find(p=>p.is_captain);
@@ -4276,6 +4310,9 @@ function effectiveCaptainId(){
   const mins=userTeam.gwMinutes||{};
   // undefined means the score has not landed yet — assume the captain played
   if(mins[cap.element]===undefined||mins[cap.element]>0)return cap.element;
+  // Captain shows 0 minutes — only hand the armband to the vice once their
+  // fixture has actually finished, not merely because it hasn't kicked off.
+  if(!playerFixtureDone(cap.element,userTeam.gw))return cap.element;
   const vc=picks.find(p=>p.is_vice_captain);
   return vc?vc.element:cap.element;
 }
