@@ -1640,7 +1640,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-19a';
+const APP_BUILD = 'app-2026-09-19b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1815,11 +1815,10 @@ const I18N={
     bestRuns:'Best runs', bestRunsMeta:(a,b)=>'Mean ease over GW'+a+'\u2013'+b,
     // diagnostics rows
     dSeasonState:'Season state', dGwPlayed:'Gameweeks played', dNextGw:'Next gameweek',
-    dLiveWeight:'Live weight', dScored:'Players scored', dDefField:'Defensive contribution field',
-    dStartsField:'Starts field present', dUnderstatLive:'Understat this season', dUnderstatPrior:'Understat last season',
-    dMatched:'Matched to Understat', dMatchedPrior:'Matched to last season', dFixturesKnown:'Fixtures known', dProxy:'Proxy used',
-    dNotFound:'not found', dSummed:parts=>'summed from '+parts, dUnavail:'unavailable', dPlayers:' players',
-    dYes:'yes', dNo:'no', dNone:'none — pasted data',
+    dLiveWeight:'Live weight', dScored:'Players scored',
+    dUnderstatLive:'Understat this season', dUnderstatPrior:'Understat last season',
+    dMatchedPrior:'Matched to last season', dFixturesKnown:'Fixtures known',
+    dUnavail:'unavailable', dPlayers:' players',
     // load messages
     srcLive:'live data', srcPublished:'published data', srcLiveApi:'live API', srcSaved:'saved data',
     loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
@@ -2073,11 +2072,10 @@ const I18N={
     noBlankDbl:'Aún no hay jornadas sin partido ni dobles en el calendario — solo aparecen cuando los partidos de copa fuerzan aplazamientos. Hasta entonces, las ventanas de Bench Boost y Free Hit son conjeturas basadas solo en la dificultad, lo más débil sobre lo que planificar un comodín. Los tiempos de Comodín y Triple Capitán son más fiables ahora.',
     bestRuns:'Mejores rachas', bestRunsMeta:(a,b)=>'Facilidad media en J'+a+'\u2013'+b,
     dSeasonState:'Estado de temporada', dGwPlayed:'Jornadas jugadas', dNextGw:'Próxima jornada',
-    dLiveWeight:'Peso actual', dScored:'Jugadores puntuados', dDefField:'Campo de contribución defensiva',
-    dStartsField:'Campo de titularidades', dUnderstatLive:'Understat esta temporada', dUnderstatPrior:'Understat temp. pasada',
-    dMatched:'Emparejados con Understat', dMatchedPrior:'Emparejados con temp. pasada', dFixturesKnown:'Partidos conocidos', dProxy:'Proxy usado',
-    dNotFound:'no encontrado', dSummed:parts=>'sumado de '+parts, dUnavail:'no disponible', dPlayers:' jugadores',
-    dYes:'sí', dNo:'no', dNone:'ninguno — datos pegados',
+    dLiveWeight:'Peso actual', dScored:'Jugadores puntuados',
+    dUnderstatLive:'Understat esta temporada', dUnderstatPrior:'Understat temp. pasada',
+    dMatchedPrior:'Emparejados con temp. pasada', dFixturesKnown:'Partidos conocidos',
+    dUnavail:'no disponible', dPlayers:' jugadores',
     srcLive:'datos en vivo', srcPublished:'datos publicados', srcLiveApi:'API en vivo', srcSaved:'datos guardados',
     loadedFrom:(src,age)=>src+(age?' ('+age+')':''),
     offlineStale:' Sin conexión — esta es tu última copia guardada, los números pueden estar desactualizados.',
@@ -6066,8 +6064,6 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 function renderDiag(){
   const row=(k,v,cls)=>'<div class="drow"><span class="dk">'+k+'</span><span class="dv '+(cls||'')+'">'+v+'</span></div>';
   const uL=uLive.n||0, uP=uPrior.n||0;
-  const defSrc=fields.defcon?fields.defcon
-    :fields.defconParts.length?t('dSummed')(fields.defconParts.join(', ')):t('dNotFound');
   const ofN=t('ofN'), pl=t('dPlayers');
   $('diagBody').innerHTML=
      row(t('dSeasonState'),state.mode)
@@ -6075,16 +6071,11 @@ function renderDiag(){
     +row(t('dNextGw'),state.nextGW)
     +row(t('dLiveWeight'),Math.round(state.liveWeight*100)+'%')
     +row(t('dScored'),diag.pool||0)
-    +row(t('dDefField'),defSrc,fields.defcon?'ok':fields.defconParts.length?'warn':'off')
-    +row(t('dStartsField'),fields.starts?t('dYes'):t('dNo'),fields.starts?'ok':'warn')
     +row(t('dUnderstatLive'),uL?uL+pl:t('dUnavail'),uL?'ok':'warn')
     +row(t('dUnderstatPrior'),uP?uP+pl:t('dUnavail'),uP?'ok':'warn')
-    +row(t('dMatched'),(diag.matched||0)+ofN+(diag.pool||0),
-        (diag.matched/(diag.pool||1))>.5?'ok':'warn')
     +row(t('dMatchedPrior'),(diag.matchedPrior||0)+ofN+(diag.pool||0),
         (diag.matchedPrior/(diag.pool||1))>.5?'ok':'warn')
-    +row(t('dFixturesKnown'),(diag.fdrKnown||0)+ofN+(diag.pool||0),diag.fdrKnown?'ok':'off')
-    +row(t('dProxy'),diag.proxyUsed?('#'+diag.proxyUsed):t('dNone'));
+    +row(t('dFixturesKnown'),(diag.fdrKnown||0)+ofN+(diag.pool||0),diag.fdrKnown?'ok':'off');
 }
 
 function renderAll(){ paintState(); renderWeights(); renderPicks(); renderXI(); applyFilters(); renderPlan(); renderDiag(); }
