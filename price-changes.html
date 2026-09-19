@@ -37,6 +37,9 @@
   input{font-family:inherit}
   .mono{font-family:'IBM Plex Mono',monospace}
 
+  .epc-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .epc-eyebrow a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--line2)}
+  .epc-eyebrow a:hover{color:var(--accent);border-color:var(--accent)}
   .epc-header{position:relative;z-index:1;padding:28px 44px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
   .epc-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .epc-title{font-size:22px;font-weight:600}
@@ -114,6 +117,7 @@
 <div class="epc-header">
   <div class="epc-topline">
     <div>
+      <div class="epc-eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a></div>
       <div class="epc-title">Expected Price Changes</div>
       <div class="epc-sub" id="dataStatus">Loading live FPL data…</div>
     </div>
@@ -143,7 +147,7 @@
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-19a';
+const APP_BUILD = 'price-changes-2026-09-19b';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
