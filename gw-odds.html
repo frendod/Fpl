@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-18c — companion to index.html, same token system */
+/* odds-page-2026-09-18d — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -186,7 +186,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-18c';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-18d';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 const CLUB_COLORS = {
@@ -453,7 +453,7 @@ function moveNote(nowRow, earlyRow){
   return `Moved ${val > 0 ? '+' : ''}${val.toFixed(0)}pt toward ${side} since the early line`;
 }
 
-function render(gw, season, capture, rowsByDay, resultsError){
+function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
   document.getElementById('gwNum').textContent = gw;
 
   const sub = document.getElementById('subline');
@@ -463,7 +463,8 @@ function render(gw, season, capture, rowsByDay, resultsError){
     `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
     (age ? `<span>captured <b>${age}</b></span>` : '') +
     `<span>Season ${season}</span>` +
-    (resultsError ? `<span class="pill stale" title="${resultsError}">results unavailable</span>` : '');
+    (resultsError ? `<span class="pill stale" title="${resultsError}">results unavailable</span>` : '') +
+    (fellBackFrom ? `<span class="pill">GW ${fellBackFrom} odds not out yet</span>` : '');
 
   renderNav(gw, season);
 
@@ -595,7 +596,26 @@ async function load(){
   }
 
   try{
-    const oddsData = await fetchOdds(season, gw);
+    const explicit = qs.get('gw') != null;
+    let oddsData = await fetchOdds(season, gw);
+    let fellBackFrom = null;
+
+    /* Default view: if the upcoming gameweek has no capture yet, show the most
+     * recent one that does rather than an empty page. This matters across an
+     * international break — after GW5's deadline the script already targets
+     * GW6, but the preview band does not open until GW6 is inside ten days, so
+     * the default view would otherwise sit empty for a fortnight.
+     *
+     * Only for the default view. An explicit ?gw= is the user asking for that
+     * specific gameweek, so an empty state is the honest answer there — and it
+     * keeps the nav arrows able to reach a not-yet-captured gameweek. */
+    if (!oddsData && !explicit){
+      for (let back = gw - 1; back >= Math.max(1, gw - 6); back--){
+        const prev = await fetchOdds(season, back);
+        if (prev){ oddsData = prev; fellBackFrom = gw; gw = back; break; }
+      }
+    }
+
     if (!oddsData){
       document.getElementById('gwNum').textContent = gw;
       renderNav(gw, season);
@@ -633,7 +653,7 @@ async function load(){
       }
     } catch(e){}
 
-    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay, resultsError);
+    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay, resultsError, fellBackFrom);
   } catch(e){
     document.getElementById('gwNum').textContent = gw;
     renderNav(gw, season);
