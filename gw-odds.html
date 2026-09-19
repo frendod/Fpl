@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-18d — companion to index.html, same token system */
+/* odds-page-2026-09-19a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -33,6 +33,11 @@ body::before{
   padding:calc(24px + env(safe-area-inset-top)) 20px 40px;
 }
 .masthead{margin-bottom:22px}
+.masthead-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.langtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.langbtn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 9px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s}
+.langbtn:hover{color:var(--paper)}
+.langbtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
 .eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
   color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap;
@@ -167,14 +172,20 @@ footer a{color:var(--dim)}
 <div class="wrap">
 
   <div class="masthead">
-    <div class="eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a><span>·</span><span id="buildStamp" style="color:var(--dimmer)">—</span></div>
-    <h1>Gameweek <em id="gwNum">—</em> odds</h1>
-    <div class="subline" id="subline">Loading fixtures…</div>
+    <div class="masthead-row">
+      <div class="eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html" data-i18n="backToApp">back to app</a><span>·</span><span id="buildStamp" style="color:var(--dimmer)">—</span></div>
+      <div class="langtoggle" role="group" aria-label="Language">
+        <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
+      </div>
+    </div>
+    <h1><span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
+    <div class="subline" id="subline" data-i18n="loadingFixtures">Loading fixtures…</div>
   </div>
 
   <div id="content"></div>
 
-  <footer id="footer" style="display:none">
+  <footer id="footer" style="display:none" data-i18n="footerDisclaimer">
     Implied probabilities are devigged from the 1X2 market. The headline score is
     the most likely scoreline within the outcome the market favours, so it always
     agrees with the bar above it. xG and clean-sheet figures are derived from the
@@ -186,8 +197,98 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-18d';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-19a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
+
+/* ── I18N ──────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    backToApp: 'back to app',
+    gwWord: 'Gameweek',
+    oddsWord: 'odds',
+    loadingFixtures: 'Loading fixtures…',
+    couldntReachData: "Couldn't reach the app's data.",
+    noOddsCaptured: (gw) => `No odds captured yet for GW ${gw}.`,
+    couldntLoadOdds: "Couldn't load odds.",
+    retry: 'RETRY',
+    viewingGw: 'viewing GW',
+    resultsUnavailable: 'results unavailable',
+    gwOddsNotOutYet: (gw) => `GW ${gw} odds not out yet`,
+    pointLabel: { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture' },
+    capturedPrefix: 'captured',
+    season: 'Season',
+    drawWord: 'draw',
+    xgLabel: 'xG',
+    cleanSheetLabel: 'clean sheet',
+    noOddsForFixture: 'No odds captured for this fixture',
+    resultExact: 'exact',
+    resultRight: 'right result',
+    resultWrong: 'missed',
+    modalNote: (score, pct) => `most likely single score is ${score}${pct != null ? ` (${pct}%)` : ''}, but the draw splits fewer ways than the favourite's wins`,
+    localSuffix: ' local',
+    movedToward: (val, side) => `Moved ${val > 0 ? '+' : ''}${val}pt toward ${side} since the early line`,
+    timeAgo: (n, unit) => `${n}${unit} ago`,
+    footerDisclaimer: `Implied probabilities are devigged from the 1X2 market. The headline score is
+    the most likely scoreline within the outcome the market favours, so it always
+    agrees with the bar above it. xG and clean-sheet figures are derived from the
+    whole correct-score distribution and are the numbers worth acting on — a single
+    scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
+    one book (Bet365, or Unibet as fallback) and captured pre-lineups. Not betting advice.`,
+  },
+  es: {
+    backToApp: 'volver a la app',
+    gwWord: 'Jornada',
+    oddsWord: 'cuotas',
+    loadingFixtures: 'Cargando partidos…',
+    couldntReachData: 'No se pudieron obtener los datos de la app.',
+    noOddsCaptured: (gw) => `Aún no hay cuotas capturadas para la J${gw}.`,
+    couldntLoadOdds: 'No se pudieron cargar las cuotas.',
+    retry: 'REINTENTAR',
+    viewingGw: 'viendo J',
+    resultsUnavailable: 'resultados no disponibles',
+    gwOddsNotOutYet: (gw) => `Cuotas de la J${gw} aún no publicadas`,
+    pointLabel: { early: 'captura temprana', late: 'captura tardía', adhoc: 'captura puntual', preview: 'captura previa' },
+    capturedPrefix: 'capturado',
+    season: 'Temporada',
+    drawWord: 'empate',
+    xgLabel: 'xG',
+    cleanSheetLabel: 'portería a cero',
+    noOddsForFixture: 'No hay cuotas capturadas para este partido',
+    resultExact: 'exacto',
+    resultRight: 'resultado correcto',
+    resultWrong: 'fallado',
+    modalNote: (score, pct) => `el marcador individual más probable es ${score}${pct != null ? ` (${pct}%)` : ''}, pero el empate se reparte en menos formas que las victorias del favorito`,
+    localSuffix: ' hora local',
+    movedToward: (val, side) => `Se movió ${val > 0 ? '+' : ''}${val}pt hacia ${side} desde la línea temprana`,
+    timeAgo: (n, unit) => `hace ${n}${unit}`,
+    footerDisclaimer: `Las probabilidades implícitas están desviggeadas del mercado 1X2. El marcador
+    destacado es el resultado más probable dentro del desenlace que favorece el mercado, por lo
+    que siempre coincide con la barra de arriba. Las cifras de xG y portería a cero se derivan de
+    toda la distribución de resultados exactos y son las cifras que realmente importan — un
+    marcador exacto rara vez supera el 11%, así que trátalo como una pista, no como una predicción.
+    Todo proviene de una casa de apuestas (Bet365, o Unibet como respaldo) y se captura antes de
+    las alineaciones. No es un consejo de apuestas.`,
+  },
+};
+let LANG = (function(){ try{ return localStorage.getItem('fplLang') || 'en'; }catch(e){ return 'en'; } })();
+function t(key){ const v = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : I18N.en[key]; return v; }
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v === 'string') el.textContent = v;
+  });
+}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('fplLang', l); }catch(e){}
+  document.documentElement.lang = l;
+  document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+  applyStaticI18n();
+  load();
+}
+document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
+document.documentElement.lang = LANG;
+applyStaticI18n();
 
 const CLUB_COLORS = {
   ARS:'#EF0107', AVL:'#95BFE5', BOU:'#DA291C', BRE:'#E30613', BHA:'#0057B8',
@@ -433,12 +534,14 @@ function rowFor(mapping, oddsFile, scoreMap){
 
 function fmtKickoff(iso){
   const d = new Date(iso);
-  return d.toLocaleString('en-GB', {
+  const locale = LANG === 'es' ? 'es-ES' : 'en-GB';
+  return d.toLocaleString(locale, {
     weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
-  }) + ' local';
+  }) + t('localSuffix');
 }
 function dayKey(iso){
-  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+  const locale = LANG === 'es' ? 'es-ES' : 'en-GB';
+  return new Date(iso).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
 function moveNote(nowRow, earlyRow){
@@ -450,21 +553,21 @@ function moveNote(nowRow, earlyRow){
     ? (dh > 0 ? nowRow.home : nowRow.away)
     : (da > 0 ? nowRow.away : nowRow.home);
   const val = Math.abs(dh) >= Math.abs(da) ? dh : da;
-  return `Moved ${val > 0 ? '+' : ''}${val.toFixed(0)}pt toward ${side} since the early line`;
+  return t('movedToward')(Number(val.toFixed(0)), side);
 }
 
 function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
   document.getElementById('gwNum').textContent = gw;
 
   const sub = document.getElementById('subline');
-  const pointLabel = { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture' }[capture.point] || capture.point;
+  const pointLabel = t('pointLabel')[capture.point] || capture.point;
   const age = capture.capturedAt ? timeAgo(capture.capturedAt) : null;
   sub.innerHTML =
     `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
-    (age ? `<span>captured <b>${age}</b></span>` : '') +
-    `<span>Season ${season}</span>` +
-    (resultsError ? `<span class="pill stale" title="${resultsError}">results unavailable</span>` : '') +
-    (fellBackFrom ? `<span class="pill">GW ${fellBackFrom} odds not out yet</span>` : '');
+    (age ? `<span>${t('capturedPrefix')} <b>${age}</b></span>` : '') +
+    `<span>${t('season')} ${season}</span>` +
+    (resultsError ? `<span class="pill stale" title="${resultsError}">${t('resultsUnavailable')}</span>` : '') +
+    (fellBackFrom ? `<span class="pill">${t('gwOddsNotOutYet')(fellBackFrom)}</span>` : '');
 
   renderNav(gw, season);
 
@@ -491,9 +594,9 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
         </div>
         <div class="problabels">
           <span><b>${probs.h.toFixed(0)}%</b> ${row.home}</span>
-          <span><b>${probs.d.toFixed(0)}%</b> draw</span>
+          <span><b>${probs.d.toFixed(0)}%</b> ${t('drawWord')}</span>
           <span><b>${probs.a.toFixed(0)}%</b> ${row.away}</span>
-        </div>` : `<div class="problabels" style="justify-content:center">No odds captured for this fixture</div>`;
+        </div>` : `<div class="problabels" style="justify-content:center">${t('noOddsForFixture')}</div>`;
 
       card.innerHTML = `
         <div class="card-top">
@@ -510,20 +613,20 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
           <span class="score-main${row.actual ? ' played' : ''}">${row.score}</span>
           ${row.actual ? `
             <span class="actual-score ${row.exact ? 'hit' : 'miss'}">${row.actual}</span>
-            <span class="result-tag ${row.exact ? 'exact' : (row.outcomeHit ? 'outcome' : 'wrong')}">${row.exact ? 'exact' : (row.outcomeHit ? 'right result' : 'missed')}</span>
+            <span class="result-tag ${row.exact ? 'exact' : (row.outcomeHit ? 'outcome' : 'wrong')}">${row.exact ? t('resultExact') : (row.outcomeHit ? t('resultRight') : t('resultWrong'))}</span>
           ` : `<span class="score-alt">${row.scoreP != null ? row.scoreP.toFixed(0) + '%' : ''}${row.alts && row.alts.length ? ` · then ${row.alts.join(', ')}` : ''}</span>`}
         </div>
-        ${!row.actual && row.conditioned ? `<div class="modal-note">most likely single score is ${row.modal}${row.modalP != null ? ` (${row.modalP.toFixed(0)}%)` : ''}, but the draw splits fewer ways than the favourite's wins</div>` : ''}` : ''}
+        ${!row.actual && row.conditioned ? `<div class="modal-note">${t('modalNote')(row.modal, row.modalP != null ? row.modalP.toFixed(0) : null)}</div>` : ''}` : ''}
         ${probHtml}
         ${row.derived ? `
         <div class="derived">
           <div class="d-col">
-            <div class="d-label">xG</div>
+            <div class="d-label">${t('xgLabel')}</div>
             <div class="d-val">${row.derived.lamH.toFixed(2)}</div>
             <div class="d-val">${row.derived.lamA.toFixed(2)}</div>
           </div>
           <div class="d-col">
-            <div class="d-label">clean sheet</div>
+            <div class="d-label">${t('cleanSheetLabel')}</div>
             <div class="d-val${row.derived.csH >= 40 ? ' strong' : ''}">${row.derived.csH.toFixed(0)}%</div>
             <div class="d-val${row.derived.csA >= 40 ? ' strong' : ''}">${row.derived.csA.toFixed(0)}%</div>
           </div>
@@ -554,24 +657,24 @@ function renderNav(gw, season){
   const prevDisabled = gw <= 1 ? 'disabled' : '';
   nav.innerHTML = `
     <a class="${prevDisabled}" href="${gwUrl(gw - 1, season)}">‹ GW ${gw - 1}</a>
-    <span class="cur">viewing GW ${gw}</span>
+    <span class="cur">${t('viewingGw')} ${gw}</span>
     <a href="${gwUrl(gw + 1, season)}">GW ${gw + 1} ›</a>
   `;
 }
 
 function timeAgo(iso){
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 60) return mins + 'm ago';
+  if (mins < 60) return t('timeAgo')(mins, 'm');
   const hrs = Math.round(mins/60);
-  if (hrs < 24) return hrs + 'h ago';
-  return Math.round(hrs/24) + 'd ago';
+  if (hrs < 24) return t('timeAgo')(hrs, 'h');
+  return t('timeAgo')(Math.round(hrs/24), 'd');
 }
 
 function showState(msg, mono){
   document.getElementById('subline').innerHTML = '';
   document.getElementById('content').innerHTML =
     `<div class="state">${msg}${mono ? `<div class="mono">${mono}</div>` : ''}
-     <div><button class="retry" onclick="location.reload()">RETRY</button></div></div>`;
+     <div><button class="retry" onclick="location.reload()">${t('retry')}</button></div></div>`;
   document.getElementById('footer').style.display = 'none';
 }
 
@@ -589,7 +692,7 @@ async function load(){
     // missing. Record that and say so in the header rather than silently
     // showing a played gameweek as though it had no results.
     const gwOverride = qs.get('gw');
-    if (!gwOverride){ showState('Couldn\'t reach the app\'s data.', e.message); return; }
+    if (!gwOverride){ showState(t('couldntReachData'), e.message); return; }
     gw = Number(gwOverride);
     season = qs.get('season') || currentSeason();
     resultsError = e.message;
@@ -619,7 +722,7 @@ async function load(){
     if (!oddsData){
       document.getElementById('gwNum').textContent = gw;
       renderNav(gw, season);
-      showState(`No odds captured yet for GW ${gw}.`, `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json, gw-${gw}-preview.json`);
+      showState(t('noOddsCaptured')(gw), `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json, gw-${gw}-preview.json`);
       return;
     }
     const { primary, primaryPoint, early } = oddsData;
@@ -657,7 +760,7 @@ async function load(){
   } catch(e){
     document.getElementById('gwNum').textContent = gw;
     renderNav(gw, season);
-    showState('Couldn\'t load odds.', e.message);
+    showState(t('couldntLoadOdds'), e.message);
   }
 }
 
