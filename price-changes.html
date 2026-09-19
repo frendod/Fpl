@@ -37,9 +37,6 @@
   input{font-family:inherit}
   .mono{font-family:'IBM Plex Mono',monospace}
 
-  .epc-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-  .epc-eyebrow a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--line2)}
-  .epc-eyebrow a:hover{color:var(--accent);border-color:var(--accent)}
   .epc-header{position:relative;z-index:1;padding:28px 44px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
   .epc-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .epc-title{font-size:22px;font-weight:600}
@@ -54,6 +51,11 @@
   .epc-btn-accent{background:var(--accent);color:#1a1206;border:none;border-radius:6px;font-size:13px;font-weight:600;padding:9px 16px}
   .epc-status{font-size:12px;color:var(--dim)}
   .epc-link{background:none;border:none;color:var(--dim);text-decoration:underline;font-size:11px;padding:0}
+  .epc-toggles{display:flex;gap:8px;align-items:center;flex-shrink:0}
+  .langtoggle,.themetoggle2{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+  .langbtn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s}
+  .langbtn:hover{color:var(--paper)}
+  .langbtn[aria-pressed="true"]{background:var(--accent);color:#1a1206}
 
   .epc-section{position:relative;z-index:1;padding:22px 44px 40px}
   .epc-caveat{font-size:11px;color:var(--dim);margin:0 44px 0;padding-top:14px;max-width:900px}
@@ -117,17 +119,22 @@
 <div class="epc-header">
   <div class="epc-topline">
     <div>
-      <div class="epc-eyebrow"><span>FPL MODEL</span><span>·</span><a href="./index.html">back to app</a></div>
-      <div class="epc-title">Expected Price Changes</div>
+      <div class="epc-title" data-i18n="title">Expected Price Changes</div>
       <div class="epc-sub" id="dataStatus">Loading live FPL data…</div>
     </div>
-    <button class="epc-btn-ghost" id="themeBtn">Light mode</button>
+    <div class="epc-toggles">
+      <button class="epc-btn-ghost" id="themeBtn" data-i18n="lightMode">Light mode</button>
+      <div class="langtoggle" role="group" aria-label="Language">
+        <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
+        <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
+      </div>
+    </div>
   </div>
   <div class="epc-toolbar">
     <div class="epc-tabs" id="viewTabs">
-      <button class="epc-tab" data-view="ledger">Ledger</button>
-      <button class="epc-tab" data-view="cards">Cards</button>
-      <button class="epc-tab" data-view="dashboard">Dashboard</button>
+      <button class="epc-tab" data-view="ledger" data-i18n="tabLedger">Ledger</button>
+      <button class="epc-tab" data-view="cards" data-i18n="tabCards">Cards</button>
+      <button class="epc-tab" data-view="dashboard" data-i18n="tabDashboard">Dashboard</button>
     </div>
     <div class="epc-teamrow" id="teamRow">
       <!-- filled by renderTeamRow() -->
@@ -139,7 +146,7 @@
   <div class="epc-empty">Loading…</div>
 </div>
 
-<div class="epc-caveat">
+<div class="epc-caveat" id="caveatText" data-i18n="caveat">
   "Momentum" is this gameweek's net transfers relative to how many managers already own the player — a ranking signal, not FPL's real threshold (which isn't published). Biggest positive momentum = most likely to rise soon; biggest negative = most likely to fall. Treat it as a shortlist to watch, not a guarantee.
 </div>
 
@@ -147,7 +154,7 @@
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-19b';
+const APP_BUILD = 'price-changes-2026-09-19c';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
@@ -166,6 +173,92 @@ const CLUB_COLORS = {
 };
 const POS_NAMES = { 1:'GKP', 2:'DEF', 3:'MID', 4:'FWD' };
 
+/* ── I18N ──────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    title: 'Expected Price Changes',
+    loadingData: 'Loading live FPL data…',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    tabLedger: 'Ledger',
+    tabCards: 'Cards',
+    tabDashboard: 'Dashboard',
+    teamId: 'Team ID',
+    teamIdPh: 'e.g. 1234567',
+    checkSquad: 'Check my squad',
+    enterIdFirst: 'Enter your FPL Team ID first',
+    loadingTeam: 'Loading your team…',
+    loadTeamError: "Couldn't load that team — check the ID",
+    notYou: 'Not you?',
+    team: 'Team',
+    rising: 'rising',
+    falling: 'falling',
+    mySquad: 'MY SQUAD',
+    inYourSquad: '★ IN YOUR SQUAD',
+    pctOwned: '% owned',
+    noRisers: 'No risers to show yet.',
+    noFallers: 'No fallers to show yet.',
+    riseHeadLedger: '▲ Price rise predictions',
+    fallHeadLedger: '▼ Price fall predictions',
+    riseHeadCards: 'Price rise predictions',
+    fallHeadCards: 'Price fall predictions',
+    risingCount: 'Rising',
+    fallingCount: 'Falling',
+    yourSquad: 'Your squad',
+    noSquadMovement: 'No net movement in your squad right now.',
+    enterIdToTrack: 'Enter a Team ID above to see which of your players are trending.',
+    liveDataAsOf: 'Live data as of',
+    players: 'players',
+    loadFailed: "Couldn't load live FPL data",
+    refreshRetry: 'Refresh to retry.',
+    noDataLoaded: 'No data loaded.',
+    loadingEllipsis: 'Loading…',
+    caveat: '"Momentum" is this gameweek\'s net transfers relative to how many managers already own the player — a ranking signal, not FPL\'s real threshold (which isn\'t published). Biggest positive momentum = most likely to rise soon; biggest negative = most likely to fall. Treat it as a shortlist to watch, not a guarantee.',
+  },
+  es: {
+    title: 'Cambios de precio esperados',
+    loadingData: 'Cargando datos en vivo de FPL…',
+    lightMode: 'Modo claro',
+    darkMode: 'Modo oscuro',
+    tabLedger: 'Registro',
+    tabCards: 'Tarjetas',
+    tabDashboard: 'Panel',
+    teamId: 'ID de equipo',
+    teamIdPh: 'p. ej. 1234567',
+    checkSquad: 'Ver mi plantilla',
+    enterIdFirst: 'Introduce primero tu ID de equipo FPL',
+    loadingTeam: 'Cargando tu equipo…',
+    loadTeamError: 'No se pudo cargar ese equipo — revisa el ID',
+    notYou: '¿No eres tú?',
+    team: 'Equipo',
+    rising: 'en alza',
+    falling: 'en baja',
+    mySquad: 'MI PLANTILLA',
+    inYourSquad: '★ EN TU PLANTILLA',
+    pctOwned: '% en propiedad',
+    noRisers: 'Aún no hay subidas que mostrar.',
+    noFallers: 'Aún no hay bajadas que mostrar.',
+    riseHeadLedger: '▲ Predicciones de subida de precio',
+    fallHeadLedger: '▼ Predicciones de bajada de precio',
+    riseHeadCards: 'Predicciones de subida de precio',
+    fallHeadCards: 'Predicciones de bajada de precio',
+    risingCount: 'En alza',
+    fallingCount: 'En baja',
+    yourSquad: 'Tu plantilla',
+    noSquadMovement: 'Sin movimiento neto en tu plantilla ahora mismo.',
+    enterIdToTrack: 'Introduce un ID de equipo arriba para ver qué jugadores tuyos están en tendencia.',
+    liveDataAsOf: 'Datos en vivo a fecha de',
+    players: 'jugadores',
+    loadFailed: 'No se pudieron cargar los datos en vivo de FPL',
+    refreshRetry: 'Actualiza para reintentarlo.',
+    noDataLoaded: 'No se cargaron datos.',
+    loadingEllipsis: 'Cargando…',
+    caveat: 'El «momentum» son las transferencias netas de esta jornada en relación con cuántos mánagers ya tienen al jugador — una señal de clasificación, no el umbral real de FPL (que no se publica). El momentum positivo más alto = más probable que suba pronto; el más negativo = más probable que baje. Trátalo como una lista a vigilar, no como una garantía.',
+  },
+};
+let LANG = (function(){ try{ return localStorage.getItem('fplLang') || 'en'; }catch(e){ return 'en'; } })();
+function t(key){ const v = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : I18N.en[key]; return v; }
+
 let state = {
   view: localStorage.getItem(VIEW_KEY) || 'ledger',
   bootstrap: null,
@@ -181,7 +274,7 @@ let state = {
 /* ── THEME ─────────────────────────────────────────────── */
 function applyTheme(light){
   document.documentElement.classList.toggle('light-theme', !!light);
-  $('themeBtn').textContent = light ? 'Dark mode' : 'Light mode';
+  $('themeBtn').textContent = light ? t('darkMode') : t('lightMode');
 }
 (function initTheme(){
   const saved = localStorage.getItem(THEME_KEY);
@@ -192,6 +285,48 @@ $('themeBtn').addEventListener('click', () => {
   applyTheme(nowLight);
   localStorage.setItem(THEME_KEY, nowLight ? 'light' : 'dark');
 });
+
+/* ── LANGUAGE ──────────────────────────────────────────── */
+let statusState = { kind: 'loading' };
+function paintDataStatus(){
+  const el = $('dataStatus');
+  if (!el) return;
+  const s = statusState;
+  if (s.kind === 'loaded'){
+    el.textContent = t('liveDataAsOf') + ' ' + s.date + ' · ' + s.count + ' ' + t('players');
+    el.style.color = 'var(--dim)';
+  } else if (s.kind === 'error'){
+    el.textContent = t('loadFailed') + ' (' + s.msg + '). ' + t('refreshRetry');
+    el.style.color = 'var(--bad)';
+  } else if (s.kind === 'nodata'){
+    el.textContent = '';
+  } else {
+    el.textContent = t('loadingData');
+    el.style.color = 'var(--dim)';
+  }
+}
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (typeof v === 'string') el.textContent = v;
+  });
+  const teamIdInput = $('teamIdInput');
+  if (teamIdInput) teamIdInput.placeholder = t('teamIdPh');
+  applyTheme(document.documentElement.classList.contains('light-theme'));
+  paintDataStatus();
+}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('fplLang', l); }catch(e){}
+  document.documentElement.lang = l;
+  document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+  applyStaticI18n();
+  renderTeamRow();
+  renderAll();
+}
+document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
+document.documentElement.lang = LANG;
+applyStaticI18n();
 
 /* ── DATA FETCH — same /api/fpl Netlify function the main app uses ── */
 async function fetchApiData(){
@@ -263,10 +398,10 @@ function renderTeamRow(){
   const row = $('teamRow');
   if (state.squadIds && state.teamName){
     row.innerHTML =
-      '<span class="epc-status">Team <b style="color:var(--paper)">' + escapeHtml(state.teamName) + '</b>'
-      + ' · <span style="color:var(--good)">' + state.squadCounts.rising + ' rising</span>'
-      + ' · <span style="color:var(--bad)">' + state.squadCounts.falling + ' falling</span></span>'
-      + ' <button class="epc-link" id="clearTeamBtn">Not you?</button>';
+      '<span class="epc-status">' + t('team') + ' <b style="color:var(--paper)">' + escapeHtml(state.teamName) + '</b>'
+      + ' · <span style="color:var(--good)">' + state.squadCounts.rising + ' ' + t('rising') + '</span>'
+      + ' · <span style="color:var(--bad)">' + state.squadCounts.falling + ' ' + t('falling') + '</span></span>'
+      + ' <button class="epc-link" id="clearTeamBtn">' + t('notYou') + '</button>';
     $('clearTeamBtn').addEventListener('click', () => {
       localStorage.removeItem(TEAM_KEY);
       state.squadIds = null; state.teamName = ''; state.teamId = '';
@@ -276,13 +411,13 @@ function renderTeamRow(){
     return;
   }
   row.innerHTML =
-    '<label class="epc-status" for="teamIdInput">Team ID</label>'
-    + '<input class="epc-input" id="teamIdInput" placeholder="e.g. 1234567" value="' + escapeHtml(state.teamId || '') + '">'
-    + '<button class="epc-btn-accent" id="checkSquadBtn">Check my squad</button>'
+    '<label class="epc-status" for="teamIdInput">' + t('teamId') + '</label>'
+    + '<input class="epc-input" id="teamIdInput" placeholder="' + t('teamIdPh') + '" value="' + escapeHtml(state.teamId || '') + '">'
+    + '<button class="epc-btn-accent" id="checkSquadBtn">' + t('checkSquad') + '</button>'
     + '<span class="epc-status" id="teamStatus"></span>';
   $('checkSquadBtn').addEventListener('click', () => {
     const id = ($('teamIdInput').value || '').trim();
-    if (!id){ $('teamStatus').textContent = 'Enter your FPL Team ID first'; return; }
+    if (!id){ $('teamStatus').textContent = t('enterIdFirst'); return; }
     loadSquad(id);
   });
 }
@@ -302,7 +437,7 @@ async function currentEventId(entry){
 
 async function loadSquad(id){
   const statusEl = $('teamStatus');
-  if (statusEl) { statusEl.textContent = 'Loading your team…'; statusEl.style.color = 'var(--dim)'; }
+  if (statusEl) { statusEl.textContent = t('loadingTeam'); statusEl.style.color = 'var(--dim)'; }
   try{
     const entry = await fplGet('entry/' + id + '/');
     const gw = await currentEventId(entry);
@@ -322,7 +457,7 @@ async function loadSquad(id){
     renderTeamRow();
     renderAll();
   }catch(e){
-    if (statusEl){ statusEl.textContent = "Couldn't load that team — check the ID"; statusEl.style.color = 'var(--bad)'; }
+    if (statusEl){ statusEl.textContent = t('loadTeamError'); statusEl.style.color = 'var(--bad)'; }
     console.error('loadSquad error:', e);
   }
 }
@@ -343,7 +478,7 @@ document.querySelectorAll('.epc-tab').forEach(btn => {
 /* ── RENDER ────────────────────────────────────────────── */
 function rowHtml(p){
   const squadTag = state.squadIds && state.squadIds.has(p.id)
-    ? '<span class="epc-tag">MY SQUAD</span>' : '';
+    ? '<span class="epc-tag">' + t('mySquad') + '</span>' : '';
   const color = p.netTransfers > 0 ? 'var(--good)' : 'var(--bad)';
   return '<div class="epc-row">'
     + '<div class="epc-row-top">'
@@ -369,30 +504,30 @@ function cardHtml(p){
       + '<div class="epc-ring"><div class="epc-ring-fill" style="background:conic-gradient(' + color + ' 0% ' + p.meter + '%, var(--line2) ' + p.meter + '% 100%)"></div>'
       + '<div class="epc-ring-hole">' + p.meter + '%</div></div>'
     + '</div>'
-    + '<div class="epc-card-stat" style="color:' + color + '"><span>' + p.delta + '</span><span style="color:var(--dim)">' + p.ownPct.toFixed(1) + '% owned</span></div>'
-    + (inSquad ? '<div class="epc-card-squad">★ IN YOUR SQUAD</div>' : '')
+    + '<div class="epc-card-stat" style="color:' + color + '"><span>' + p.delta + '</span><span style="color:var(--dim)">' + p.ownPct.toFixed(1) + t('pctOwned') + '</span></div>'
+    + (inSquad ? '<div class="epc-card-squad">' + t('inYourSquad') + '</div>' : '')
   + '</div>';
 }
 
 function renderLedger(){
-  const risersHtml = state.risers.length ? state.risers.map(rowHtml).join('') : '<div class="epc-empty">No risers to show yet.</div>';
-  const fallersHtml = state.fallers.length ? state.fallers.map(rowHtml).join('') : '<div class="epc-empty">No fallers to show yet.</div>';
+  const risersHtml = state.risers.length ? state.risers.map(rowHtml).join('') : '<div class="epc-empty">' + t('noRisers') + '</div>';
+  const fallersHtml = state.fallers.length ? state.fallers.map(rowHtml).join('') : '<div class="epc-empty">' + t('noFallers') + '</div>';
   return '<div class="epc-ledger-grid">'
-    + '<div class="epc-panel"><div class="epc-panel-head" style="color:var(--good)">▲ Price rise predictions</div>' + risersHtml + '</div>'
-    + '<div class="epc-panel"><div class="epc-panel-head" style="color:var(--bad)">▼ Price fall predictions</div>' + fallersHtml + '</div>'
+    + '<div class="epc-panel"><div class="epc-panel-head" style="color:var(--good)">' + t('riseHeadLedger') + '</div>' + risersHtml + '</div>'
+    + '<div class="epc-panel"><div class="epc-panel-head" style="color:var(--bad)">' + t('fallHeadLedger') + '</div>' + fallersHtml + '</div>'
   + '</div>';
 }
 function renderCards(){
-  const risersHtml = state.risers.length ? state.risers.map(cardHtml).join('') : '<div class="epc-empty">No risers to show yet.</div>';
-  const fallersHtml = state.fallers.length ? state.fallers.map(cardHtml).join('') : '<div class="epc-empty">No fallers to show yet.</div>';
-  return '<div class="epc-panel-head" style="color:var(--good);margin-bottom:10px">Price rise predictions</div>'
+  const risersHtml = state.risers.length ? state.risers.map(cardHtml).join('') : '<div class="epc-empty">' + t('noRisers') + '</div>';
+  const fallersHtml = state.fallers.length ? state.fallers.map(cardHtml).join('') : '<div class="epc-empty">' + t('noFallers') + '</div>';
+  return '<div class="epc-panel-head" style="color:var(--good);margin-bottom:10px">' + t('riseHeadCards') + '</div>'
     + '<div class="epc-cards-grid" style="margin-bottom:24px">' + risersHtml + '</div>'
-    + '<div class="epc-panel-head" style="color:var(--bad);margin-bottom:10px">Price fall predictions</div>'
+    + '<div class="epc-panel-head" style="color:var(--bad);margin-bottom:10px">' + t('fallHeadCards') + '</div>'
     + '<div class="epc-cards-grid">' + fallersHtml + '</div>';
 }
 function renderDashboard(){
-  const risersHtml = state.risers.length ? state.risers.map(rowHtml).join('') : '<div class="epc-empty">No risers yet.</div>';
-  const fallersHtml = state.fallers.length ? state.fallers.map(rowHtml).join('') : '<div class="epc-empty">No fallers yet.</div>';
+  const risersHtml = state.risers.length ? state.risers.map(rowHtml).join('') : '<div class="epc-empty">' + t('noRisers') + '</div>';
+  const fallersHtml = state.fallers.length ? state.fallers.map(rowHtml).join('') : '<div class="epc-empty">' + t('noFallers') + '</div>';
   let sideHtml;
   if (state.squadIds){
     const squadRows = state.players.filter(p => state.squadIds.has(p.id) && p.netTransfers !== 0)
@@ -401,21 +536,21 @@ function renderDashboard(){
         + '<span style="color:' + (p.netTransfers>0?'var(--good)':'var(--bad)') + '">' + p.delta + '</span></div>')
       .join('');
     sideHtml = '<div class="epc-status" style="margin-bottom:8px">' + escapeHtml(state.teamName) + '</div>'
-      + (squadRows || '<div class="epc-status">No net movement in your squad right now.</div>');
+      + (squadRows || '<div class="epc-status">' + t('noSquadMovement') + '</div>');
   } else {
-    sideHtml = '<div class="epc-status">Enter a Team ID above to see which of your players are trending.</div>';
+    sideHtml = '<div class="epc-status">' + t('enterIdToTrack') + '</div>';
   }
   return '<div class="epc-dash-row">'
-    + '<div class="epc-dash-col"><div class="epc-dash-label" style="color:var(--good)">Rising (' + state.risers.length + ')</div>' + risersHtml + '</div>'
+    + '<div class="epc-dash-col"><div class="epc-dash-label" style="color:var(--good)">' + t('risingCount') + ' (' + state.risers.length + ')</div>' + risersHtml + '</div>'
     + '<div class="epc-dash-divider"></div>'
-    + '<div class="epc-dash-col"><div class="epc-dash-label" style="color:var(--bad)">Falling (' + state.fallers.length + ')</div>' + fallersHtml + '</div>'
-    + '<div class="epc-dash-side"><div class="epc-dash-label" style="color:var(--accent)">Your squad</div>' + sideHtml + '</div>'
+    + '<div class="epc-dash-col"><div class="epc-dash-label" style="color:var(--bad)">' + t('fallingCount') + ' (' + state.fallers.length + ')</div>' + fallersHtml + '</div>'
+    + '<div class="epc-dash-side"><div class="epc-dash-label" style="color:var(--accent)">' + t('yourSquad') + '</div>' + sideHtml + '</div>'
   + '</div>';
 }
 function renderAll(){
   document.querySelectorAll('.epc-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.view === state.view));
   const el = $('mainSection');
-  if (!state.bootstrap){ el.innerHTML = '<div class="epc-empty">Loading…</div>'; return; }
+  if (!state.bootstrap){ el.innerHTML = '<div class="epc-empty">' + t('loadingEllipsis') + '</div>'; return; }
   if (state.view === 'cards') el.innerHTML = renderCards();
   else if (state.view === 'dashboard') el.innerHTML = renderDashboard();
   else el.innerHTML = renderLedger();
@@ -431,9 +566,9 @@ async function init(){
     console.warn('api/fpl failed, trying repo data.json:', e.message);
     try{ bundle = await fetchRepoData(); }
     catch(e2){
-      $('dataStatus').textContent = "Couldn't load live FPL data (" + e.message + "). Refresh to retry.";
-      $('dataStatus').style.color = 'var(--bad)';
-      $('mainSection').innerHTML = '<div class="epc-empty">No data loaded.</div>';
+      statusState = { kind: 'error', msg: e.message };
+      paintDataStatus();
+      $('mainSection').innerHTML = '<div class="epc-empty">' + t('noDataLoaded') + '</div>';
       return;
     }
   }
@@ -447,8 +582,8 @@ async function init(){
   state._fallingIds = computed.fallingIds;
 
   const fetchedAt = bundle.fetched_at ? new Date(bundle.fetched_at) : new Date();
-  $('dataStatus').textContent = 'Live data as of ' + fetchedAt.toLocaleString() + ' · ' + state.players.length + ' players';
-  $('dataStatus').style.color = 'var(--dim)';
+  statusState = { kind: 'loaded', date: fetchedAt.toLocaleString(), count: state.players.length };
+  paintDataStatus();
 
   renderAll();
 

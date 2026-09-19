@@ -32,23 +32,6 @@
   --accent:#d9a441;
   --accent-soft:rgba(217,164,65,.14);
 }
-:root.grey-theme{
-  /* Grey Theme */
-  --ink:#d0d0d0;
-  --panel:#808080;
-  --panel2:#8f8f8f;
-  --line:rgba(0,0,0,.15);
-  --line2:rgba(0,0,0,.22);
-  --paper:#ffffff;
-  --dim:#ffffff;
-  --dimmer:#ffffff;
-  --prior:#d9a441;
-  --live:#ffffff;
-  --good:#4ec9a0;
-  --bad:#e5657a;
-  --accent:#d9a441;
-  --accent-soft:rgba(217,164,65,.14);
-}
 :root.light-theme{
   /* Light Theme */
   --ink:#ffffff;
@@ -1403,7 +1386,6 @@ tbody tr.dead td:first-child{padding-left:26px}
       <div style="display:flex;gap:12px;align-items:center">
         <div class="themtoggle" role="group" aria-label="Theme">
           <button class="themebtn" data-theme="dark" aria-pressed="true" onclick="setTheme('dark')" title="Dark">🌙</button>
-          <button class="themebtn" data-theme="grey" aria-pressed="false" onclick="setTheme('grey')" title="Grey">◐</button>
           <button class="themebtn" data-theme="light" aria-pressed="false" onclick="setTheme('light')" title="Light">☀️</button>
         </div>
         <div class="langtoggle" role="group" aria-label="Language">
@@ -1640,7 +1622,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-19d';
+const APP_BUILD = 'app-2026-09-19e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2161,10 +2143,10 @@ const I18N={
   }
 };
 let LANG=(function(){try{return localStorage.getItem('fplLang')||'en'}catch(e){return 'en'}})();
-let THEME=(function(){try{return localStorage.getItem('fplTheme')||'dark'}catch(e){return 'dark'}})();
+let THEME=(function(){try{const v=localStorage.getItem('fplTheme');return (v==='light')?'light':'dark'}catch(e){return 'dark'}})();
 (function initTheme(){
   // Remove all theme classes
-  document.documentElement.classList.remove('dark-theme','grey-theme','light-theme');
+  document.documentElement.classList.remove('dark-theme','light-theme');
   // Add the selected theme class (if not dark, which is default)
   if(THEME!=='dark')document.documentElement.classList.add(THEME+'-theme');
   document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===THEME)));
@@ -2186,7 +2168,7 @@ function setTheme(theme){
   THEME=theme;
   try{localStorage.setItem('fplTheme',theme)}catch(e){}
   // Remove all theme classes
-  document.documentElement.classList.remove('dark-theme','grey-theme','light-theme');
+  document.documentElement.classList.remove('dark-theme','light-theme');
   // Add the selected theme class (if not dark, which is default)
   if(theme!=='dark')document.documentElement.classList.add(theme+'-theme');
   document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===theme)));
