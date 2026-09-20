@@ -89,6 +89,7 @@
   .epc-row-meter{flex:1 1 auto;min-width:0;height:5px;border-radius:3px;overflow:hidden;background:var(--line2)}
   .epc-row-meter-fill{height:100%;border-radius:3px}
   .epc-row-delta{font-family:'IBM Plex Mono',monospace;font-size:12px;flex:none;min-width:56px;text-align:right}
+  .epc-row-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);flex:none;min-width:130px;text-align:right}
   .epc-dot{display:inline-block;width:7px;height:7px;border-radius:2px;flex:none}
   .epc-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;border:1px solid var(--accent);color:var(--accent);border-radius:3px;padding:1px 4px;flex:none}
   .epc-empty{font-size:12px;color:var(--dim);padding:10px 2px}
@@ -103,6 +104,7 @@
   .epc-ring-fill{width:100%;height:100%;border-radius:50%}
   .epc-ring-hole{position:absolute;inset:5px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600}
   .epc-card-stat{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:10.5px}
+  .epc-card-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim)}
   .epc-card-squad{font-size:9px;color:var(--accent);border-top:1px solid var(--line);padding-top:6px}
 
   .epc-dash-row{display:flex;gap:20px}
@@ -148,6 +150,7 @@
     <div>
       <div class="epc-title" data-i18n="title">⚽ Price Changes</div>
       <div class="epc-sub" id="dataStatus">Loading live FPL data…</div>
+      <div class="epc-sub" id="nextChangeStatus" style="margin-top:2px"></div>
     </div>
   </div>
   <div class="tabs" role="tablist">
@@ -178,14 +181,14 @@
 </div>
 
 <div class="epc-caveat" id="caveatText" data-i18n="caveat">
-  "Momentum" is this gameweek's net transfers relative to how many managers already own the player — a ranking signal, not FPL's real threshold (which isn't published). Biggest positive momentum = most likely to rise soon; biggest negative = most likely to fall. Treat it as a shortlist to watch, not a guarantee.
+  These are FPL's own official Price Change Predictor numbers — pulled straight from the live FPL data, not a homemade estimate. "Now" is today's progress toward the threshold; "Predicted tonight" is FPL's own forward projection. Anything at or past 100% (either direction) is expected to move. FPL themselves say to treat it as a guide, not a guarantee.
 </div>
 
 
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-20e';
+const APP_BUILD = 'price-changes-2026-09-20f';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
@@ -248,7 +251,14 @@ const I18N = {
     refreshRetry: 'Refresh to retry.',
     noDataLoaded: 'No data loaded.',
     loadingEllipsis: 'Loading…',
-    caveat: '"Momentum" is this gameweek\'s net transfers relative to how many managers already own the player — a ranking signal, not FPL\'s real threshold (which isn\'t published). Biggest positive momentum = most likely to rise soon; biggest negative = most likely to fall. Treat it as a shortlist to watch, not a guarantee.',
+    nowLabel: 'Now',
+    predictedLabel: 'Predicted tonight',
+    veryLikely: 'Very likely',
+    likely: 'Likely',
+    locked: 'Locked',
+    calibrating: 'Calibrating',
+    nextChange: 'Next price change',
+    caveat: 'These are FPL\'s own official Price Change Predictor numbers — pulled straight from the live FPL data, not a homemade estimate. "Now" is today\'s progress toward the threshold; "Predicted tonight" is FPL\'s own forward projection. Anything at or past 100% (either direction) is expected to move. FPL themselves say to treat it as a guide, not a guarantee.',
   },
   es: {
     title: '⚽ Cambios de precio',
@@ -290,7 +300,14 @@ const I18N = {
     refreshRetry: 'Actualiza para reintentarlo.',
     noDataLoaded: 'No se cargaron datos.',
     loadingEllipsis: 'Cargando…',
-    caveat: 'El «momentum» son las transferencias netas de esta jornada en relación con cuántos mánagers ya tienen al jugador — una señal de clasificación, no el umbral real de FPL (que no se publica). El momentum positivo más alto = más probable que suba pronto; el más negativo = más probable que baje. Trátalo como una lista a vigilar, no como una garantía.',
+    nowLabel: 'Ahora',
+    predictedLabel: 'Predicción esta noche',
+    veryLikely: 'Muy probable',
+    likely: 'Probable',
+    locked: 'Bloqueado',
+    calibrating: 'Calibrando',
+    nextChange: 'Próximo cambio de precio',
+    caveat: 'Estos son los datos oficiales del Predictor de Cambios de Precio de la propia FPL — extraídos directamente de los datos en vivo de FPL, no una estimación propia. «Ahora» es el progreso de hoy hacia el umbral; «Predicción esta noche» es la proyección oficial de FPL. Cualquier valor igual o superior al 100% (en cualquier dirección) se espera que cambie. La propia FPL indica que se trate como una guía, no como una garantía.',
   },
 };
 let LANG = (function(){ try{ return localStorage.getItem('fplLang') || 'en'; }catch(e){ return 'en'; } })();
@@ -299,9 +316,9 @@ function t(key){ const v = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[
 let state = {
   view: localStorage.getItem(VIEW_KEY) || 'ledger',
   bootstrap: null,
-  players: [],          // every player, with computed momentum
-  risers: [],           // top movers, positive momentum, sorted desc
-  fallers: [],          // top movers, negative momentum, sorted asc (most negative first)
+  players: [],          // every player, with FPL's official progress/predicted fields
+  risers: [],           // progress > 0, ranked by predicted progress desc
+  fallers: [],          // progress < 0, ranked by predicted progress asc (most negative first)
   squadIds: null,        // Set of element ids in the loaded team, or null if none loaded
   squadCounts: { rising: 0, falling: 0 },
   teamName: '',
@@ -360,6 +377,7 @@ function setLang(l){
   applyStaticI18n();
   renderTeamRow();
   renderAll();
+  paintNextChange();
 }
 document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
 document.documentElement.lang = LANG;
@@ -387,25 +405,33 @@ async function fplGet(path){
   return r.json();
 }
 
-function fmtDelta(n){
+function fmtPct(n){
   const sign = n > 0 ? '+' : (n < 0 ? '-' : '');
-  const abs = Math.abs(n);
-  const body = abs >= 1000 ? (abs/1000).toFixed(1) + 'k' : String(abs);
-  return sign + body;
+  return sign + Math.abs(n).toFixed(1) + '%';
+}
+function statusLabel(likelihood){
+  return Math.abs(likelihood) >= 4 ? t('veryLikely') : (Math.abs(likelihood) >= 2 ? t('likely') : '');
 }
 
-/* ── COMPUTE — net transfers relative to ownership, ranked ── */
+/* ── COMPUTE — FPL's own official Price Change Predictor fields ──
+   price_change_percent: today's progress toward the (unpublished) threshold
+   price_change_projections[0]: FPL's own forward projection for tonight
+     { offset, projected_percent, likelihood }
+   These come straight from bootstrap-static — no estimation on our side. */
 function computePlayers(bootstrap){
   const teams = {};
   (bootstrap.teams || []).forEach(t => { teams[t.id] = t; });
-  const totalManagers = Math.max(1, bootstrap.total_players || 1);
 
   const players = (bootstrap.elements || []).map(e => {
     const team = teams[e.team] || {};
     const short = team.short_name || '???';
     const ownPct = parseFloat(e.selected_by_percent) || 0;
-    const ownCount = Math.max(1, (ownPct / 100) * totalManagers);
-    const netTransfers = (e.transfers_in_event || 0) - (e.transfers_out_event || 0);
+    const progress = parseFloat(e.price_change_percent) || 0;
+    const proj = (e.price_change_projections && e.price_change_projections[0]) || null;
+    const predicted = proj ? (parseFloat(proj.projected_percent) || 0) : progress;
+    const likelihood = proj ? (proj.likelihood || 0) : 0;
+    const locked = !!e.price_change_locked_until;
+    const calibrating = !!e.price_change_calibrating;
     return {
       id: e.id,
       name: e.web_name,
@@ -414,18 +440,28 @@ function computePlayers(bootstrap){
       pos: POS_NAMES[e.element_type] || '?',
       price: (e.now_cost / 10).toFixed(1),
       ownPct,
-      netTransfers,
-      momentum: netTransfers / ownCount,
+      progress,
+      predicted,
+      likelihood,
+      locked,
+      calibrating,
     };
   });
 
-  const risers = players.filter(p => p.netTransfers > 0).sort((a,b) => b.momentum - a.momentum);
-  const fallers = players.filter(p => p.netTransfers < 0).sort((a,b) => a.momentum - b.momentum);
+  players.forEach(p => {
+    p.meter = Math.min(100, Math.max(4, Math.round(Math.abs(p.predicted))));
+    p.delta = fmtPct(p.predicted);
+    p.now = fmtPct(p.progress);
+    p.status = statusLabel(p.likelihood);
+  });
 
-  const topRiserMomentum = risers.length ? risers[0].momentum : 1;
-  const topFallerMomentum = fallers.length ? Math.abs(fallers[0].momentum) : 1;
-  risers.forEach(p => { p.meter = Math.max(4, Math.round(100 * p.momentum / topRiserMomentum)); p.delta = fmtDelta(p.netTransfers); });
-  fallers.forEach(p => { p.meter = Math.max(4, Math.round(100 * Math.abs(p.momentum) / topFallerMomentum)); p.delta = fmtDelta(p.netTransfers); });
+  // Bucket by today's progress direction (FPL's own sign convention), rank
+  // within each bucket by the forward projection — the number that answers
+  // "who's closest to actually moving tonight". Locked/calibrating players
+  // are excluded — their number isn't a live signal yet.
+  const eligible = players.filter(p => !p.locked && !p.calibrating);
+  const risers = eligible.filter(p => p.progress > 0).sort((a,b) => b.predicted - a.predicted);
+  const fallers = eligible.filter(p => p.progress < 0).sort((a,b) => a.predicted - b.predicted);
 
   return { players, risers: risers.slice(0, 20), fallers: fallers.slice(0, 20), risingIds: new Set(risers.map(p=>p.id)), fallingIds: new Set(fallers.map(p=>p.id)) };
 }
@@ -516,16 +552,18 @@ document.querySelectorAll('.epc-tab').forEach(btn => {
 function rowHtml(p){
   const squadTag = state.squadIds && state.squadIds.has(p.id)
     ? '<span class="epc-tag">' + t('mySquad') + '</span>' : '';
-  const color = p.netTransfers > 0 ? 'var(--good)' : 'var(--bad)';
+  const color = p.progress > 0 ? 'var(--good)' : 'var(--bad)';
+  const statusTag = p.status ? '<span class="epc-tag" style="border-color:' + color + ';color:' + color + '">' + p.status.toUpperCase() + '</span>' : '';
   return '<div class="epc-row">'
     + '<div class="epc-row-top">'
       + '<span class="epc-dot" style="background:' + p.color + '"></span>'
-      + '<span class="epc-row-name">' + escapeHtml(p.name) + '</span>' + squadTag
+      + '<span class="epc-row-name">' + escapeHtml(p.name) + '</span>' + squadTag + statusTag
       + '<span class="epc-row-pos">' + p.pos + '</span>'
       + '<span class="epc-row-price">£' + p.price + '</span>'
     + '</div>'
     + '<div class="epc-row-bottom">'
       + '<div class="epc-row-meter"><div class="epc-row-meter-fill" style="width:' + p.meter + '%;background:' + color + '"></div></div>'
+      + '<span class="epc-row-sub">' + t('nowLabel') + ' ' + p.now + '</span>'
       + '<span class="epc-row-delta" style="color:' + color + '">' + p.delta + '</span>'
     + '</div>'
   + '</div>';
@@ -533,15 +571,16 @@ function rowHtml(p){
 
 function cardHtml(p){
   const inSquad = state.squadIds && state.squadIds.has(p.id);
-  const color = p.netTransfers > 0 ? 'var(--good)' : 'var(--bad)';
+  const color = p.progress > 0 ? 'var(--good)' : 'var(--bad)';
   return '<div class="epc-card' + (inSquad ? ' in-squad' : '') + '">'
     + '<div class="epc-card-top">'
       + '<div><div class="epc-card-name">' + escapeHtml(p.name) + '</div>'
-      + '<div class="epc-card-meta">' + p.short + ' · ' + p.pos + ' · £' + p.price + '</div></div>'
+      + '<div class="epc-card-meta">' + p.short + ' · ' + p.pos + ' · £' + p.price + (p.status ? ' · ' + p.status : '') + '</div></div>'
       + '<div class="epc-ring"><div class="epc-ring-fill" style="background:conic-gradient(' + color + ' 0% ' + p.meter + '%, var(--line2) ' + p.meter + '% 100%)"></div>'
       + '<div class="epc-ring-hole">' + p.meter + '%</div></div>'
     + '</div>'
     + '<div class="epc-card-stat" style="color:' + color + '"><span>' + p.delta + '</span><span style="color:var(--dim)">' + p.ownPct.toFixed(1) + t('pctOwned') + '</span></div>'
+    + '<div class="epc-card-sub">' + t('nowLabel') + ' ' + p.now + ' · ' + t('predictedLabel') + ' ' + p.delta + '</div>'
     + (inSquad ? '<div class="epc-card-squad">' + t('inYourSquad') + '</div>' : '')
   + '</div>';
 }
@@ -567,10 +606,10 @@ function renderDashboard(){
   const fallersHtml = state.fallers.length ? state.fallers.map(rowHtml).join('') : '<div class="epc-empty">' + t('noFallers') + '</div>';
   let sideHtml;
   if (state.squadIds){
-    const squadRows = state.players.filter(p => state.squadIds.has(p.id) && p.netTransfers !== 0)
-      .sort((a,b)=>b.momentum-a.momentum)
+    const squadRows = state.players.filter(p => state.squadIds.has(p.id) && p.progress !== 0 && !p.locked && !p.calibrating)
+      .sort((a,b)=>b.predicted-a.predicted)
       .map(p => '<div class="epc-squad-row"><span>' + escapeHtml(p.name) + '</span>'
-        + '<span style="color:' + (p.netTransfers>0?'var(--good)':'var(--bad)') + '">' + p.delta + '</span></div>')
+        + '<span style="color:' + (p.progress>0?'var(--good)':'var(--bad)') + '">' + p.delta + '</span></div>')
       .join('');
     sideHtml = '<div class="epc-status" style="margin-bottom:8px">' + escapeHtml(state.teamName) + '</div>'
       + (squadRows || '<div class="epc-status">' + t('noSquadMovement') + '</div>');
@@ -593,6 +632,21 @@ function renderAll(){
   else el.innerHTML = renderLedger();
 }
 
+/* ── NEXT PRICE CHANGE COUNTDOWN — from bootstrap.game_config.settings.price_change_deadlines ── */
+let priceDeadlines = [];
+function paintNextChange(){
+  const el = $('nextChangeStatus');
+  if (!el) return;
+  const now = new Date();
+  const next = priceDeadlines.find(d => d > now);
+  if (!next){ el.textContent = ''; return; }
+  const ms = next - now;
+  const hh = Math.floor(ms / 3600000);
+  const mm = Math.floor((ms % 3600000) / 60000);
+  el.textContent = t('nextChange') + ': ' + next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    + ' (' + hh + 'h ' + mm + 'm)';
+}
+
 /* ── INIT ──────────────────────────────────────────────── */
 async function init(){
   renderTeamRow();
@@ -611,6 +665,11 @@ async function init(){
   }
 
   state.bootstrap = bundle.bootstrap;
+  const deadlines = (bundle.bootstrap.game_config && bundle.bootstrap.game_config.settings && bundle.bootstrap.game_config.settings.price_change_deadlines) || [];
+  priceDeadlines = deadlines.map(d => new Date(d));
+  paintNextChange();
+  setInterval(paintNextChange, 60000);
+
   const computed = computePlayers(bundle.bootstrap);
   state.players = computed.players;
   state.risers = computed.risers;
