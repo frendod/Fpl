@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-20a — companion to index.html, same token system */
+/* odds-page-2026-09-20b — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -196,6 +196,8 @@ footer a{color:var(--dim)}
         </div>
       </div>
     </div>
+    <h1><span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
+    <div class="subline" id="subline" data-i18n="loadingFixtures">Loading fixtures…</div>
     <div class="tabs" role="tablist">
       <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
       <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
@@ -207,8 +209,6 @@ footer a{color:var(--dim)}
       <a class="tab" href="price-changes.html" data-i18n="tabPrices">Price changes</a>
       <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
     </div>
-    <h1><span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
-    <div class="subline" id="subline" data-i18n="loadingFixtures">Loading fixtures…</div>
   </div>
 
   <div id="content"></div>
@@ -225,7 +225,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-20a';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-20b';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
