@@ -112,7 +112,9 @@
   .epc-dash-divider{width:1px;align-self:stretch;background:var(--line)}
   .epc-dash-side{width:230px;flex:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
   .epc-dash-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
-  .epc-squad-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-top:1px solid var(--line)}
+  .epc-squad-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-top:1px solid var(--line)}
+  .epc-squad-vals{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-family:'IBM Plex Mono',monospace}
+  .epc-squad-now{font-size:9.5px;color:var(--dim)}
 
   .epc-footer{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:10px 20px 24px;font-size:10px;color:var(--dim)}
 
@@ -188,7 +190,7 @@
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-20f';
+const APP_BUILD = 'price-changes-2026-09-20g';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
@@ -609,7 +611,10 @@ function renderDashboard(){
     const squadRows = state.players.filter(p => state.squadIds.has(p.id) && p.progress !== 0 && !p.locked && !p.calibrating)
       .sort((a,b)=>b.predicted-a.predicted)
       .map(p => '<div class="epc-squad-row"><span>' + escapeHtml(p.name) + '</span>'
-        + '<span style="color:' + (p.progress>0?'var(--good)':'var(--bad)') + '">' + p.delta + '</span></div>')
+        + '<span class="epc-squad-vals">'
+          + '<span class="epc-squad-now">' + t('nowLabel') + ' ' + p.now + '</span>'
+          + '<span style="color:' + (p.progress>0?'var(--good)':'var(--bad)') + '">' + p.delta + '</span>'
+        + '</span></div>')
       .join('');
     sideHtml = '<div class="epc-status" style="margin-bottom:8px">' + escapeHtml(state.teamName) + '</div>'
       + (squadRows || '<div class="epc-status">' + t('noSquadMovement') + '</div>');
