@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-20b — companion to index.html, same token system */
+/* odds-page-2026-09-20d — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -20,7 +20,7 @@
 .light-theme{
   --ink:#ffffff; --panel:#f5f5f5; --panel2:#eeeeee;
   --line:rgba(0,0,0,.12); --line2:rgba(0,0,0,.18);
-  --paper:#000000; --dim:#4a5568; --dimmer:#4a5568;
+  --paper:#000000; --dim:#000000; --dimmer:#000000;
   --good:#1d7c5c; --bad:#c92f2f; --accent:#d9a441; --accent-soft:rgba(217,164,65,.14);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -35,8 +35,8 @@ body::before{
   background:repeating-linear-gradient(180deg,transparent 0 39px,rgba(232,228,220,.022) 39px 40px);
 }
 .wrap{
-  position:relative;z-index:1;max-width:720px;margin:0 auto;
-  padding:calc(24px + env(safe-area-inset-top)) 20px 40px;
+  position:relative;z-index:1;max-width:1180px;margin:0 auto;
+  padding:calc(24px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 40px calc(20px + env(safe-area-inset-left));
 }
 .masthead{margin-bottom:22px}
 .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
@@ -57,8 +57,8 @@ body::before{
 .eyebrow a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--line2)}
 .eyebrow a:hover{color:var(--accent);border-color:var(--accent)}
 h1{
-  font-family:'Instrument Serif',Georgia,serif;font-size:34px;font-weight:400;
-  letter-spacing:.005em;margin-top:6px;color:var(--paper);
+  font-family:'Instrument Serif',Georgia,serif;font-size:clamp(34px,7vw,58px);font-weight:400;
+  line-height:.98;letter-spacing:-.01em;margin-top:6px;color:var(--paper);
 }
 h1 em{font-style:italic;color:var(--accent)}
 .subline{
@@ -97,16 +97,26 @@ h1 em{font-style:italic;color:var(--accent)}
 }
 .retry:hover{background:var(--accent);color:var(--ink)}
 
+/* Fixture cards lay out as a responsive grid: one column on phones, two or
+   three across on a desktop window. Day headings are grid items too, so they
+   are forced to span the full row rather than sitting in a single column. */
+#content{
+  display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+}
+.day, #content > .state{grid-column:1/-1}
+
 .day{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
-  color:var(--dimmer);margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);
+  color:var(--dimmer);margin:26px 0 0;padding-bottom:6px;border-bottom:1px solid var(--line);
   text-transform:uppercase;
 }
 .day:first-of-type{margin-top:8px}
 
 .card{
   background:var(--panel);border:1px solid var(--line);border-radius:6px;
-  padding:16px 16px 14px;margin-bottom:10px;
+  padding:16px 16px 14px;
+  display:flex;flex-direction:column;
 }
 .card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .kickoff{
@@ -149,7 +159,7 @@ h1 em{font-style:italic;color:var(--accent)}
 }
 .derived{
   display:flex;gap:18px;justify-content:center;align-items:flex-start;
-  margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
+  margin-top:auto;padding-top:11px;border-top:1px solid var(--line);
 }
 .d-col{display:flex;flex-direction:column;gap:3px;text-align:right}
 .d-col.d-names{text-align:left}
@@ -185,7 +195,7 @@ footer a{color:var(--dim)}
 
   <div class="masthead">
     <div class="masthead-row">
-      <div class="eyebrow"><span class="eyebrow-long">Fantasy Premier League · </span>2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
+      <div class="eyebrow">2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
       <div style="display:flex;gap:12px;align-items:center">
         <div class="themtoggle" role="group" aria-label="Theme">
           <button class="themebtn" id="themeBtn" data-i18n="lightMode">Light mode</button>
@@ -196,7 +206,7 @@ footer a{color:var(--dim)}
         </div>
       </div>
     </div>
-    <h1><span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
+    <h1>⚽ <span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
     <div class="subline" id="subline" data-i18n="loadingFixtures">Loading fixtures…</div>
     <div class="tabs" role="tablist">
       <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
@@ -225,7 +235,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-20b';
+const ODDS_PAGE_BUILD = 'odds-page-2026-09-20d';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
