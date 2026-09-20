@@ -1089,7 +1089,6 @@ textarea:focus{border-color:var(--accent)}
   .evidence-state{font-size:12.5px}
   .evidence-note,.data-status-message{max-width:none}
   .langbtn,.themebtn{padding:5px 9px;font-size:10.5px}
-  .themebtn{font-size:12px;padding:4px 8px}
 }
 @media (max-width:400px){
   /* last resort at iPhone SE / mini widths */
@@ -1385,8 +1384,7 @@ tbody tr.dead td:first-child{padding-left:26px}
       <div class="eyebrow"><span class="eyebrow-long">Fantasy Premier League · </span>2026/27 · <span id="buildStamp" style="color:var(--dimmer)">—</span></div>
       <div style="display:flex;gap:12px;align-items:center">
         <div class="themtoggle" role="group" aria-label="Theme">
-          <button class="themebtn" data-theme="dark" aria-pressed="true" onclick="setTheme('dark')" title="Dark">🌙</button>
-          <button class="themebtn" data-theme="light" aria-pressed="false" onclick="setTheme('light')" title="Light">☀️</button>
+          <button class="themebtn" id="themeBtn" onclick="toggleTheme()" data-i18n="lightMode">Light mode</button>
         </div>
         <div class="langtoggle" role="group" aria-label="Language">
           <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
@@ -1622,7 +1620,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-19e';
+const APP_BUILD = 'app-2026-09-20a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1661,6 +1659,7 @@ const I18N={
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
     tabMyTeam:'My Team', myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
+    lightMode:'Light mode', darkMode:'Dark mode',
     lgModeChip:'Chips',
     lgChipPlaying:'PLAYING A CHIP',
     lgChipNoneGw:'No chips played.',
@@ -1918,6 +1917,7 @@ const I18N={
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
     tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
+    lightMode:'Modo claro', darkMode:'Modo oscuro',
     lgModeChip:'Comodines',
     lgChipPlaying:'JUGANDO UN COMOD\u00cdN',
     lgChipNoneGw:'Sin comodines jugados.',
@@ -2149,7 +2149,7 @@ let THEME=(function(){try{const v=localStorage.getItem('fplTheme');return (v==='
   document.documentElement.classList.remove('dark-theme','light-theme');
   // Add the selected theme class (if not dark, which is default)
   if(THEME!=='dark')document.documentElement.classList.add(THEME+'-theme');
-  document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===THEME)));
+  paintThemeBtn();
 })();
 
 function t(key){const v=(I18N[LANG]&&I18N[LANG][key]!==undefined)?I18N[LANG][key]:I18N.en[key];return v;}
@@ -2164,6 +2164,10 @@ function setLang(l){
   if(typeof renderLeagues==='function')renderLeagues();
 }
 
+function paintThemeBtn(){
+  const btn=document.getElementById('themeBtn');
+  if(btn)btn.textContent=THEME==='light'?t('darkMode'):t('lightMode');
+}
 function setTheme(theme){
   THEME=theme;
   try{localStorage.setItem('fplTheme',theme)}catch(e){}
@@ -2171,8 +2175,9 @@ function setTheme(theme){
   document.documentElement.classList.remove('dark-theme','light-theme');
   // Add the selected theme class (if not dark, which is default)
   if(theme!=='dark')document.documentElement.classList.add(theme+'-theme');
-  document.querySelectorAll('.themebtn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===theme)));
+  paintThemeBtn();
 }
+function toggleTheme(){ setTheme(THEME==='light'?'dark':'light'); }
 
 /* ══ CONFIG ════════════════════════════════════════════ */
 const FPL='https://fantasy.premierleague.com/api';
@@ -7826,6 +7831,7 @@ function applyStaticI18n(){
     +'<li>'+t('pasteStep2')+'</li>'
     +'<li>'+t('pasteStep3a')+'<code>fantasy.premierleague.com/api/fixtures/</code>'+t('pasteStep3b')+'</li>'
     +'</ol>';
+  paintThemeBtn();
 }
 
 applyStaticI18n();
@@ -7962,7 +7968,19 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('histOverlay').
     err(t('noSource'));
     const btn=$('runBtn'); if(btn){ btn.disabled=false; btn.textContent=t('loadData'); }
   }
-})();
+})().then(()=>{
+  // Deep link from another page's nav grid (e.g. price-changes.html?view=myteam
+  // linking back here). Runs after boot settles either path, cached or fresh,
+  // so the tabs already exist. Mirrors the click handler's own side effects.
+  try{
+    const v=new URLSearchParams(location.search).get('view');
+    if(!v)return;
+    const btn=document.querySelector('.tab[data-view="'+v+'"]');
+    if(!btn)return;
+    activateTab(v);
+    if(v==='myteam'||v==='leagues')ensureTeamLoaded(v);
+  }catch(e){}
+});
 </script>
 </body>
 </html>

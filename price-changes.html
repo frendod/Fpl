@@ -51,11 +51,23 @@
   .epc-btn-accent{background:var(--accent);color:#1a1206;border:none;border-radius:6px;font-size:13px;font-weight:600;padding:9px 16px}
   .epc-status{font-size:12px;color:var(--dim)}
   .epc-link{background:none;border:none;color:var(--dim);text-decoration:underline;font-size:11px;padding:0}
-  .epc-toggles{display:flex;gap:8px;align-items:center;flex-shrink:0}
-  .langtoggle,.themetoggle2{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-  .langbtn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s}
-  .langbtn:hover{color:var(--paper)}
-  .langbtn[aria-pressed="true"]{background:var(--accent);color:#1a1206}
+
+  /* Site-wide masthead row + nav grid — mirrors index.html so every page
+     shares one identical top strip: eyebrow (season/build) left, theme +
+     language toggles right, then the full nav below it. */
+  .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);min-width:0}
+  .eyebrow-long{white-space:nowrap}
+  .langtoggle,.themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+  .langbtn,.themebtn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s}
+  .langbtn:hover,.themebtn:hover{color:var(--paper)}
+  .langbtn[aria-pressed="true"],.themebtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}
+  .tab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;text-decoration:none;display:inline-block;line-height:normal}
+  .tab:hover{color:var(--paper)}
+  .tab[aria-selected="true"]{background:rgba(217,164,65,.14);border-color:var(--accent);color:var(--accent)}
+  @media (hover:none) and (pointer:coarse){ .tab{padding:14px 18px} }
+  @media (max-width:640px){ .eyebrow{font-size:9.5px;letter-spacing:.10em} .eyebrow-long{display:none} .langbtn,.themebtn{padding:5px 9px;font-size:10.5px} }
 
   .epc-section{position:relative;z-index:1;padding:22px 44px 40px}
   .epc-caveat{font-size:11px;color:var(--dim);margin:0 44px 0;padding-top:14px;max-width:900px}
@@ -117,17 +129,33 @@
 <body>
 
 <div class="epc-header">
-  <div class="epc-topline">
-    <div>
-      <div class="epc-title" data-i18n="title">Expected Price Changes</div>
-      <div class="epc-sub" id="dataStatus">Loading live FPL data…</div>
-    </div>
-    <div class="epc-toggles">
-      <button class="epc-btn-ghost" id="themeBtn" data-i18n="lightMode">Light mode</button>
+  <div class="masthead-row">
+    <div class="eyebrow"><span class="eyebrow-long">Fantasy Premier League · </span>2026/27 · <span id="buildStamp" style="color:var(--dim)">—</span></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="themtoggle" role="group" aria-label="Theme">
+        <button class="themebtn" id="themeBtn" data-i18n="lightMode">Light mode</button>
+      </div>
       <div class="langtoggle" role="group" aria-label="Language">
         <button class="langbtn" data-lang="en" aria-pressed="true" onclick="setLang('en')">EN</button>
         <button class="langbtn" data-lang="es" aria-pressed="false" onclick="setLang('es')">ES</button>
       </div>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
+    <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
+    <a class="tab" href="index.html?view=leagues" data-i18n="tabLeagues">My Leagues</a>
+    <a class="tab" href="index.html?view=xi" data-i18n="tabXI">Best XI</a>
+    <a class="tab" href="index.html?view=table" data-i18n="tabTable">All players</a>
+    <a class="tab" href="index.html?view=plan" data-i18n="tabPlan">Season plan</a>
+    <a class="tab" href="gw-odds.html" data-i18n="tabOdds">GW odds</a>
+    <span class="tab" aria-selected="true" data-i18n="tabPrices">Price changes</span>
+    <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
+  </div>
+  <div class="epc-topline">
+    <div>
+      <div class="epc-title" data-i18n="title">Expected Price Changes</div>
+      <div class="epc-sub" id="dataStatus">Loading live FPL data…</div>
     </div>
   </div>
   <div class="epc-toolbar">
@@ -150,17 +178,19 @@
   "Momentum" is this gameweek's net transfers relative to how many managers already own the player — a ranking signal, not FPL's real threshold (which isn't published). Biggest positive momentum = most likely to rise soon; biggest negative = most likely to fall. Treat it as a shortlist to watch, not a guarantee.
 </div>
 
-<div class="epc-footer" id="buildStamp"></div>
+
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-19c';
+const APP_BUILD = 'price-changes-2026-09-20a';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
 const $ = id => document.getElementById(id);
 const TEAM_KEY = 'fplRockId';        // same key the main app uses — shares a cached team ID
-const THEME_KEY = 'fplRockPriceTheme';
+// Shared key with index.html so a theme choice on one page carries to the
+// others, same idea as LANG sharing 'fplLang'.
+const THEME_KEY = 'fplTheme';
 const VIEW_KEY = 'fplRockPriceView';
 
 const CLUB_COLORS = {
@@ -183,6 +213,8 @@ const I18N = {
     tabLedger: 'Ledger',
     tabCards: 'Cards',
     tabDashboard: 'Dashboard',
+    tabPicks: 'Picks', tabMyTeam: 'My Team', tabLeagues: 'My Leagues', tabXI: 'Best XI',
+    tabTable: 'All players', tabPlan: 'Season plan', tabOdds: 'GW odds', tabPrices: 'Price changes', tabDiag: 'Diagnostics',
     teamId: 'Team ID',
     teamIdPh: 'e.g. 1234567',
     checkSquad: 'Check my squad',
@@ -223,6 +255,8 @@ const I18N = {
     tabLedger: 'Registro',
     tabCards: 'Tarjetas',
     tabDashboard: 'Panel',
+    tabPicks: 'Selecciones', tabMyTeam: 'Mi equipo', tabLeagues: 'Mis ligas', tabXI: 'Mejor XI',
+    tabTable: 'Jugadores', tabPlan: 'Plan de temporada', tabOdds: 'Cuotas', tabPrices: 'Cambios de precio', tabDiag: 'Diagnóstico',
     teamId: 'ID de equipo',
     teamIdPh: 'p. ej. 1234567',
     checkSquad: 'Ver mi plantilla',
