@@ -1,51 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" data-build="fdr-2026-09-27f">
+<html lang="en" data-build="targets-2026-09-27a">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10151c">
+<meta name="build" content="targets-2026-09-27a">
 <title>Fixture Targets — FPL Model</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* fdr-2026-09-27f — MOCKUP. Companion to index.html, same token system as gw-odds.html */
+/* targets-2026-09-27a — companion to index.html, same token system as gw-odds.html */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
-  --paper:#ffffff; --dim:#ffffff;
+  --paper:#ffffff; --dim:#ffffff; --dimmer:#ffffff;
   --good:#4ec9a0; --bad:#e5657a; --accent:#d9a441; --accent-soft:rgba(217,164,65,.14);
   --d1:#0f6b3f; --d2:#2f8f5b; --d3:#4a5361; --d4:#a33a3f; --d5:#6e1a28;
 }
 .light-theme{
   --ink:#ffffff; --panel:#f5f5f5; --panel2:#eaeaea;
   --line:rgba(0,0,0,.12); --line2:rgba(0,0,0,.22);
-  --paper:#000000; --dim:#000000;
+  --paper:#000000; --dim:#000000; --dimmer:#000000;
   --good:#1d7c5c; --bad:#c92f2f; --accent:#9a6a12; --accent-soft:rgba(217,164,65,.18);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{background:var(--ink);color:var(--paper);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;min-height:100vh}
-.wrap{max-width:1180px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top)) 16px 40px}
-.mono{font-family:'IBM Plex Mono',monospace}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;opacity:.8}
-.eyebrow a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--line2)}
-h1{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(34px,7vw,54px);font-weight:400;line-height:1;margin-top:6px}
-img.ball{display:inline-block}
-h1 em{font-style:italic;color:var(--accent)}
-.sub{margin-top:6px;font-size:13.5px;opacity:.85}
-.mock{display:inline-block;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;padding:4px 9px;border:1px solid var(--accent);color:var(--accent);border-radius:3px}
-.themebtn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:5px 10px;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--paper);border-radius:3px}
+body{background:var(--ink);color:var(--paper);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;min-height:100vh;overscroll-behavior-y:none}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:repeating-linear-gradient(180deg,transparent 0 39px,rgba(232,228,220,.022) 39px 40px)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 40px calc(16px + env(safe-area-inset-left))}
 
-.controls{margin-top:20px;display:flex;gap:18px 28px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
-.ctl label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;opacity:.85}
+.masthead{margin-bottom:6px}
+.masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.langtoggle,.themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.langbtn,.themebtn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 9px;cursor:pointer;border:none;background:transparent;color:var(--dim)}
+.langbtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--dim)}
+h1{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(34px,7vw,54px);font-weight:400;line-height:1;margin-top:6px}
+h1 em{font-style:italic;color:var(--accent)}
+img.ball{display:inline-block}
+.subline{margin-top:6px;font-size:13.5px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.tab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:2px;border:1px solid var(--line2);background:transparent;color:var(--dim);text-decoration:none;display:inline-block;line-height:normal}
+.tab:hover{color:var(--accent)}
+.tab[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+@media (hover:none) and (pointer:coarse){ .tab{padding:14px 18px} }
+
+.controls{margin-top:18px;display:flex;gap:16px 26px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.ctl label,.ctl .lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
 .ctl .val{color:var(--accent);font-weight:600}
 select{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 10px;border:1px solid var(--line2);border-radius:3px;background:var(--panel2);color:var(--paper);cursor:pointer;min-width:150px}
 .seg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .seg button{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;padding:8px 14px;border:none;background:transparent;color:var(--paper);cursor:pointer}
 .seg button[aria-pressed=true]{background:#d9a441;color:#000}
-.hint{font-size:12.5px;opacity:.85;flex-basis:100%}
+.hint{font-size:12.5px;flex-basis:100%}
+.warnbox{margin-top:12px;font-size:12.5px;padding:8px 12px;border:1px solid var(--bad);border-radius:4px}
 
 .legend{display:flex;gap:6px;align-items:center;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;flex-wrap:wrap}
 .legend .sw{width:26px;height:14px;border-radius:2px;display:inline-block}
@@ -56,83 +66,222 @@ th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;fon
 th.l{text-align:left;padding-left:12px}
 td{padding:4px 3px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
 .sticky{position:sticky;left:0;background:var(--panel);z-index:1}
-td.rk{font-family:'IBM Plex Mono',monospace;font-size:11px;width:30px;opacity:.8}
+td.rk{font-family:'IBM Plex Mono',monospace;font-size:11px;width:30px}
 td.tm{text-align:left;padding-left:10px;font-weight:600;white-space:nowrap}
-td.tm .full{font-weight:400;font-size:12px;opacity:.8;margin-left:6px}
+td.tm .full{font-weight:400;font-size:12px;margin-left:6px}
 td.ease{font-family:'IBM Plex Mono',monospace;font-weight:600;min-width:92px;padding:0 10px}
 .bar{height:4px;border-radius:2px;background:var(--line2);margin-top:3px;overflow:hidden}
 .bar i{display:block;height:100%;background:#d9a441}
 .cell{display:flex;flex-direction:column;gap:2px;min-width:62px}
 .chip{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:#fff;border-radius:3px;padding:6px 4px;line-height:1.1;white-space:nowrap}
-.chip small{font-weight:400;font-size:9.5px;opacity:.9;margin-left:3px}
+.chip small{font-weight:400;font-size:9.5px;margin-left:3px}
 .chip.blank{background:transparent;color:var(--paper);border:1px dashed var(--line2);font-weight:400}
-tr.team{cursor:pointer}
-tr.team:hover td{background:var(--panel2)}
-tr.team:hover td.sticky{background:var(--panel2)}
+tr.team:hover td,tr.team:hover td.sticky{background:var(--panel2)}
 tr.pl td{border-bottom:1px solid var(--line2);padding:0 0 10px}
 .picks{display:flex;gap:8px;flex-wrap:wrap;padding:2px 12px 0 40px;position:sticky;left:0;max-width:min(100%,calc(100vw - 34px))}
 .pk{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:6px 10px;display:flex;gap:10px;align-items:baseline;font-size:13px}
 .pk b{font-weight:600}
-.pk .pos{font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.85}
+.pk .pos,.pk .meta{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.pk .pos{font-size:10px}
 .pk .xp{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent)}
-.pk .meta{font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:.85}
 .pk .warn{color:var(--bad);font-weight:600}
+.pk.none{font-size:12px}
+
+.state{margin-top:40px;text-align:center;font-size:14px}
+.state .mono{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:8px}
+.retry{margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;padding:9px 18px;border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:3px;cursor:pointer}
+
 .notes{margin-top:22px;font-size:13px;line-height:1.6;max-width:820px}
 .notes h3{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.16em;margin-bottom:6px;color:var(--accent);font-weight:600}
 .notes p{margin-bottom:8px}
-footer{margin-top:26px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;opacity:.8}
-@media (max-width:640px){ td.tm .full{display:none} .picks{padding-left:10px;flex-direction:column;gap:5px} .pk{justify-content:space-between} td.ease{min-width:60px;padding:0 6px} .cell{min-width:54px} }
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.7}
+@media (max-width:640px){
+  td.tm .full{display:none}
+  .picks{padding-left:10px;flex-direction:column;gap:5px}
+  .pk{justify-content:space-between}
+  td.ease{min-width:60px;padding:0 6px}
+  .cell{min-width:54px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <div>
-      <div class="eyebrow"><a href="./">FPL MODEL</a> · FIXTURE TARGETS</div>
-      <h1><span class="ball" id="ball">⚽</span> Fixture <em>targets</em></h1>
-      <div class="sub" id="sub"></div>
-      <span class="mock">MOCKUP · data frozen 27 Sep, GW6–15 · engine xpe-2026-09-10c</span>
+  <div class="masthead">
+    <div class="masthead-row">
+      <div class="eyebrow"><span id="seasonLbl">—</span> · <span id="buildStamp">—</span></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="themtoggle" role="group" aria-label="Theme">
+          <button class="themebtn" id="themeBtn" data-i18n="lightMode">Light mode</button>
+        </div>
+        <div class="langtoggle" role="group" aria-label="Language">
+          <button class="langbtn" data-lang="en" aria-pressed="true">EN</button>
+          <button class="langbtn" data-lang="es" aria-pressed="false">ES</button>
+        </div>
+      </div>
     </div>
-    <button class="themebtn" id="themeBtn">Light mode</button>
+    <h1><span class="ball" id="ball">⚽</span> <span data-i18n="titleA">Fixture</span> <em data-i18n="titleB">targets</em></h1>
+    <div class="subline" id="subline" data-i18n="loading">Loading fixtures…</div>
+    <div class="tabs" role="tablist">
+      <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
+      <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
+      <a class="tab" href="index.html?view=leagues" data-i18n="tabLeagues">My Leagues</a>
+      <a class="tab" href="index.html?view=xi" data-i18n="tabXI">Best XI</a>
+      <a class="tab" href="index.html?view=table" data-i18n="tabTable">All players</a>
+      <a class="tab" href="index.html?view=plan" data-i18n="tabPlan">Season plan</a>
+      <a class="tab" href="gw-odds.html" data-i18n="tabOdds">GW odds</a>
+      <span class="tab" aria-selected="true" data-i18n="tabTargets">Fixture targets</span>
+      <a class="tab" href="price-changes.html" data-i18n="tabPrices">Price changes</a>
+      <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
+    </div>
   </div>
 
-  <div class="controls">
+  <div class="controls" id="controls" style="display:none">
     <div class="ctl">
-      <label>Window · <span class="val" id="nVal"></span></label>
-      <select id="n"><option value="1">1 gameweek</option><option value="2">2 gameweeks</option><option value="3">3 gameweeks</option><option value="4">4 gameweeks</option><option value="5" selected>5 gameweeks</option><option value="6">6 gameweeks</option><option value="7">7 gameweeks</option><option value="8">8 gameweeks</option><option value="9">9 gameweeks</option><option value="10">10 gameweeks</option></select>
+      <label for="n"><span data-i18n="window">Window</span> · <span class="val" id="nVal"></span></label>
+      <select id="n"></select>
     </div>
     <div class="ctl">
-      <label>Rate fixtures for</label>
+      <span class="lbl" data-i18n="rateFor">Rate fixtures for</span>
       <div class="seg" id="mode">
-        <button data-m="att" aria-pressed="true">Attackers</button>
-        <button data-m="def" aria-pressed="false">Defenders</button>
+        <button data-m="att" aria-pressed="true" data-i18n="attackers">Attackers</button>
+        <button data-m="def" aria-pressed="false" data-i18n="defenders">Defenders</button>
       </div>
     </div>
     <div class="ctl">
-      <label>Players</label>
+      <span class="lbl" data-i18n="players">Players</span>
       <div class="seg" id="showPl">
-        <button data-v="1" aria-pressed="true">Show top 3</button>
-        <button data-v="0" aria-pressed="false">Hide</button>
+        <button data-v="1" aria-pressed="true" data-i18n="showTop3">Show top 3</button>
+        <button data-v="0" aria-pressed="false" data-i18n="hide">Hide</button>
       </div>
     </div>
     <div class="hint" id="hint"></div>
   </div>
+  <div class="warnbox" id="modelWarn" style="display:none"></div>
 
   <div class="legend" id="legend"></div>
-  <div class="tablewrap"><table id="tbl"></table></div>
+  <div id="content"><div class="state" data-i18n="loading">Loading fixtures…</div></div>
 
-  <div class="notes">
-    <h3>HOW IT'S RATED</h3>
-    <p>Each fixture gets a difficulty that's half FPL's official FDR and half the model's team ratings (the same attack/defence ratings the xP engine uses, fitted on xG). <b>Attackers</b> rates a fixture by how many goals the team is expected to score; <b>Defenders</b> by how many it's expected to concede. The model half is rescaled to FPL's 1–5 spread (same average and spread) so the two halves weigh the same.</p>
-    <p><b>Avg ease</b> = sum of (6 − difficulty) for every fixture in the window ÷ number of gameweeks. A blank adds 0, so it drags a team down; a double adds both, so it lifts them. Higher is better.</p>
-    <p><b>Top 3</b> = the three highest summed xP over the same window: MID/FWD in Attackers mode, GKP/DEF in Defenders mode. Price and expected minutes alongside; minutes in red when under 60 or the player is flagged.</p>
+  <div class="notes" id="notes" style="display:none">
+    <h3 data-i18n="howH">HOW IT'S RATED</h3>
+    <p id="how1"></p>
+    <p id="how2"></p>
+    <p id="how3"></p>
   </div>
-  <footer>fdr-2026-09-27f · mockup — live version will read bootstrap, fixtures and the xP engine directly</footer>
+  <footer id="footer" style="display:none"></footer>
 </div>
+
 <script>
-const DATA={"teams":[{"id":1,"short":"ARS","name":"Arsenal"},{"id":2,"short":"AVL","name":"Aston Villa"},{"id":3,"short":"BOU","name":"Bournemouth"},{"id":4,"short":"BRE","name":"Brentford"},{"id":5,"short":"BHA","name":"Brighton"},{"id":6,"short":"CHE","name":"Chelsea"},{"id":7,"short":"COV","name":"Coventry City"},{"id":8,"short":"CRY","name":"Crystal Palace"},{"id":9,"short":"EVE","name":"Everton"},{"id":10,"short":"FUL","name":"Fulham"},{"id":11,"short":"HUL","name":"Hull City"},{"id":12,"short":"IPS","name":"Ipswich Town"},{"id":13,"short":"LEE","name":"Leeds"},{"id":14,"short":"LIV","name":"Liverpool"},{"id":15,"short":"MCI","name":"Man City"},{"id":16,"short":"MUN","name":"Man Utd"},{"id":17,"short":"NEW","name":"Newcastle"},{"id":18,"short":"NFO","name":"Nott'm Forest"},{"id":19,"short":"TOT","name":"Spurs"},{"id":20,"short":"SUN","name":"Sunderland"}],"gws":[6,7,8,9,10,11,12,13,14,15],"fx":[{"gw":6,"h":1,"a":13,"hd":3,"ad":5,"lh":1.845,"la":0.855},{"gw":6,"h":2,"a":4,"hd":3,"ad":3,"lh":1.267,"la":1.819},{"gw":6,"h":6,"a":3,"hd":3,"ad":4,"lh":1.835,"la":1.571},{"gw":6,"h":12,"a":10,"hd":2,"ad":2,"lh":1.541,"la":1.611},{"gw":6,"h":20,"a":5,"hd":3,"ad":3,"lh":1.664,"la":1.837},{"gw":6,"h":16,"a":19,"hd":2,"ad":4,"lh":2.042,"la":0.972},{"gw":6,"h":8,"a":18,"hd":3,"ad":3,"lh":1.437,"la":1.398},{"gw":6,"h":11,"a":9,"hd":3,"ad":2,"lh":1.243,"la":1.394},{"gw":6,"h":14,"a":15,"hd":4,"ad":4,"lh":1.649,"la":1.605},{"gw":6,"h":7,"a":17,"hd":3,"ad":2,"lh":1.277,"la":1.492},{"gw":7,"h":9,"a":6,"hd":4,"ad":3,"lh":1.616,"la":1.565},{"gw":7,"h":4,"a":14,"hd":4,"ad":3,"lh":1.731,"la":1.456},{"gw":7,"h":10,"a":11,"hd":2,"ad":3,"lh":1.748,"la":1.119},{"gw":7,"h":15,"a":12,"hd":2,"ad":5,"lh":2.598,"la":1.098},{"gw":7,"h":17,"a":2,"hd":3,"ad":3,"lh":1.658,"la":1.206},{"gw":7,"h":3,"a":20,"hd":3,"ad":3,"lh":1.836,"la":1.357},{"gw":7,"h":5,"a":8,"hd":2,"ad":4,"lh":2.241,"la":1.423},{"gw":7,"h":13,"a":16,"hd":4,"ad":3,"lh":1.555,"la":1.657},{"gw":7,"h":18,"a":1,"hd":4,"ad":3,"lh":0.906,"la":1.434},{"gw":7,"h":19,"a":7,"hd":2,"ad":3,"lh":1.45,"la":1.009},{"gw":8,"h":12,"a":18,"hd":3,"ad":2,"lh":1.266,"la":1.53},{"gw":8,"h":2,"a":15,"hd":4,"ad":3,"lh":1.212,"la":1.996},{"gw":8,"h":1,"a":9,"hd":3,"ad":5,"lh":1.94,"la":0.761},{"gw":8,"h":7,"a":10,"hd":2,"ad":2,"lh":1.286,"la":1.56},{"gw":8,"h":6,"a":19,"hd":2,"ad":4,"lh":1.834,"la":1.135},{"gw":8,"h":8,"a":17,"hd":3,"ad":3,"lh":1.737,"la":1.407},{"gw":8,"h":11,"a":4,"hd":3,"ad":2,"lh":1.167,"la":1.833},{"gw":8,"h":14,"a":5,"hd":3,"ad":4,"lh":1.882,"la":1.516},{"gw":8,"h":16,"a":3,"hd":3,"ad":4,"lh":2.042,"la":1.345},{"gw":8,"h":20,"a":13,"hd":3,"ad":3,"lh":1.543,"la":1.515},{"gw":9,"h":6,"a":16,"hd":4,"ad":4,"lh":1.693,"la":1.859},{"gw":9,"h":3,"a":13,"hd":3,"ad":3,"lh":1.657,"la":1.423},{"gw":9,"h":4,"a":18,"hd":3,"ad":3,"lh":1.742,"la":1.209},{"gw":9,"h":7,"a":20,"hd":3,"ad":2,"lh":1.272,"la":1.578},{"gw":9,"h":11,"a":12,"hd":2,"ad":2,"lh":1.478,"la":1.332},{"gw":9,"h":15,"a":5,"hd":3,"ad":5,"lh":2.241,"la":1.566},{"gw":9,"h":19,"a":8,"hd":2,"ad":3,"lh":1.367,"la":1.373},{"gw":9,"h":2,"a":10,"hd":2,"ad":3,"lh":1.438,"la":1.465},{"gw":9,"h":14,"a":1,"hd":4,"ad":4,"lh":1.092,"la":1.425},{"gw":9,"h":17,"a":9,"hd":3,"ad":3,"lh":1.533,"la":1.354},{"gw":10,"h":9,"a":7,"hd":2,"ad":3,"lh":1.744,"la":1.02},{"gw":10,"h":13,"a":19,"hd":2,"ad":3,"lh":1.684,"la":1.012},{"gw":10,"h":1,"a":11,"hd":2,"ad":5,"lh":2.114,"la":0.625},{"gw":10,"h":10,"a":17,"hd":3,"ad":3,"lh":1.697,"la":1.38},{"gw":10,"h":18,"a":15,"hd":4,"ad":3,"lh":1.369,"la":1.615},{"gw":10,"h":5,"a":4,"hd":3,"ad":4,"lh":1.938,"la":1.725},{"gw":10,"h":8,"a":14,"hd":4,"ad":3,"lh":1.427,"la":1.683},{"gw":10,"h":12,"a":3,"hd":3,"ad":2,"lh":1.432,"la":1.75},{"gw":10,"h":20,"a":6,"hd":4,"ad":3,"lh":1.731,"la":1.649},{"gw":10,"h":16,"a":2,"hd":3,"ad":4,"lh":2.23,"la":1.042},{"gw":11,"h":15,"a":10,"hd":2,"ad":5,"lh":2.328,"la":1.218},{"gw":11,"h":2,"a":20,"hd":3,"ad":3,"lh":1.422,"la":1.482},{"gw":11,"h":3,"a":18,"hd":3,"ad":3,"lh":1.525,"la":1.275},{"gw":11,"h":6,"a":13,"hd":3,"ad":4,"lh":1.762,"la":1.534},{"gw":11,"h":7,"a":8,"hd":2,"ad":2,"lh":1.311,"la":1.597},{"gw":11,"h":19,"a":12,"hd":2,"ad":3,"lh":1.497,"la":1.21},{"gw":11,"h":17,"a":1,"hd":4,"ad":3,"lh":0.912,"la":1.734},{"gw":11,"h":11,"a":5,"hd":3,"ad":2,"lh":1.275,"la":1.899},{"gw":11,"h":14,"a":16,"hd":4,"ad":4,"lh":1.677,"la":1.515},{"gw":11,"h":4,"a":9,"hd":3,"ad":3,"lh":1.991,"la":1.202},{"gw":12,"h":18,"a":6,"hd":4,"ad":3,"lh":1.626,"la":1.37},{"gw":12,"h":13,"a":7,"hd":2,"ad":3,"lh":1.959,"la":0.97},{"gw":12,"h":16,"a":4,"hd":3,"ad":4,"lh":1.937,"la":1.537},{"gw":12,"h":12,"a":2,"hd":3,"ad":2,"lh":1.564,"la":1.355},{"gw":12,"h":9,"a":14,"hd":4,"ad":3,"lh":1.317,"la":1.55},{"gw":12,"h":5,"a":17,"hd":3,"ad":4,"lh":2.183,"la":1.329},{"gw":12,"h":8,"a":11,"hd":2,"ad":3,"lh":1.789,"la":1.14},{"gw":12,"h":10,"a":3,"hd":3,"ad":3,"lh":1.588,"la":1.568},{"gw":12,"h":20,"a":19,"hd":2,"ad":3,"lh":1.606,"la":1.121},{"gw":12,"h":1,"a":15,"hd":4,"ad":5,"lh":1.743,"la":1.098},{"gw":13,"h":2,"a":9,"hd":3,"ad":3,"lh":1.349,"la":1.384},{"gw":13,"h":3,"a":5,"hd":3,"ad":3,"lh":1.787,"la":1.726},{"gw":13,"h":4,"a":1,"hd":4,"ad":3,"lh":1.184,"la":1.539},{"gw":13,"h":6,"a":8,"hd":2,"ad":4,"lh":2.012,"la":1.48},{"gw":13,"h":7,"a":12,"hd":2,"ad":2,"lh":1.435,"la":1.407},{"gw":13,"h":11,"a":18,"hd":3,"ad":2,"lh":1.088,"la":1.403},{"gw":13,"h":14,"a":20,"hd":3,"ad":4,"lh":1.934,"la":1.192},{"gw":13,"h":15,"a":13,"hd":3,"ad":5,"lh":2.078,"la":1.291},{"gw":13,"h":17,"a":16,"hd":4,"ad":3,"lh":1.401,"la":1.844},{"gw":13,"h":19,"a":10,"hd":2,"ad":3,"lh":1.342,"la":1.341},{"gw":14,"h":2,"a":8,"hd":2,"ad":3,"lh":1.465,"la":1.5},{"gw":14,"h":3,"a":11,"hd":2,"ad":3,"lh":1.899,"la":1.04},{"gw":14,"h":4,"a":15,"hd":4,"ad":3,"lh":1.789,"la":1.734},{"gw":14,"h":6,"a":14,"hd":4,"ad":4,"lh":1.611,"la":1.654},{"gw":14,"h":9,"a":10,"hd":2,"ad":3,"lh":1.614,"la":1.355},{"gw":14,"h":13,"a":12,"hd":2,"ad":3,"lh":2.023,"la":1.162},{"gw":14,"h":16,"a":7,"hd":2,"ad":4,"lh":2.375,"la":0.932},{"gw":14,"h":17,"a":20,"hd":3,"ad":3,"lh":1.616,"la":1.45},{"gw":14,"h":18,"a":5,"hd":3,"ad":3,"lh":1.563,"la":1.526},{"gw":14,"h":19,"a":1,"hd":4,"ad":3,"lh":0.749,"la":1.622},{"gw":15,"h":1,"a":3,"hd":3,"ad":5,"lh":1.921,"la":0.876},{"gw":15,"h":5,"a":9,"hd":3,"ad":4,"lh":2.063,"la":1.312},{"gw":15,"h":7,"a":2,"hd":3,"ad":2,"lh":1.305,"la":1.313},{"gw":15,"h":8,"a":16,"hd":4,"ad":3,"lh":1.5,"la":1.892},{"gw":15,"h":10,"a":4,"hd":3,"ad":3,"lh":1.507,"la":1.792},{"gw":15,"h":11,"a":19,"hd":2,"ad":2,"lh":1.23,"la":1.159},{"gw":15,"h":12,"a":17,"hd":3,"ad":2,"lh":1.531,"la":1.54},{"gw":15,"h":14,"a":13,"hd":3,"ad":4,"lh":1.745,"la":1.25},{"gw":15,"h":15,"a":6,"hd":4,"ad":5,"lh":2.331,"la":1.406},{"gw":15,"h":20,"a":18,"hd":3,"ad":3,"lh":1.42,"la":1.356}],"players":[{"n":"Raya","t":1,"p":"GKP","c":6,"st":"a","xm":87,"xp":[3.95,3.83,4.13,3.57,4.42,3.85,3.6,3.48,4.12,3.93]},{"n":"Gabriel","t":1,"p":"DEF","c":8,"st":"a","xm":82,"xp":[5.06,4.71,5.33,4.33,5.78,4.87,4.5,4.23,5.18,5.06]},{"n":"J.Timber","t":1,"p":"DEF","c":6.5,"st":"d","xm":40,"xp":[0.49,0.78,1.28,1.37,2.19,1.88,1.78,1.67,1.95,1.96]},{"n":"Lewis-Skelly","t":1,"p":"MID","c":5.5,"st":"a","xm":41,"xp":[1.68,1.59,1.72,1.56,1.78,1.65,1.62,1.57,1.65,1.69]},{"n":"Calafiori","t":1,"p":"DEF","c":5.8,"st":"a","xm":71,"xp":[4.19,3.86,4.42,3.55,4.8,4.02,3.72,3.48,4.26,4.2]},{"n":"Hincapie","t":1,"p":"DEF","c":5.3,"st":"a","xm":21,"xp":[1.13,1.07,1.18,1.01,1.25,1.1,1.03,0.99,1.15,1.13]},{"n":"White","t":1,"p":"DEF","c":5.5,"st":"a","xm":45,"xp":[2.46,2.3,2.58,2.13,2.78,2.37,2.21,2.08,2.51,2.46]},{"n":"Mosquera","t":1,"p":"DEF","c":5.4,"st":"d","xm":22,"xp":[0.57,0.68,0.89,0.88,1.27,1.1,1.02,0.97,1.17,1.13]},{"n":"Saka","t":1,"p":"MID","c":9.5,"st":"a","xm":77,"xp":[5.79,5,6.01,4.92,6.39,5.56,5.52,5.11,5.41,5.93]},{"n":"Rice","t":1,"p":"MID","c":7.4,"st":"a","xm":84,"xp":[4.48,4.08,4.6,4.01,4.83,4.35,4.3,4.08,4.32,4.54]},{"n":"Eze","t":1,"p":"MID","c":6.3,"st":"a","xm":28,"xp":[1.66,1.51,1.7,1.49,1.77,1.61,1.61,1.53,1.58,1.68]},{"n":"Ødegaard","t":1,"p":"MID","c":6.7,"st":"a","xm":62,"xp":[3.73,3.33,3.85,3.27,4.06,3.61,3.57,3.36,3.56,3.8]},{"n":"Madueke","t":1,"p":"MID","c":6.3,"st":"a","xm":10,"xp":[0.79,0.73,0.8,0.72,0.83,0.77,0.76,0.73,0.76,0.79]},{"n":"Merino","t":1,"p":"MID","c":5.8,"st":"a","xm":20,"xp":[1.39,1.29,1.41,1.28,1.46,1.36,1.36,1.3,1.34,1.41]},{"n":"Zubimendi","t":1,"p":"MID","c":5.4,"st":"a","xm":35,"xp":[1.85,1.75,1.89,1.73,1.95,1.82,1.81,1.75,1.81,1.87]},{"n":"Dowman","t":1,"p":"MID","c":5.3,"st":"a","xm":4,"xp":[0.35,0.33,0.35,0.33,0.36,0.34,0.34,0.33,0.34,0.35]},{"n":"Gyökeres","t":1,"p":"FWD","c":7.2,"st":"a","xm":23,"xp":[1.54,1.37,1.58,1.37,1.65,1.5,1.5,1.42,1.45,1.57]},{"n":"Havertz","t":1,"p":"FWD","c":7.5,"st":"a","xm":61,"xp":[3.21,2.8,3.3,2.79,3.47,3.1,3.11,2.91,2.99,3.28]},{"n":"Martinez","t":6,"p":"GKP","c":5,"st":"a","xm":85,"xp":[3.05,2.99,3.46,2.86,2.93,3.07,2.97,3.13,2.97,2.66]},{"n":"Konsa","t":1,"p":"DEF","c":4.5,"st":"a","xm":71,"xp":[3.52,3.36,3.7,3.07,3.99,3.4,3.13,2.97,3.66,3.5]},{"n":"Cash","t":2,"p":"DEF","c":4.5,"st":"d","xm":59,"xp":[1.31,1.5,1.41,1.96,1.41,2.07,1.98,2.14,2.07,2.2]},{"n":"Mings","t":2,"p":"DEF","c":4.5,"st":"a","xm":53,"xp":[1.76,1.84,1.65,2.04,1.48,2.02,1.94,2.07,2.02,2.11]},{"n":"Pau","t":2,"p":"DEF","c":4.5,"st":"a","xm":35,"xp":[1.26,1.33,1.17,1.47,1.04,1.46,1.4,1.5,1.45,1.54]},{"n":"Maatsen","t":2,"p":"DEF","c":4.5,"st":"a","xm":56,"xp":[2.11,2.21,1.96,2.49,1.72,2.47,2.36,2.53,2.47,2.59]},{"n":"Lindelöf","t":2,"p":"DEF","c":4.5,"st":"a","xm":69,"xp":[2.01,2.14,1.85,2.41,1.62,2.39,2.28,2.48,2.38,2.56]},{"n":"Rogers","t":6,"p":"MID","c":7.6,"st":"a","xm":87,"xp":[4.47,4.1,4.58,4.23,4.19,4.38,3.84,4.72,4.15,3.79]},{"n":"Buendía","t":2,"p":"MID","c":5.9,"st":"a","xm":66,"xp":[3.42,3.38,3.34,3.66,3.14,3.64,3.56,3.59,3.69,3.56]},{"n":"Guessand","t":8,"p":"MID","c":5.5,"st":"a","xm":13,"xp":[0.61,0.59,0.64,0.6,0.6,0.63,0.65,0.6,0.61,0.61]},{"n":"Tielemans","t":16,"p":"MID","c":5.9,"st":"a","xm":71,"xp":[3.46,3.12,3.36,3.2,3.53,3.03,3.27,3.25,3.64,3.25]},{"n":"McGinn","t":2,"p":"MID","c":5.4,"st":"a","xm":76,"xp":[3.06,3.03,2.98,3.3,2.79,3.28,3.19,3.22,3.32,3.21]},{"n":"Barkley","t":2,"p":"MID","c":5,"st":"a","xm":45,"xp":[2.35,2.33,2.3,2.49,2.18,2.48,2.43,2.45,2.51,2.44]},{"n":"Kamara","t":2,"p":"MID","c":5,"st":"a","xm":70,"xp":[2.45,2.44,2.4,2.6,2.29,2.59,2.54,2.57,2.61,2.56]},{"n":"George Hemmings","t":2,"p":"MID","c":4.5,"st":"a","xm":39,"xp":[1.64,1.63,1.61,1.72,1.54,1.72,1.69,1.7,1.73,1.7]},{"n":"Alysson","t":2,"p":"MID","c":5,"st":"a","xm":17,"xp":[0.83,0.82,0.82,0.87,0.79,0.86,0.85,0.85,0.87,0.84]},{"n":"Manzambi","t":2,"p":"MID","c":5.9,"st":"d","xm":28,"xp":[0.71,0.88,1.05,1.33,1.31,1.51,1.48,1.49,1.53,1.48]},{"n":"Gomes","t":2,"p":"MID","c":5.5,"st":"s","xm":38,"xp":[0,0.39,0.77,1.22,1.47,1.63,1.6,1.62,1.63,1.61]},{"n":"Abraham","t":2,"p":"FWD","c":5.5,"st":"a","xm":19,"xp":[1.49,1.46,1.46,1.56,1.39,1.56,1.53,1.52,1.57,1.51]},{"n":"Petrović","t":3,"p":"GKP","c":4.5,"st":"a","xm":87,"xp":[2.67,3.03,2.56,2.96,2.96,3.1,2.83,2.74,3.39,2.6]},{"n":"Hill","t":3,"p":"DEF","c":5.5,"st":"a","xm":78,"xp":[3.13,3.78,2.86,3.63,3.65,3.79,3.4,3.32,4.28,2.82]},{"n":"Truffert","t":3,"p":"DEF","c":5.5,"st":"a","xm":88,"xp":[3.17,3.99,2.82,3.8,3.83,3.99,3.5,3.41,4.63,2.74]},{"n":"Smith","t":3,"p":"DEF","c":4.5,"st":"a","xm":66,"xp":[1.79,2.33,1.58,2.22,2.23,2.38,2.03,1.93,2.76,1.6]},{"n":"Rayan","t":3,"p":"MID","c":6.4,"st":"a","xm":79,"xp":[3.57,3.93,3.31,3.73,3.82,3.63,3.61,3.8,4.08,2.86]},{"n":"Tavernier","t":3,"p":"MID","c":6,"st":"a","xm":78,"xp":[4.47,4.99,4.07,4.68,4.83,4.51,4.51,4.84,5.18,3.33]},{"n":"Scott","t":3,"p":"MID","c":6.1,"st":"a","xm":82,"xp":[4.12,4.46,3.88,4.27,4.36,4.19,4.16,4.34,4.6,3.46]},{"n":"Kluivert","t":3,"p":"MID","c":6,"st":"a","xm":46,"xp":[2.25,2.48,2.08,2.36,2.41,2.29,2.28,2.4,2.58,1.79]},{"n":"Cook","t":3,"p":"MID","c":5,"st":"a","xm":27,"xp":[1.48,1.54,1.44,1.51,1.52,1.5,1.49,1.51,1.57,1.38]},{"n":"Gannon-Doak","t":3,"p":"MID","c":4.9,"st":"a","xm":2,"xp":[0.6,0.61,0.6,0.6,0.61,0.6,0.6,0.61,0.61,0.59]},{"n":"Adams","t":3,"p":"MID","c":5,"st":"a","xm":59,"xp":[2.49,2.63,2.41,2.57,2.59,2.56,2.52,2.56,2.71,2.3]},{"n":"Brooks","t":3,"p":"MID","c":5,"st":"a","xm":17,"xp":[1.47,1.56,1.4,1.51,1.54,1.47,1.48,1.54,1.59,1.25]},{"n":"Christie","t":3,"p":"MID","c":5,"st":"a","xm":24,"xp":[1.55,1.64,1.49,1.59,1.61,1.57,1.56,1.61,1.67,1.37]},{"n":"Tóth.A","t":3,"p":"MID","c":5,"st":"a","xm":5,"xp":[0.48,0.49,0.46,0.48,0.49,0.48,0.48,0.49,0.5,0.44]},{"n":"Evanilson","t":3,"p":"FWD","c":6,"st":"a","xm":80,"xp":[3.29,3.54,3.07,3.37,3.46,3.24,3.28,3.5,3.6,2.61]},{"n":"Rodríguez","t":3,"p":"FWD","c":6,"st":"a","xm":13,"xp":[0.95,1,0.9,0.97,0.98,0.94,0.95,0.99,1.01,0.81]},{"n":"Kelleher","t":4,"p":"GKP","c":5,"st":"a","xm":89,"xp":[3.44,3.27,3.55,3.5,2.98,3.52,2.97,3.17,3.09,3.23]},{"n":"Collins","t":4,"p":"DEF","c":5.5,"st":"i","xm":43,"xp":[0,0.56,1.25,1.83,1.95,2.51,1.91,2.07,2.09,2.23]},{"n":"Lewis-Potter","t":4,"p":"MID","c":5.5,"st":"a","xm":70,"xp":[3.22,3.12,3.26,3.18,3.05,3.37,2.91,2.7,3.13,3.16]},{"n":"Ajer","t":4,"p":"DEF","c":4.5,"st":"a","xm":74,"xp":[3.23,2.98,3.38,3.3,2.48,3.36,2.44,2.77,2.68,2.93]},{"n":"Kayode","t":4,"p":"DEF","c":4.6,"st":"a","xm":63,"xp":[2.94,2.71,3.06,2.98,2.27,3.08,2.21,2.44,2.47,2.68]},{"n":"Henry","t":4,"p":"DEF","c":4.5,"st":"a","xm":10,"xp":[0.63,0.6,0.65,0.64,0.53,0.65,0.53,0.57,0.56,0.59]},{"n":"Hickey","t":4,"p":"DEF","c":4.5,"st":"a","xm":31,"xp":[1.54,1.47,1.58,1.55,1.33,1.58,1.31,1.38,1.39,1.46]},{"n":"Pinnock","t":7,"p":"DEF","c":4.5,"st":"a","xm":49,"xp":[2.39,2.35,2.33,2.32,2.13,2.31,1.98,2.5,1.74,2.55]},{"n":"Schuster","t":4,"p":"DEF","c":4.5,"st":"a","xm":52,"xp":[2.33,2.17,2.42,2.36,1.89,2.43,1.84,1.98,2.01,2.15]},{"n":"Schade","t":4,"p":"MID","c":6,"st":"a","xm":82,"xp":[4.33,4.17,4.37,4.25,4.08,4.56,3.85,3.47,4.19,4.24]},{"n":"O.Dango","t":4,"p":"MID","c":6.4,"st":"a","xm":39,"xp":[2.32,2.26,2.34,2.28,2.23,2.43,2.12,1.93,2.28,2.29]},{"n":"Damsgaard","t":4,"p":"MID","c":5.5,"st":"a","xm":63,"xp":[3.34,3.24,3.37,3.3,3.17,3.48,3.04,2.84,3.24,3.28]},{"n":"Janelt","t":4,"p":"MID","c":5,"st":"a","xm":71,"xp":[3.38,3.29,3.42,3.35,3.22,3.5,3.11,2.96,3.28,3.32]},{"n":"Carvalho","t":4,"p":"MID","c":5,"st":"a","xm":2,"xp":[0.32,0.31,0.32,0.31,0.31,0.32,0.31,0.3,0.31,0.31]},{"n":"Henderson","t":6,"p":"MID","c":4.9,"st":"i","xm":30,"xp":[0,0.27,0.58,0.81,1.07,1.11,1.03,1.15,1.07,1.01]},{"n":"Yarmoliuk","t":4,"p":"MID","c":4.9,"st":"a","xm":54,"xp":[2.03,2,2.05,2.03,1.95,2.08,1.91,1.87,1.98,2]},{"n":"Onyeka","t":7,"p":"MID","c":4.9,"st":"a","xm":39,"xp":[1.69,1.6,1.69,1.68,1.57,1.69,1.54,1.76,1.5,1.72]},{"n":"Anthony","t":4,"p":"MID","c":6,"st":"a","xm":65,"xp":[3.09,2.99,3.12,3.04,2.93,3.23,2.78,2.56,3,3.03]},{"n":"Thiago","t":4,"p":"FWD","c":7.9,"st":"a","xm":87,"xp":[4.57,4.43,4.59,4.45,4.42,4.83,4.13,3.59,4.52,4.53]},{"n":"Wilson","t":4,"p":"FWD","c":5.5,"st":"a","xm":8,"xp":[0.91,0.9,0.91,0.9,0.9,0.93,0.87,0.82,0.9,0.9]},{"n":"Verbruggen","t":5,"p":"GKP","c":4.5,"st":"a","xm":87,"xp":[2.81,3.02,2.65,2.5,2.77,3.15,3.11,2.72,2.86,3.12]},{"n":"Rushworth","t":7,"p":"GKP","c":4.5,"st":"a","xm":60,"xp":[2.07,2.07,2.02,2.01,1.89,2,1.78,2.14,1.62,2.21]},{"n":"Van Hecke","t":19,"p":"DEF","c":4.9,"st":"a","xm":86,"xp":[2.85,4.73,3.21,4.02,3.3,4.4,3.49,4.05,3.17,4.09]},{"n":"F.Kadıoğlu","t":5,"p":"DEF","c":4.4,"st":"a","xm":80,"xp":[2.78,3.23,2.42,2.08,2.74,3.34,3.35,2.6,2.8,3.34]},{"n":"Boscagli","t":5,"p":"DEF","c":4.5,"st":"a","xm":65,"xp":[2.19,2.53,1.92,1.65,2.15,2.63,2.63,2.05,2.22,2.62]},{"n":"De Cuyper","t":5,"p":"DEF","c":4.8,"st":"a","xm":68,"xp":[3.4,4.01,2.91,2.63,3.41,3.95,4.09,3.18,3.28,4.03]},{"n":"Dunk","t":5,"p":"DEF","c":4.5,"st":"a","xm":68,"xp":[2.23,2.57,1.97,1.69,2.19,2.68,2.67,2.09,2.28,2.67]},{"n":"Costinha","t":5,"p":"DEF","c":4.5,"st":"a","xm":15,"xp":[1.05,1.11,1,0.96,1.04,1.11,1.12,1.02,1.04,1.11]},{"n":"Svoboda","t":5,"p":"DEF","c":5,"st":"a","xm":15,"xp":[0.78,0.87,0.71,0.65,0.77,0.88,0.89,0.75,0.78,0.88]},{"n":"Groß","t":5,"p":"MID","c":5.6,"st":"a","xm":84,"xp":[4.23,4.76,3.81,3.82,4.34,4.39,4.72,4.07,3.87,4.58]},{"n":"Georginio","t":5,"p":"FWD","c":5.4,"st":"d","xm":17,"xp":[0.66,0.77,0.72,0.78,0.9,0.89,0.94,0.86,0.83,0.92]},{"n":"O'Riley","t":5,"p":"MID","c":5.5,"st":"a","xm":4,"xp":[0.53,0.55,0.51,0.51,0.54,0.54,0.55,0.52,0.52,0.54]},{"n":"Gomez","t":5,"p":"MID","c":5,"st":"a","xm":74,"xp":[3.47,3.83,3.19,3.19,3.54,3.6,3.8,3.36,3.25,3.71]},{"n":"Ayari","t":5,"p":"MID","c":5.4,"st":"a","xm":60,"xp":[2.44,2.65,2.27,2.26,2.47,2.52,2.64,2.37,2.31,2.59]},{"n":"Wieffer","t":5,"p":"DEF","c":5,"st":"i","xm":30,"xp":[0,0.39,0.6,0.81,1.35,1.58,1.59,1.29,1.36,1.58]},{"n":"Welbeck","t":6,"p":"FWD","c":5.9,"st":"a","xm":32,"xp":[2.12,1.97,2.12,2.05,2.02,2.08,1.87,2.22,2,1.89]},{"n":"Kostoulas","t":5,"p":"FWD","c":5.5,"st":"a","xm":58,"xp":[2.97,3.33,2.69,2.74,3.06,3.03,3.28,2.88,2.7,3.17]},{"n":"James","t":6,"p":"DEF","c":5.4,"st":"a","xm":50,"xp":[2.09,1.97,2.48,1.85,1.92,2.1,1.9,2.22,1.96,1.49]},{"n":"Gusto","t":6,"p":"DEF","c":5,"st":"a","xm":52,"xp":[2.11,2,2.49,1.87,1.94,2.12,1.93,2.23,1.98,1.51]},{"n":"Fofana","t":6,"p":"DEF","c":5,"st":"a","xm":67,"xp":[3.06,2.96,3.62,2.73,2.85,3.09,2.91,3.2,2.93,2.27]},{"n":"Tosin","t":19,"p":"DEF","c":4.4,"st":"a","xm":7,"xp":[0.43,0.55,0.45,0.5,0.46,0.53,0.47,0.51,0.46,0.51]},{"n":"Hato","t":6,"p":"DEF","c":4.5,"st":"a","xm":44,"xp":[1.34,1.28,1.59,1.17,1.23,1.35,1.25,1.41,1.26,0.93]},{"n":"Colwill","t":6,"p":"DEF","c":4.9,"st":"a","xm":45,"xp":[1.73,1.66,2.09,1.52,1.6,1.75,1.63,1.82,1.64,1.23]},{"n":"Acheampong","t":6,"p":"DEF","c":4.5,"st":"a","xm":28,"xp":[1.3,1.26,1.48,1.19,1.23,1.31,1.23,1.36,1.25,1.04]},{"n":"Disasi","t":8,"p":"DEF","c":4.5,"st":"a","xm":48,"xp":[2.13,1.62,2.18,2.14,1.94,2.23,2.4,1.75,2.09,1.82]},{"n":"Palmer","t":6,"p":"MID","c":9.7,"st":"a","xm":77,"xp":[4.79,4.36,4.89,4.52,4.47,4.68,4.04,5.09,4.42,4.01]},{"n":"Enzo","t":15,"p":"MID","c":6.9,"st":"a","xm":67,"xp":[3.15,4.21,3.61,3.77,3.21,3.93,2.65,3.67,3.25,3.89]},{"n":"Neto","t":6,"p":"MID","c":6.5,"st":"a","xm":74,"xp":[3.81,3.54,3.91,3.62,3.6,3.74,3.35,4,3.57,3.28]},{"n":"Estêvão","t":6,"p":"MID","c":6.4,"st":"a","xm":10,"xp":[1.07,1.03,1.08,1.05,1.04,1.06,1,1.11,1.04,0.99]},{"n":"Caicedo","t":6,"p":"MID","c":5.4,"st":"i","xm":25,"xp":[0,0.28,0.6,0.84,1.12,1.15,1.08,1.2,1.12,1.06]},{"n":"Garnacho","t":2,"p":"MID","c":5.9,"st":"a","xm":14,"xp":[0.97,0.96,0.95,1.02,0.9,1.02,1,1,1.03,0.99]},{"n":"Lavia","t":6,"p":"MID","c":5,"st":"a","xm":38,"xp":[1.66,1.57,1.7,1.59,1.59,1.64,1.51,1.72,1.58,1.48]},{"n":"Andrey Santos","t":16,"p":"MID","c":4.9,"st":"a","xm":11,"xp":[0.83,0.79,0.82,0.8,0.84,0.77,0.81,0.8,0.86,0.8]},{"n":"Quenda","t":6,"p":"MID","c":5.4,"st":"a","xm":14,"xp":[0.74,0.71,0.76,0.72,0.72,0.74,0.68,0.77,0.71,0.68]},{"n":"João Pedro","t":6,"p":"FWD","c":7.7,"st":"a","xm":66,"xp":[4.13,3.73,4.13,3.92,3.85,4.02,3.44,4.39,3.8,3.49]},{"n":"N.Jackson","t":2,"p":"FWD","c":6.5,"st":"a","xm":51,"xp":[2.36,2.3,2.3,2.53,2.13,2.51,2.45,2.44,2.56,2.4]},{"n":"Delap","t":18,"p":"FWD","c":5.5,"st":"a","xm":55,"xp":[2.43,2.03,2.54,2.28,2.41,2.33,2.62,2.44,2.57,2.4]},{"n":"Thomas","t":7,"p":"DEF","c":4,"st":"a","xm":66,"xp":[3.23,3.14,3.16,3.13,2.82,3.13,2.59,3.42,2.24,3.47]},{"n":"van Ewijk","t":7,"p":"DEF","c":4,"st":"a","xm":53,"xp":[2.08,2.03,2.02,2,1.8,2,1.63,2.2,1.38,2.25]},{"n":"Dasilva","t":7,"p":"DEF","c":4,"st":"a","xm":67,"xp":[2.85,2.75,2.77,2.75,2.43,2.75,2.2,3.04,1.85,3.09]},{"n":"Latibeaudiere","t":7,"p":"DEF","c":4,"st":"a","xm":8,"xp":[0.53,0.52,0.52,0.52,0.49,0.52,0.46,0.55,0.42,0.56]},{"n":"Amenda","t":7,"p":"DEF","c":4,"st":"a","xm":53,"xp":[1.98,1.93,1.92,1.9,1.7,1.9,1.53,2.1,1.27,2.15]},{"n":"Rudoni","t":7,"p":"MID","c":5,"st":"a","xm":58,"xp":[3.36,3.1,3.35,3.34,3.06,3.37,2.98,3.53,2.9,3.42]},{"n":"Grimes","t":7,"p":"MID","c":5,"st":"a","xm":69,"xp":[2.82,2.63,2.82,2.8,2.59,2.83,2.53,2.96,2.46,2.88]},{"n":"Sakamoto","t":7,"p":"MID","c":4.9,"st":"a","xm":9,"xp":[0.4,0.38,0.41,0.4,0.38,0.41,0.37,0.42,0.36,0.41]},{"n":"Mason-Clark","t":7,"p":"MID","c":5.4,"st":"a","xm":52,"xp":[2.36,2.17,2.36,2.35,2.16,2.38,2.1,2.48,2.05,2.4]},{"n":"Torp","t":7,"p":"MID","c":5.4,"st":"a","xm":15,"xp":[0.94,0.88,0.94,0.93,0.88,0.94,0.87,0.97,0.85,0.95]},{"n":"Tchaouna","t":7,"p":"MID","c":5.4,"st":"a","xm":36,"xp":[1.41,1.32,1.41,1.41,1.31,1.42,1.29,1.47,1.26,1.43]},{"n":"Thomas-Asante","t":7,"p":"FWD","c":5,"st":"a","xm":35,"xp":[2.03,1.84,2.04,2.03,1.85,2.05,1.81,2.14,1.79,2.05]},{"n":"Simms","t":7,"p":"FWD","c":5,"st":"a","xm":15,"xp":[1.01,0.92,1.01,1.01,0.92,1.02,0.91,1.06,0.9,1.02]},{"n":"Henderson","t":8,"p":"GKP","c":5,"st":"a","xm":59,"xp":[2.04,1.7,2.05,2.06,1.89,2.1,2.24,1.77,2,1.81]},{"n":"Benitez","t":8,"p":"GKP","c":4.5,"st":"a","xm":31,"xp":[1.08,0.9,1.09,1.09,1,1.12,1.19,0.93,1.06,0.95]},{"n":"Lacroix","t":6,"p":"DEF","c":6,"st":"a","xm":72,"xp":[3.57,3.44,4.16,3.22,3.34,3.59,3.36,3.74,3.41,2.73]},{"n":"Muñoz","t":18,"p":"DEF","c":5.4,"st":"a","xm":54,"xp":[2.52,2.26,2.75,2.18,2.36,2.38,2.71,2.86,2.54,2.51]},{"n":"Richards","t":8,"p":"DEF","c":5,"st":"a","xm":83,"xp":[3.73,2.78,3.83,3.75,3.35,3.92,4.26,3.02,3.66,3.15]},{"n":"Canvot","t":8,"p":"DEF","c":4.9,"st":"a","xm":57,"xp":[2.68,1.99,2.76,2.69,2.41,2.82,3.08,2.16,2.63,2.26]},{"n":"Mitchell","t":8,"p":"DEF","c":4.5,"st":"a","xm":81,"xp":[3.58,2.54,3.73,3.59,3.17,3.8,4.21,2.8,3.51,2.95]},{"n":"Mingueza","t":8,"p":"DEF","c":4.4,"st":"a","xm":11,"xp":[0.71,0.62,0.73,0.72,0.68,0.74,0.77,0.64,0.71,0.65]},{"n":"Sarr","t":8,"p":"MID","c":6.3,"st":"i","xm":19,"xp":[0,0.28,0.63,0.85,1.14,1.22,1.3,1.15,1.18,1.16]},{"n":"Johnson","t":9,"p":"MID","c":5.9,"st":"a","xm":55,"xp":[2.51,2.59,2.03,2.43,2.76,2.29,2.41,2.48,2.62,2.35]},{"n":"Wharton","t":8,"p":"MID","c":5.5,"st":"a","xm":78,"xp":[3.5,3.36,3.74,3.46,3.44,3.65,3.84,3.43,3.54,3.47]},{"n":"Yeremy","t":8,"p":"MID","c":5.5,"st":"a","xm":64,"xp":[3.06,2.94,3.33,3.01,3.01,3.22,3.43,3.02,3.11,3.05]},{"n":"Hughes","t":8,"p":"MID","c":4.5,"st":"a","xm":17,"xp":[0.84,0.82,0.88,0.84,0.83,0.86,0.89,0.83,0.85,0.84]},{"n":"Lerma","t":8,"p":"MID","c":4.9,"st":"a","xm":23,"xp":[0.97,0.95,1.02,0.96,0.96,1,1.04,0.96,0.98,0.97]},{"n":"Kamada","t":8,"p":"MID","c":5,"st":"a","xm":74,"xp":[3,2.87,3.17,2.97,2.95,3.11,3.27,2.93,3.03,2.96]},{"n":"Strand Larsen","t":8,"p":"FWD","c":6,"st":"a","xm":66,"xp":[2.56,2.55,2.77,2.51,2.55,2.67,2.8,2.59,2.6,2.6]},{"n":"Nketiah","t":8,"p":"FWD","c":5.5,"st":"a","xm":26,"xp":[1.51,1.5,1.65,1.48,1.51,1.59,1.68,1.53,1.54,1.54]},{"n":"Pickford","t":9,"p":"GKP","c":5.5,"st":"a","xm":89,"xp":[3.39,3.09,2.75,3.09,3.74,2.77,3.07,3.27,3.29,2.74]},{"n":"Tarkowski","t":9,"p":"DEF","c":6,"st":"a","xm":89,"xp":[4.98,4.55,3.48,4.43,5.68,3.7,4.38,4.77,4.9,3.68]},{"n":"Branthwaite","t":9,"p":"DEF","c":5.5,"st":"a","xm":66,"xp":[3.1,2.8,2.24,2.76,3.49,2.31,2.74,2.97,3.03,2.29]},{"n":"O'Brien","t":9,"p":"DEF","c":4.9,"st":"a","xm":27,"xp":[1.36,1.25,1.03,1.23,1.51,1.06,1.22,1.31,1.34,1.05]},{"n":"Mykolenko","t":9,"p":"DEF","c":4.5,"st":"a","xm":84,"xp":[3.55,3.14,2.43,3.1,4.05,2.51,3.07,3.38,3.44,2.48]},{"n":"Dewsbury-Hall","t":9,"p":"MID","c":6.5,"st":"a","xm":81,"xp":[4.06,4.31,3.03,3.94,4.63,3.65,3.88,4.02,4.35,3.8]},{"n":"Ndiaye","t":15,"p":"MID","c":5.9,"st":"a","xm":72,"xp":[3.35,4.13,3.7,3.79,3.41,3.92,3,3.73,3.42,3.88]},{"n":"Grealish","t":9,"p":"MID","c":6.5,"st":"a","xm":36,"xp":[1.85,1.95,1.44,1.8,2.07,1.69,1.78,1.84,1.97,1.75]},{"n":"Garner","t":9,"p":"MID","c":6,"st":"a","xm":81,"xp":[3.85,3.95,3.18,3.74,4.21,3.54,3.71,3.81,4,3.62]},{"n":"Iroegbunam","t":11,"p":"MID","c":5,"st":"a","xm":25,"xp":[1.14,1.1,1.11,1.18,1,1.13,1.1,1.11,1.08,1.14]},{"n":"McNeil","t":8,"p":"MID","c":5.4,"st":"a","xm":15,"xp":[0.71,0.69,0.75,0.7,0.7,0.73,0.76,0.7,0.71,0.7]},{"n":"George","t":9,"p":"MID","c":5.5,"st":"a","xm":41,"xp":[2.26,2.34,1.83,2.2,2.48,2.07,2.17,2.24,2.36,2.12]},{"n":"Alcaraz","t":9,"p":"MID","c":4.9,"st":"a","xm":5,"xp":[0.44,0.45,0.41,0.44,0.46,0.43,0.44,0.44,0.45,0.43]},{"n":"Armstrong","t":9,"p":"MID","c":5,"st":"a","xm":63,"xp":[2.57,2.63,2.14,2.5,2.81,2.36,2.48,2.55,2.67,2.41]},{"n":"Dibling","t":9,"p":"MID","c":5.4,"st":"a","xm":10,"xp":[0.47,0.49,0.41,0.46,0.51,0.45,0.46,0.47,0.49,0.46]},{"n":"Röhl","t":9,"p":"MID","c":5,"st":"a","xm":34,"xp":[1.44,1.47,1.2,1.4,1.57,1.32,1.39,1.42,1.49,1.35]},{"n":"Hackney","t":9,"p":"MID","c":5.5,"st":"a","xm":21,"xp":[1.3,1.34,1.15,1.29,1.39,1.24,1.28,1.3,1.35,1.27]},{"n":"Barry","t":9,"p":"FWD","c":5.6,"st":"a","xm":71,"xp":[3.72,4.05,2.81,3.67,4.23,3.45,3.61,3.71,4.04,3.61]},{"n":"Leno","t":10,"p":"GKP","c":4.5,"st":"a","xm":87,"xp":[3.01,3.49,3.26,3.09,3.17,2.52,2.98,3.18,2.93,2.81]},{"n":"Andersen","t":10,"p":"DEF","c":5,"st":"a","xm":56,"xp":[2.41,2.87,2.64,2.47,2.58,1.76,2.39,2.53,2.29,2.19]},{"n":"Robinson","t":10,"p":"DEF","c":4.5,"st":"a","xm":70,"xp":[2.83,3.45,3.13,2.89,3.06,1.92,2.78,2.96,2.63,2.51]},{"n":"Tete","t":10,"p":"DEF","c":4.4,"st":"a","xm":20,"xp":[0.83,0.96,0.89,0.84,0.88,0.63,0.82,0.85,0.79,0.76]},{"n":"Bassey","t":10,"p":"DEF","c":4.5,"st":"a","xm":81,"xp":[2.85,3.54,3.2,2.94,3.1,1.89,2.81,3.04,2.67,2.51]},{"n":"Castagne","t":10,"p":"DEF","c":4.5,"st":"a","xm":69,"xp":[2.88,3.49,3.17,2.93,3.11,1.97,2.84,3,2.68,2.57]},{"n":"Diop","t":12,"p":"DEF","c":4,"st":"a","xm":67,"xp":[2.7,1.79,2.7,2.78,2.53,2.72,2.99,2.85,2.21,2.77]},{"n":"Wilson","t":13,"p":"MID","c":6.3,"st":"a","xm":36,"xp":[1.47,1.85,1.84,1.78,1.97,1.84,2.12,1.69,2.13,1.68]},{"n":"Iwobi","t":10,"p":"MID","c":5.4,"st":"a","xm":73,"xp":[3.49,3.72,3.51,3.38,3.61,3.02,3.47,3.29,3.25,3.35]},{"n":"Smith Rowe","t":10,"p":"MID","c":5.4,"st":"a","xm":22,"xp":[1.36,1.41,1.36,1.34,1.39,1.25,1.36,1.31,1.3,1.33]},{"n":"Kevin","t":10,"p":"MID","c":5.4,"st":"a","xm":16,"xp":[1.05,1.08,1.05,1.03,1.07,0.99,1.05,1.02,1.01,1.03]},{"n":"Bobb","t":10,"p":"MID","c":5.5,"st":"a","xm":56,"xp":[2.87,3.05,2.89,2.8,2.96,2.51,2.85,2.73,2.69,2.76]},{"n":"Berge","t":10,"p":"MID","c":4.9,"st":"a","xm":69,"xp":[2.45,2.58,2.49,2.42,2.51,2.23,2.44,2.4,2.36,2.38]},{"n":"Lukić","t":12,"p":"MID","c":5,"st":"a","xm":66,"xp":[2.65,2.28,2.5,2.55,2.57,2.48,2.72,2.61,2.37,2.66]},{"n":"King","t":10,"p":"MID","c":5.5,"st":"a","xm":65,"xp":[3.11,3.32,3.12,3.01,3.22,2.69,3.09,2.93,2.89,2.99]},{"n":"Sessegnon","t":10,"p":"DEF","c":4.4,"st":"a","xm":20,"xp":[1.17,1.32,1.23,1.17,1.23,0.94,1.16,1.18,1.11,1.09]},{"n":"Muniz","t":10,"p":"FWD","c":5.4,"st":"a","xm":13,"xp":[1.03,1.06,1.03,1.01,1.05,0.96,1.03,0.98,0.99,1.02]},{"n":"Egan","t":11,"p":"DEF","c":4.1,"st":"a","xm":66,"xp":[2.99,2.57,2.51,3.14,2.09,2.48,2.54,2.93,2.41,3.28]},{"n":"Ajayi","t":11,"p":"DEF","c":4.2,"st":"a","xm":68,"xp":[2.77,2.32,2.26,2.96,1.75,2.26,2.29,2.68,2.14,3.07]},{"n":"Coyle","t":11,"p":"DEF","c":4,"st":"a","xm":57,"xp":[2.46,2.1,2.04,2.59,1.66,2.03,2.07,2.4,1.95,2.7]},{"n":"Giles","t":11,"p":"DEF","c":4,"st":"a","xm":68,"xp":[2.66,2.23,2.17,2.84,1.7,2.15,2.2,2.59,2.05,2.97]},{"n":"Belloumi","t":11,"p":"MID","c":5,"st":"a","xm":62,"xp":[2.96,2.8,2.84,3.19,2.32,2.93,2.82,2.82,2.72,3]},{"n":"Crooks","t":11,"p":"MID","c":4.5,"st":"a","xm":26,"xp":[1.05,1,1.01,1.11,0.86,1.03,1,1.01,0.97,1.07]},{"n":"Slater","t":11,"p":"MID","c":4.5,"st":"a","xm":60,"xp":[2.34,2.22,2.24,2.49,1.89,2.29,2.23,2.25,2.16,2.38]},{"n":"McBurnie","t":11,"p":"FWD","c":5.5,"st":"a","xm":66,"xp":[2.98,2.82,2.88,3.28,2.2,3.02,2.85,2.78,2.72,2.96]},{"n":"Walton","t":12,"p":"GKP","c":4.4,"st":"a","xm":20,"xp":[0.64,0.51,0.65,0.66,0.61,0.65,0.69,0.67,0.56,0.65]},{"n":"O'Shea","t":12,"p":"DEF","c":4,"st":"a","xm":68,"xp":[2.67,1.74,2.66,2.74,2.5,2.68,2.96,2.81,2.17,2.74]},{"n":"Davis","t":12,"p":"DEF","c":4,"st":"a","xm":68,"xp":[2.92,1.84,2.83,2.93,2.71,2.83,3.23,3.03,2.29,2.99]},{"n":"Greaves","t":12,"p":"DEF","c":4,"st":"a","xm":52,"xp":[1.95,1.24,1.95,2.01,1.82,1.97,2.18,2.07,1.57,2.01]},{"n":"Furlong","t":12,"p":"DEF","c":4,"st":"a","xm":11,"xp":[0.54,0.41,0.53,0.54,0.52,0.53,0.58,0.56,0.47,0.55]},{"n":"Núñez","t":12,"p":"MID","c":5,"st":"a","xm":22,"xp":[1.18,1.03,1.12,1.14,1.15,1.11,1.2,1.16,1.07,1.18]},{"n":"Clarke","t":12,"p":"MID","c":5.4,"st":"a","xm":38,"xp":[2.01,1.74,1.89,1.93,1.95,1.87,2.05,1.97,1.8,2.02]},{"n":"Fatawu","t":12,"p":"MID","c":5.5,"st":"a","xm":60,"xp":[2.9,2.48,2.72,2.78,2.8,2.69,2.96,2.84,2.58,2.91]},{"n":"Emersonn","t":12,"p":"FWD","c":5.5,"st":"a","xm":53,"xp":[3.19,2.67,2.87,2.94,3.06,2.8,3.21,3.03,2.75,3.17]},{"n":"Philogene","t":12,"p":"MID","c":5.4,"st":"a","xm":20,"xp":[1.02,0.9,0.96,0.97,0.99,0.95,1.03,0.99,0.92,1.02]},{"n":"Akpom","t":12,"p":"FWD","c":5,"st":"a","xm":19,"xp":[1.19,1.02,1.08,1.11,1.15,1.06,1.2,1.14,1.04,1.19]},{"n":"McAteer","t":12,"p":"MID","c":4.5,"st":"a","xm":6,"xp":[0.54,0.51,0.52,0.53,0.53,0.52,0.54,0.53,0.51,0.54]},{"n":"Bijol","t":13,"p":"DEF","c":5,"st":"a","xm":31,"xp":[1.26,1.43,1.47,1.41,1.74,1.39,1.81,1.25,1.71,1.35]},{"n":"Struijk","t":5,"p":"DEF","c":5,"st":"a","xm":41,"xp":[1.86,2.08,1.69,1.53,1.85,2.12,2.14,1.78,1.87,2.13]},{"n":"Rodon","t":13,"p":"DEF","c":4.4,"st":"i","xm":30,"xp":[0,0.3,0.62,0.89,1.52,1.15,1.57,1.01,1.47,1.13]},{"n":"Bogle","t":13,"p":"DEF","c":4.5,"st":"a","xm":69,"xp":[2.71,3.38,3.5,3.29,4.44,3.23,4.7,2.74,4.39,3.07]},{"n":"Gudmundsson","t":13,"p":"DEF","c":4.5,"st":"a","xm":63,"xp":[1.85,2.24,2.34,2.2,3.05,2.14,3.2,1.8,2.94,2.06]},{"n":"Justin","t":13,"p":"DEF","c":4.5,"st":"a","xm":76,"xp":[2.67,3.23,3.36,3.17,4.27,3.1,4.49,2.65,4.17,2.98]},{"n":"Muharemović","t":13,"p":"DEF","c":5,"st":"a","xm":75,"xp":[2.66,3.13,3.24,3.08,4.05,3.01,4.23,2.62,3.95,2.91]},{"n":"Stach","t":13,"p":"MID","c":6,"st":"a","xm":79,"xp":[3.57,4.34,4.32,4.21,4.64,4.3,4.94,4.01,4.95,4.01]},{"n":"Okafor","t":13,"p":"MID","c":5.9,"st":"a","xm":60,"xp":[2.55,3.13,3.12,3.03,3.38,3.1,3.61,2.86,3.61,2.88]},{"n":"Aaronson","t":13,"p":"MID","c":5.4,"st":"a","xm":40,"xp":[1.64,1.92,1.91,1.87,2.01,1.9,2.12,1.79,2.13,1.79]},{"n":"Ampadu","t":13,"p":"MID","c":5.4,"st":"a","xm":85,"xp":[3.35,3.74,3.74,3.67,3.97,3.71,4.13,3.54,4.1,3.57]},{"n":"Longstaff","t":13,"p":"MID","c":4.9,"st":"a","xm":7,"xp":[0.52,0.57,0.57,0.56,0.6,0.57,0.62,0.55,0.62,0.55]},{"n":"Gelhardt","t":11,"p":"MID","c":5,"st":"a","xm":2,"xp":[0.25,0.25,0.25,0.26,0.23,0.25,0.25,0.25,0.24,0.25]},{"n":"James","t":13,"p":"MID","c":5,"st":"a","xm":15,"xp":[0.84,0.95,0.94,0.93,0.97,0.94,1.01,0.9,1.02,0.9]},{"n":"Tanaka","t":13,"p":"MID","c":4.9,"st":"a","xm":57,"xp":[2.12,2.48,2.47,2.42,2.65,2.46,2.79,2.31,2.78,2.32]},{"n":"Calvert-Lewin","t":13,"p":"FWD","c":6,"st":"a","xm":78,"xp":[3.06,4.2,4.13,3.98,4.41,4.16,4.85,3.77,4.96,3.7]},{"n":"Nmecha","t":13,"p":"FWD","c":5.4,"st":"a","xm":20,"xp":[1.36,1.66,1.64,1.61,1.72,1.65,1.84,1.55,1.86,1.53]},{"n":"A.Becker","t":14,"p":"GKP","c":5.5,"st":"a","xm":81,"xp":[2.9,2.78,3,2.98,3.06,2.98,3.15,3.34,2.9,3.25]},{"n":"Virgil","t":14,"p":"DEF","c":6.5,"st":"a","xm":89,"xp":[3.88,3.63,4.11,3.89,4.15,4.02,4.27,4.65,3.88,4.47]},{"n":"Frimpong","t":14,"p":"DEF","c":5.4,"st":"a","xm":25,"xp":[1.14,1.07,1.2,1.13,1.21,1.17,1.23,1.34,1.14,1.29]},{"n":"Kerkez","t":14,"p":"DEF","c":5.4,"st":"a","xm":70,"xp":[2.23,2.07,2.37,2.28,2.42,2.33,2.5,2.74,2.23,2.63]},{"n":"Jacquet","t":14,"p":"DEF","c":5,"st":"a","xm":73,"xp":[2.87,2.66,3.05,2.9,3.1,2.98,3.2,3.51,2.86,3.36]},{"n":"Tsimikas","t":14,"p":"DEF","c":4.9,"st":"a","xm":16,"xp":[0.68,0.65,0.71,0.68,0.72,0.7,0.73,0.78,0.68,0.76]},{"n":"Wirtz","t":14,"p":"MID","c":7.4,"st":"a","xm":77,"xp":[3.97,3.72,4.27,3.34,4.05,4.02,3.92,4.4,3.98,4.17]},{"n":"Gakpo","t":14,"p":"MID","c":7.2,"st":"d","xm":70,"xp":[3.01,3.05,3.76,3.16,4.08,4.06,3.94,4.43,4.01,4.19]},{"n":"Szoboszlai","t":14,"p":"MID","c":7,"st":"a","xm":86,"xp":[4.43,4.17,4.74,3.79,4.51,4.49,4.38,4.88,4.44,4.64]},{"n":"Ngumoha","t":14,"p":"MID","c":5.8,"st":"a","xm":12,"xp":[0.82,0.79,0.86,0.74,0.83,0.83,0.81,0.88,0.83,0.84]},{"n":"Gravenberch","t":14,"p":"MID","c":5.9,"st":"a","xm":43,"xp":[1.9,1.83,1.97,1.74,1.92,1.91,1.89,2.01,1.9,1.95]},{"n":"Mac Allister","t":14,"p":"MID","c":5.4,"st":"a","xm":69,"xp":[2.87,2.75,3.01,2.6,2.92,2.9,2.87,3.1,2.87,2.98]},{"n":"Nyoni","t":14,"p":"MID","c":4.9,"st":"a","xm":7,"xp":[0.64,0.63,0.65,0.61,0.64,0.64,0.64,0.66,0.64,0.65]},{"n":"Munoz","t":14,"p":"MID","c":6.5,"st":"a","xm":53,"xp":[2.61,2.46,2.78,2.24,2.65,2.64,2.57,2.86,2.61,2.72]},{"n":"Isak","t":14,"p":"FWD","c":9.1,"st":"a","xm":59,"xp":[3.35,3.13,3.62,2.71,3.39,3.38,3.24,3.68,3.36,3.46]},{"n":"Koumas","t":14,"p":"MID","c":5,"st":"a","xm":12,"xp":[0.87,0.85,0.9,0.81,0.88,0.88,0.87,0.92,0.87,0.89]},{"n":"Donnarumma","t":15,"p":"GKP","c":5.5,"st":"a","xm":88,"xp":[2.76,3.32,3.16,2.84,2.98,3.16,2.68,3.08,2.68,2.98]},{"n":"Trafford","t":13,"p":"GKP","c":5,"st":"a","xm":65,"xp":[2.3,2.45,2.51,2.44,2.96,2.4,3.03,2.27,2.84,2.38]},{"n":"O'Reilly","t":15,"p":"DEF","c":6.4,"st":"a","xm":39,"xp":[1.99,2.78,2.44,2.3,2.17,2.57,1.73,2.42,1.97,2.44]},{"n":"Guéhi","t":15,"p":"DEF","c":6,"st":"a","xm":87,"xp":[3.56,5.14,4.52,4.09,3.99,4.73,3.1,4.43,3.46,4.4]},{"n":"Matheus N.","t":15,"p":"DEF","c":5.9,"st":"a","xm":54,"xp":[1.91,2.64,2.4,2.09,2.17,2.46,1.74,2.33,1.82,2.26]},{"n":"Rúben","t":15,"p":"DEF","c":5.5,"st":"a","xm":78,"xp":[2.52,3.52,3.19,2.78,2.86,3.27,2.28,3.09,2.4,3]},{"n":"Gvardiol","t":15,"p":"DEF","c":5.6,"st":"a","xm":69,"xp":[2.79,4.01,3.55,3.18,3.15,3.7,2.45,3.47,2.7,3.43]},{"n":"Khusanov","t":15,"p":"DEF","c":5.5,"st":"a","xm":42,"xp":[1.45,1.98,1.81,1.59,1.63,1.85,1.32,1.76,1.38,1.71]},{"n":"Vitor Reis","t":15,"p":"DEF","c":4.5,"st":"a","xm":1,"xp":[0.21,0.22,0.21,0.21,0.21,0.22,0.2,0.21,0.2,0.21]},{"n":"Semenyo","t":15,"p":"MID","c":8.4,"st":"a","xm":86,"xp":[3.82,5.03,4.34,4.52,3.89,4.7,3.25,4.41,3.93,4.66]},{"n":"Foden","t":15,"p":"MID","c":7,"st":"a","xm":43,"xp":[2.43,3.21,2.76,2.9,2.47,3,2.06,2.81,2.52,2.98]},{"n":"Cherki","t":15,"p":"MID","c":7.8,"st":"a","xm":62,"xp":[3.77,5.08,4.32,4.56,3.82,4.72,3.13,4.4,3.9,4.69]},{"n":"Doku","t":15,"p":"MID","c":7.4,"st":"i","xm":18,"xp":[0,0.34,0.59,0.92,1.07,1.27,0.92,1.2,1.09,1.26]},{"n":"Marmoush","t":19,"p":"FWD","c":7,"st":"a","xm":62,"xp":[2.66,3.27,2.87,3.17,2.71,3.33,2.85,3.13,2.38,2.9]},{"n":"Sávio","t":19,"p":"MID","c":6.5,"st":"a","xm":48,"xp":[2.23,2.83,2.41,2.69,2.31,2.84,2.42,2.67,2.06,2.51]},{"n":"N.Gonzalez","t":17,"p":"MID","c":5.5,"st":"a","xm":43,"xp":[1.98,2.03,1.9,1.98,1.89,1.76,1.84,1.88,1.99,1.96]},{"n":"Kovačić","t":15,"p":"MID","c":5.4,"st":"a","xm":5,"xp":[0.32,0.36,0.33,0.34,0.32,0.35,0.3,0.34,0.32,0.35]},{"n":"Haaland","t":15,"p":"FWD","c":15.5,"st":"a","xm":86,"xp":[5.62,7.94,6.54,7.11,5.65,7.31,4.44,6.73,5.92,7.32]},{"n":"Lammens","t":16,"p":"GKP","c":5,"st":"a","xm":87,"xp":[3.71,3.06,3.26,2.97,3.62,2.96,3.09,3.19,3.79,3.11]},{"n":"Dorgu","t":16,"p":"MID","c":5.8,"st":"a","xm":32,"xp":[2,1.82,1.96,1.88,2.05,1.76,1.91,1.89,2.12,1.9]},{"n":"Dalot","t":16,"p":"DEF","c":4.9,"st":"a","xm":77,"xp":[3.9,2.88,3.3,2.78,3.85,2.68,3,3.15,4.1,3.03]},{"n":"Maguire","t":16,"p":"DEF","c":4.9,"st":"a","xm":73,"xp":[3.7,2.78,3.14,2.68,3.64,2.61,2.88,3.02,3.86,2.91]},{"n":"Martinez","t":16,"p":"DEF","c":5,"st":"a","xm":71,"xp":[3.51,2.66,2.99,2.56,3.45,2.5,2.74,2.88,3.65,2.77]},{"n":"Yoro","t":16,"p":"DEF","c":4.9,"st":"a","xm":17,"xp":[1.11,0.95,1.01,0.93,1.1,0.91,0.97,0.99,1.14,0.97]},{"n":"Mazraoui","t":16,"p":"DEF","c":4.4,"st":"a","xm":11,"xp":[0.82,0.72,0.76,0.71,0.82,0.7,0.73,0.75,0.85,0.73]},{"n":"Shaw","t":16,"p":"DEF","c":4.4,"st":"d","xm":67,"xp":[2.35,1.87,2.29,2.06,3.06,2.14,2.37,2.51,3.26,2.41]},{"n":"B.Fernandes","t":16,"p":"MID","c":12,"st":"a","xm":86,"xp":[6.44,5.51,6.33,5.89,6.8,5.2,6.08,5.92,7.13,5.99]},{"n":"Mbeumo","t":16,"p":"MID","c":7.9,"st":"a","xm":82,"xp":[5.51,4.72,5.4,5.03,5.8,4.46,5.19,5.06,6.08,5.12]},{"n":"Cunha","t":16,"p":"MID","c":7.9,"st":"a","xm":76,"xp":[4.28,3.73,4.17,3.91,4.45,3.56,4.02,3.96,4.64,3.99]},{"n":"Rashford","t":16,"p":"MID","c":7,"st":"a","xm":55,"xp":[3.03,2.66,2.95,2.77,3.14,2.55,2.85,2.81,3.26,2.82]},{"n":"Mount","t":16,"p":"MID","c":5.4,"st":"a","xm":10,"xp":[0.71,0.65,0.69,0.67,0.72,0.64,0.68,0.67,0.74,0.68]},{"n":"Mainoo","t":16,"p":"MID","c":5.5,"st":"a","xm":69,"xp":[3.72,3.43,3.63,3.49,3.78,3.35,3.55,3.53,3.87,3.53]},{"n":"Šeško","t":16,"p":"FWD","c":7,"st":"a","xm":23,"xp":[1.65,1.5,1.65,1.58,1.72,1.45,1.61,1.57,1.78,1.59]},{"n":"Zirkzee","t":16,"p":"FWD","c":5.4,"st":"a","xm":9,"xp":[0.81,0.76,0.81,0.79,0.83,0.75,0.8,0.79,0.85,0.79]},{"n":"Thiaw","t":17,"p":"DEF","c":5,"st":"a","xm":84,"xp":[4.32,4.53,3.62,4.22,3.66,3.36,3.1,3.49,4.12,3.96]},{"n":"Schär","t":17,"p":"DEF","c":5,"st":"a","xm":14,"xp":[0.71,0.73,0.63,0.7,0.63,0.59,0.57,0.61,0.69,0.67]},{"n":"Botman","t":17,"p":"DEF","c":5,"st":"a","xm":76,"xp":[3.82,3.99,3.21,3.73,3.25,3.02,2.76,3.1,3.63,3.5]},{"n":"Hall","t":17,"p":"DEF","c":5.2,"st":"a","xm":78,"xp":[4.21,4.44,3.51,4.12,3.54,3.2,2.99,3.39,4.02,3.86]},{"n":"Livramento","t":17,"p":"DEF","c":4.9,"st":"a","xm":16,"xp":[0.8,0.83,0.72,0.79,0.72,0.68,0.65,0.7,0.78,0.76]},{"n":"Bruno G.","t":1,"p":"MID","c":6.8,"st":"a","xm":42,"xp":[2.32,2.06,2.39,2.04,2.52,2.25,2.24,2.1,2.19,2.37]},{"n":"Barnes","t":17,"p":"MID","c":6,"st":"a","xm":74,"xp":[3.92,4.15,3.72,3.95,3.69,3.08,3.57,3.7,4.04,3.93]},{"n":"Elanga","t":17,"p":"MID","c":6.2,"st":"a","xm":37,"xp":[1.83,1.92,1.75,1.84,1.74,1.51,1.68,1.74,1.87,1.83]},{"n":"Tonali","t":19,"p":"MID","c":5.4,"st":"a","xm":77,"xp":[2.85,3.4,2.99,3.24,2.93,3.37,3.02,3.23,2.76,3.13]},{"n":"J.Ramsey","t":17,"p":"MID","c":4.9,"st":"a","xm":17,"xp":[0.89,0.92,0.87,0.89,0.86,0.8,0.85,0.86,0.9,0.89]},{"n":"J.Murphy","t":17,"p":"MID","c":5.9,"st":"a","xm":40,"xp":[2.04,2.13,1.96,2.06,1.95,1.72,1.9,1.95,2.09,2.04]},{"n":"L.Miley","t":17,"p":"MID","c":5.5,"st":"a","xm":67,"xp":[3.18,3.29,3.05,3.19,3.04,2.78,2.95,3.03,3.21,3.16]},{"n":"Willock","t":17,"p":"MID","c":5,"st":"a","xm":52,"xp":[2.48,2.59,2.37,2.49,2.35,2.06,2.28,2.35,2.53,2.47]},{"n":"Touré","t":17,"p":"MID","c":5.8,"st":"a","xm":19,"xp":[1.17,1.21,1.14,1.18,1.13,1.03,1.11,1.13,1.19,1.17]},{"n":"Steur","t":17,"p":"MID","c":4.9,"st":"a","xm":34,"xp":[1.36,1.41,1.32,1.37,1.31,1.2,1.28,1.31,1.38,1.36]},{"n":"Wissa","t":17,"p":"FWD","c":6.2,"st":"a","xm":62,"xp":[3.05,3.24,2.95,3.09,2.92,2.37,2.86,2.94,3.19,3.1]},{"n":"Sels","t":18,"p":"GKP","c":5,"st":"a","xm":83,"xp":[2.97,2.95,3.11,2.78,2.85,2.9,3.03,3.27,2.92,2.98]},{"n":"N.Williams","t":18,"p":"DEF","c":5,"st":"a","xm":86,"xp":[3.69,3.35,4.05,3.14,3.42,3.48,3.95,4.28,3.68,3.69]},{"n":"Milenković","t":18,"p":"DEF","c":5.5,"st":"a","xm":58,"xp":[2.28,2.2,2.47,1.99,2.11,2.18,2.38,2.64,2.22,2.29]},{"n":"Murillo","t":18,"p":"DEF","c":5.5,"st":"a","xm":78,"xp":[3.53,3.36,3.81,3.11,3.31,3.38,3.7,4.04,3.48,3.54]},{"n":"Aina","t":18,"p":"DEF","c":4.5,"st":"a","xm":53,"xp":[1.82,1.7,2,1.54,1.67,1.72,1.93,2.15,1.79,1.82]},{"n":"Jair Cunha","t":18,"p":"DEF","c":4.5,"st":"a","xm":48,"xp":[1.77,1.69,1.93,1.52,1.64,1.68,1.86,2.07,1.73,1.78]},{"n":"Netz","t":18,"p":"DEF","c":4.5,"st":"a","xm":9,"xp":[0.7,0.68,0.72,0.66,0.67,0.68,0.71,0.74,0.69,0.7]},{"n":"Gibbs-White","t":18,"p":"MID","c":7.9,"st":"a","xm":86,"xp":[4.9,3.94,5.2,4.47,4.81,4.64,5.36,5.01,5.2,4.82]},{"n":"Anderson","t":15,"p":"MID","c":6.3,"st":"a","xm":86,"xp":[3.97,4.73,4.32,4.39,4.04,4.53,3.63,4.35,4.02,4.48]},{"n":"Hudson-Odoi","t":18,"p":"MID","c":5.9,"st":"a","xm":14,"xp":[0.86,0.77,0.89,0.82,0.85,0.83,0.9,0.87,0.88,0.85]},{"n":"Ndoye","t":18,"p":"MID","c":5.5,"st":"a","xm":54,"xp":[2.51,2.14,2.64,2.34,2.47,2.41,2.69,2.56,2.63,2.48]},{"n":"McAtee","t":18,"p":"MID","c":5.5,"st":"a","xm":60,"xp":[2.51,2.22,2.62,2.35,2.47,2.42,2.66,2.58,2.59,2.49]},{"n":"Dominguez","t":18,"p":"MID","c":4.9,"st":"a","xm":9,"xp":[0.6,0.56,0.61,0.58,0.59,0.59,0.62,0.61,0.61,0.6]},{"n":"I.Sangaré","t":18,"p":"MID","c":4.9,"st":"a","xm":19,"xp":[1.01,0.96,1.04,0.98,1,1,1.04,1.03,1.03,1.01]},{"n":"Wood","t":18,"p":"FWD","c":5.9,"st":"a","xm":13,"xp":[1.05,0.93,1.08,1,1.04,1.02,1.1,1.05,1.09,1.04]},{"n":"Igor Jesus","t":18,"p":"FWD","c":5.9,"st":"a","xm":46,"xp":[2.3,1.94,2.4,2.16,2.28,2.21,2.48,2.31,2.43,2.27]},{"n":"Awoniyi","t":7,"p":"FWD","c":5.5,"st":"a","xm":41,"xp":[2.42,2.11,2.43,2.41,2.13,2.46,2.07,2.6,2.03,2.45]},{"n":"Kinsky","t":19,"p":"GKP","c":4.5,"st":"a","xm":65,"xp":[1.78,2.5,1.88,2.16,1.95,2.3,2,2.18,1.98,2.27]},{"n":"Pedro Porro","t":19,"p":"DEF","c":5.5,"st":"d","xm":57,"xp":[1.55,2.7,2.02,2.68,2.37,3.11,2.5,2.88,2.28,2.9]},{"n":"Danso","t":20,"p":"DEF","c":5,"st":"a","xm":58,"xp":[2.02,1.95,2.25,2.5,2.18,2.33,2.67,1.85,2.15,2.38]},{"n":"Robertson","t":19,"p":"DEF","c":4.4,"st":"a","xm":57,"xp":[2.03,3.15,2.25,2.73,2.3,2.95,2.41,2.75,2.22,2.77]},{"n":"Van de Ven","t":19,"p":"DEF","c":5,"st":"a","xm":85,"xp":[2.36,4.25,2.71,3.52,2.82,3.89,3,3.55,2.71,3.61]},{"n":"Vuskovic","t":5,"p":"DEF","c":5,"st":"a","xm":59,"xp":[2.5,2.85,2.22,1.97,2.47,2.93,2.94,2.36,2.51,2.93]},{"n":"Udogie","t":19,"p":"DEF","c":4.5,"st":"d","xm":26,"xp":[0.66,1.09,0.84,1.08,0.99,1.24,1.04,1.17,0.98,1.19]},{"n":"Kudus","t":19,"p":"MID","c":6.5,"st":"a","xm":34,"xp":[1.53,1.84,1.63,1.78,1.56,1.86,1.63,1.77,1.41,1.66]},{"n":"Tel","t":19,"p":"MID","c":5.8,"st":"a","xm":42,"xp":[1.88,2.29,1.99,2.18,1.93,2.29,2,2.17,1.77,2.07]},{"n":"Maddison","t":19,"p":"MID","c":6.3,"st":"a","xm":8,"xp":[0.56,0.64,0.58,0.62,0.56,0.65,0.58,0.62,0.52,0.59]},{"n":"Bentancur","t":19,"p":"MID","c":5.5,"st":"a","xm":70,"xp":[2.97,3.38,3.07,3.25,3.04,3.35,3.1,3.25,2.93,3.19]},{"n":"Gallagher","t":19,"p":"MID","c":5.4,"st":"a","xm":34,"xp":[1.45,1.73,1.53,1.66,1.49,1.73,1.54,1.65,1.39,1.59]},{"n":"Bergvall","t":19,"p":"MID","c":5.4,"st":"a","xm":14,"xp":[0.77,0.87,0.8,0.84,0.78,0.87,0.8,0.84,0.75,0.82]},{"n":"Gray","t":19,"p":"MID","c":5,"st":"a","xm":53,"xp":[1.68,2.06,1.79,1.96,1.73,2.06,1.8,1.95,1.59,1.87]},{"n":"Fernandes","t":19,"p":"MID","c":5.8,"st":"a","xm":60,"xp":[2.53,2.96,2.65,2.84,2.6,2.94,2.67,2.83,2.46,2.75]},{"n":"Solanke","t":19,"p":"FWD","c":5.9,"st":"a","xm":35,"xp":[1.78,2.07,1.88,2.02,1.8,2.1,1.87,2.01,1.64,1.89]},{"n":"Roefs","t":20,"p":"GKP","c":5,"st":"a","xm":87,"xp":[2.66,2.63,2.91,3.17,2.8,2.99,3.37,2.56,2.81,3.06]},{"n":"Ballard","t":20,"p":"DEF","c":4.9,"st":"a","xm":76,"xp":[3.33,3.2,3.65,3.99,3.57,3.74,4.24,3.03,3.49,3.8]},{"n":"Mukiele","t":20,"p":"DEF","c":5.5,"st":"a","xm":84,"xp":[3.66,3.47,4,4.4,3.94,4.1,4.68,3.25,3.8,4.16]},{"n":"Hume","t":20,"p":"DEF","c":4.4,"st":"a","xm":45,"xp":[1.63,1.56,1.79,1.96,1.75,1.83,2.08,1.46,1.7,1.86]},{"n":"Reinildo","t":20,"p":"DEF","c":4.5,"st":"a","xm":61,"xp":[1.73,1.68,2,2.26,1.91,2.08,2.45,1.57,1.89,2.14]},{"n":"Meunier","t":20,"p":"DEF","c":4.5,"st":"a","xm":61,"xp":[2.41,2.31,2.68,2.97,2.61,2.76,3.17,2.17,2.55,2.82]},{"n":"E.Le Fée","t":20,"p":"MID","c":5.8,"st":"a","xm":84,"xp":[4.62,4.17,4.5,4.61,4.75,4.43,4.69,3.91,4.34,4.36]},{"n":"Diarra","t":20,"p":"MID","c":5.4,"st":"i","xm":15,"xp":[0,0.17,0.36,0.55,0.75,0.71,0.74,0.65,0.7,0.7]},{"n":"Xhaka","t":20,"p":"MID","c":5.5,"st":"a","xm":83,"xp":[3.87,3.61,3.83,3.91,3.96,3.8,3.98,3.46,3.73,3.76]},{"n":"Sadiki","t":20,"p":"MID","c":4.9,"st":"a","xm":76,"xp":[2.53,2.42,2.54,2.61,2.58,2.54,2.67,2.35,2.49,2.54]},{"n":"Mundle","t":20,"p":"MID","c":4.9,"st":"i","xm":2,"xp":[0,0.08,0.17,0.25,0.33,0.33,0.33,0.32,0.33,0.33]},{"n":"Rigg","t":20,"p":"MID","c":4.9,"st":"a","xm":8,"xp":[0.5,0.48,0.49,0.5,0.5,0.49,0.51,0.47,0.49,0.49]},{"n":"N.Angulo","t":20,"p":"MID","c":5,"st":"a","xm":55,"xp":[2.45,2.3,2.44,2.49,2.51,2.42,2.54,2.2,2.37,2.4]},{"n":"Brobbey","t":20,"p":"FWD","c":5.8,"st":"a","xm":72,"xp":[3.71,3.32,3.56,3.6,3.8,3.48,3.64,3.11,3.44,3.4]},{"n":"Isidor","t":20,"p":"FWD","c":5.5,"st":"a","xm":27,"xp":[1.87,1.7,1.8,1.82,1.9,1.77,1.84,1.62,1.75,1.74]},{"n":"Tzolis","t":1,"p":"MID","c":6.4,"st":"a","xm":63,"xp":[3.11,2.8,3.2,2.75,3.37,3.01,2.97,2.81,2.98,3.16]},{"n":"Schlager","t":18,"p":"MID","c":5,"st":"a","xm":69,"xp":[3.06,2.74,3.18,2.89,3.01,2.96,3.22,3.14,3.15,3.03]},{"n":"Bamba","t":17,"p":"MID","c":4.9,"st":"a","xm":6,"xp":[0.52,0.53,0.52,0.53,0.52,0.49,0.51,0.52,0.53,0.52]},{"n":"Maeda","t":12,"p":"MID","c":5.4,"st":"a","xm":42,"xp":[2.2,1.92,2.07,2.11,2.14,2.05,2.24,2.15,1.98,2.2]},{"n":"Morita","t":11,"p":"MID","c":5,"st":"i","xm":21,"xp":[0,0.23,0.47,0.79,0.79,0.97,0.94,0.94,0.91,0.99]},{"n":"Scherpen","t":12,"p":"GKP","c":4.5,"st":"a","xm":45,"xp":[1.5,1.24,1.52,1.55,1.44,1.53,1.62,1.57,1.35,1.52]},{"n":"M.Sangaré","t":4,"p":"MID","c":5.7,"st":"a","xm":53,"xp":[2.77,2.7,2.79,2.74,2.65,2.86,2.56,2.42,2.7,2.73]},{"n":"Silva","t":3,"p":"DEF","c":5,"st":"a","xm":75,"xp":[3.14,3.82,2.84,3.65,3.68,3.78,3.4,3.36,4.32,2.73]},{"n":"Horníček","t":17,"p":"GKP","c":5,"st":"a","xm":83,"xp":[3.02,3.11,2.64,2.95,2.67,2.61,2.42,2.58,2.87,2.8]},{"n":"Barco","t":6,"p":"MID","c":5.5,"st":"a","xm":29,"xp":[1.51,1.44,1.54,1.46,1.46,1.5,1.39,1.56,1.45,1.37]},{"n":"Gonzalo","t":10,"p":"FWD","c":6,"st":"a","xm":67,"xp":[3.44,3.6,3.38,3.27,3.55,2.98,3.42,3.13,3.14,3.32]},{"n":"Palacios","t":10,"p":"MID","c":5.5,"st":"a","xm":38,"xp":[1.99,2.1,2,1.94,2.05,1.76,1.98,1.89,1.87,1.92]},{"n":"Florentino","t":12,"p":"MID","c":4.9,"st":"a","xm":23,"xp":[1.13,1.06,1.11,1.12,1.12,1.11,1.15,1.13,1.08,1.13]},{"n":"Tzolakis","t":11,"p":"GKP","c":4.6,"st":"a","xm":65,"xp":[2.53,2.27,2.23,2.62,2.02,2.21,2.25,2.5,2.18,2.75]},{"n":"Hjertø-Dahl","t":11,"p":"MID","c":4.9,"st":"a","xm":5,"xp":[0.35,0.34,0.34,0.36,0.31,0.35,0.34,0.34,0.34,0.35]},{"n":"Yirenkyi","t":7,"p":"MID","c":4.9,"st":"a","xm":38,"xp":[1.64,1.55,1.64,1.63,1.53,1.65,1.5,1.71,1.47,1.67]},{"n":"Stroud","t":11,"p":"MID","c":5,"st":"a","xm":43,"xp":[1.82,1.73,1.75,1.95,1.46,1.8,1.74,1.75,1.68,1.84]},{"n":"Tomiyasu","t":8,"p":"DEF","c":4.5,"st":"a","xm":41,"xp":[1.58,1.21,1.62,1.58,1.44,1.65,1.78,1.31,1.55,1.36]},{"n":"Mudryk","t":19,"p":"MID","c":5.4,"st":"i","xm":4,"xp":[0,0.07,0.13,0.21,0.26,0.29,0.26,0.28,0.24,0.27]},{"n":"Araujo","t":14,"p":"DEF","c":5.4,"st":"a","xm":59,"xp":[2.52,2.36,2.67,2.55,2.7,2.62,2.78,3.03,2.52,2.91]},{"n":"Charles","t":10,"p":"MID","c":5,"st":"a","xm":57,"xp":[2.76,2.9,2.78,2.7,2.83,2.49,2.75,2.66,2.62,2.68]},{"n":"Diomande","t":18,"p":"DEF","c":5.4,"st":"a","xm":42,"xp":[2.15,2.03,2.32,1.9,2.02,2.06,2.26,2.45,2.13,2.16]},{"n":"Chavarria","t":6,"p":"DEF","c":4.9,"st":"a","xm":39,"xp":[1.48,1.43,1.67,1.36,1.4,1.49,1.39,1.54,1.42,1.19]},{"n":"Hamer","t":7,"p":"MID","c":5.4,"st":"a","xm":15,"xp":[0.93,0.88,0.93,0.93,0.88,0.94,0.86,0.97,0.85,0.94]},{"n":"Herrington","t":11,"p":"DEF","c":4,"st":"a","xm":37,"xp":[1.54,1.38,1.36,1.61,1.17,1.37,1.37,1.5,1.32,1.64]},{"n":"Mendy","t":11,"p":"DEF","c":4.1,"st":"a","xm":43,"xp":[2,1.75,1.72,2.11,1.43,1.72,1.74,1.95,1.65,2.15]},{"n":"Khalaili","t":8,"p":"DEF","c":5,"st":"a","xm":72,"xp":[3.52,2.65,3.67,3.53,3.18,3.73,4.08,2.88,3.47,3]},{"n":"Gourna-Douath","t":11,"p":"MID","c":5,"st":"a","xm":34,"xp":[1.57,1.5,1.52,1.68,1.27,1.56,1.51,1.51,1.46,1.59]},{"n":"Enciso","t":12,"p":"MID","c":5.5,"st":"a","xm":57,"xp":[2.71,2.28,2.51,2.57,2.61,2.47,2.77,2.63,2.37,2.71]},{"n":"Ouattara","t":12,"p":"DEF","c":4,"st":"a","xm":28,"xp":[1.43,1.09,1.42,1.45,1.36,1.42,1.53,1.47,1.24,1.45]},{"n":"Dedić","t":17,"p":"DEF","c":4.5,"st":"d","xm":49,"xp":[1.52,1.73,1.45,1.85,1.68,1.54,1.37,1.59,1.92,1.84]},{"n":"David","t":5,"p":"FWD","c":6,"st":"a","xm":15,"xp":[1.01,1.09,0.94,0.95,1.03,1.02,1.08,0.98,0.94,1.05]},{"n":"Gozo","t":8,"p":"MID","c":5,"st":"a","xm":15,"xp":[0.9,0.88,0.95,0.89,0.89,0.93,0.96,0.89,0.91,0.9]},{"n":"Ruggeri","t":2,"p":"DEF","c":4.5,"st":"a","xm":26,"xp":[1.05,1.1,0.99,1.2,0.91,1.19,1.15,1.22,1.19,1.25]},{"n":"Suzuki","t":2,"p":"GKP","c":5,"st":"a","xm":83,"xp":[2.77,2.87,2.65,3.08,2.52,3.06,2.97,3.15,3.05,3.23]},{"n":"Elvedi","t":13,"p":"DEF","c":4.5,"st":"a","xm":63,"xp":[1.9,2.25,2.33,2.21,2.91,2.17,3.05,1.88,2.85,2.09]},{"n":"Cherif","t":7,"p":"FWD","c":5,"st":"a","xm":15,"xp":[0.86,0.77,0.86,0.86,0.77,0.87,0.76,0.92,0.74,0.87]},{"n":"Osman","t":5,"p":"MID","c":5,"st":"a","xm":15,"xp":[0.9,0.96,0.86,0.86,0.91,0.92,0.96,0.89,0.87,0.94]},{"n":"Yalcouyé","t":5,"p":"MID","c":4.5,"st":"a","xm":40,"xp":[2,2.18,1.86,1.86,2.03,2.07,2.17,1.95,1.9,2.12]},{"n":"Jebbison","t":3,"p":"FWD","c":5,"st":"a","xm":11,"xp":[0.86,0.9,0.82,0.87,0.89,0.85,0.86,0.9,0.91,0.74]},{"n":"Wan-Bissaka","t":2,"p":"DEF","c":4.5,"st":"a","xm":43,"xp":[1.78,1.86,1.69,2,1.57,1.99,1.93,2.04,1.98,2.08]},{"n":"Methalie","t":20,"p":"DEF","c":4.5,"st":"a","xm":23,"xp":[0.79,0.76,0.89,0.99,0.86,0.92,1.06,0.71,0.84,0.93]},{"n":"Bouaddi","t":15,"p":"MID","c":5.5,"st":"a","xm":14,"xp":[0.85,0.98,0.91,0.92,0.86,0.94,0.79,0.91,0.86,0.94]},{"n":"Cho","t":11,"p":"MID","c":5,"st":"a","xm":23,"xp":[1.47,1.42,1.43,1.57,1.22,1.47,1.42,1.41,1.38,1.48]},{"n":"Palacios","t":12,"p":"MID","c":5,"st":"a","xm":57,"xp":[2.79,2.46,2.65,2.69,2.71,2.62,2.84,2.74,2.54,2.79]},{"n":"Diouf","t":4,"p":"DEF","c":4.5,"st":"a","xm":28,"xp":[1.23,1.15,1.27,1.25,1,1.27,0.98,1.07,1.06,1.14]},{"n":"McAidoo","t":15,"p":"MID","c":4.5,"st":"a","xm":2,"xp":[0.37,0.38,0.37,0.38,0.37,0.38,0.36,0.38,0.37,0.38]},{"n":"Braithwaite","t":15,"p":"DEF","c":4,"st":"a","xm":8,"xp":[0.49,0.6,0.56,0.52,0.52,0.57,0.46,0.55,0.47,0.54]},{"n":"Barcola","t":14,"p":"MID","c":8,"st":"a","xm":51,"xp":[2.82,2.65,3.01,2.4,2.87,2.85,2.78,3.1,2.82,2.95]},{"n":"Mbaye","t":2,"p":"MID","c":6,"st":"a","xm":23,"xp":[1.41,1.39,1.38,1.5,1.3,1.49,1.46,1.46,1.51,1.45]},{"n":"Ahanor","t":8,"p":"DEF","c":4.5,"st":"a","xm":28,"xp":[1.21,0.89,1.24,1.22,1.08,1.27,1.39,0.97,1.19,1.02]},{"n":"Fernandez-Pardo","t":17,"p":"FWD","c":6,"st":"a","xm":48,"xp":[2.29,2.42,2.23,2.32,2.21,1.85,2.17,2.22,2.38,2.33]},{"n":"Larsson","t":10,"p":"MID","c":5,"st":"a","xm":20,"xp":[1.37,1.41,1.36,1.34,1.39,1.26,1.36,1.31,1.31,1.34]},{"n":"Vaz","t":11,"p":"FWD","c":5,"st":"a","xm":14,"xp":[1.09,1.05,1.07,1.16,0.91,1.1,1.06,1.04,1.03,1.09]},{"n":"Norton-Cuffy","t":11,"p":"DEF","c":4,"st":"a","xm":17,"xp":[0.89,0.82,0.81,0.92,0.71,0.81,0.81,0.87,0.79,0.93]},{"n":"Andrés","t":5,"p":"MID","c":5.5,"st":"a","xm":35,"xp":[1.64,1.78,1.52,1.52,1.66,1.69,1.77,1.59,1.55,1.73]},{"n":"Flemming","t":12,"p":"FWD","c":5.5,"st":"a","xm":30,"xp":[1.93,1.66,1.76,1.8,1.86,1.73,1.94,1.85,1.7,1.92]},{"n":"Bard","t":13,"p":"DEF","c":4.5,"st":"a","xm":14,"xp":[0.55,0.62,0.64,0.61,0.75,0.6,0.77,0.55,0.74,0.59]},{"n":"Thomas","t":11,"p":"MID","c":5.5,"st":"a","xm":39,"xp":[1.95,1.86,1.88,2.08,1.58,1.93,1.86,1.86,1.81,1.96]},{"n":"Chilwell","t":8,"p":"DEF","c":4.5,"st":"a","xm":16,"xp":[0.89,0.77,0.92,0.89,0.85,0.92,0.98,0.81,0.89,0.82]},{"n":"Timber","t":8,"p":"MID","c":5,"st":"a","xm":63,"xp":[2.83,2.71,3,2.8,2.78,2.94,3.09,2.77,2.85,2.79]},{"n":"Fofana","t":20,"p":"MID","c":5.5,"st":"a","xm":25,"xp":[1.45,1.37,1.43,1.45,1.48,1.41,1.46,1.32,1.4,1.4]},{"n":"Osorio","t":8,"p":"MID","c":5.5,"st":"a","xm":12,"xp":[0.81,0.78,0.84,0.8,0.8,0.83,0.86,0.8,0.81,0.8]},{"n":"Bahoya","t":13,"p":"MID","c":5,"st":"a","xm":12,"xp":[0.72,0.81,0.8,0.79,0.85,0.8,0.88,0.76,0.88,0.77]},{"n":"Maitland-Niles","t":9,"p":"DEF","c":4.5,"st":"a","xm":46,"xp":[2.28,2.08,1.6,2.03,2.59,1.69,2.01,2.18,2.24,1.68]},{"n":"Affengruber","t":10,"p":"DEF","c":4.5,"st":"a","xm":46,"xp":[1.96,2.34,2.15,2.01,2.1,1.43,1.94,2.06,1.86,1.77]},{"n":"Mfuni","t":7,"p":"DEF","c":4,"st":"a","xm":23,"xp":[0.93,0.91,0.91,0.9,0.8,0.9,0.73,0.99,0.61,1.01]}],"matches":50};
-const $=id=>document.getElementById(id);
-/* ── BALL ──
+const TARGETS_BUILD = 'targets-2026-09-27a';
+
+/* ══ WHAT THIS PAGE DOES ════════════════════════════════
+   One row per club, the next N gameweeks (1–10), easiest first.
+
+   Difficulty of one fixture = ½ FPL's FDR + ½ the model's view of it.
+   The model half comes from model/xp-engine.js's team ratings — the same
+   attack/defence ratings xP uses, rebuilt here exactly as index.html's XPD
+   does (priors + every settled post/gw-N snapshot):
+     Attackers  goals the club is expected to score in that fixture
+     Defenders  goals the club is expected to concede
+   It is put on FPL's 1–5 scale by matching the mean and spread of FPL's FDRs
+   over the same fixtures, so both halves weigh the same.
+
+   Ranking: Avg ease = Σ(6 − difficulty) over every fixture in the window ÷ N.
+   A blank adds 0 (drags a club down); a double adds both (lifts it).
+
+   Top 3: summed xP over the same window, straight from the engine —
+   MID/FWD for Attackers, GKP/DEF for Defenders.
+
+   If the engine or priors cannot load, the page falls back to FPL's FDR
+   alone and hides the players, saying so.
+════════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+const POSN = {1:'GKP',2:'DEF',3:'MID',4:'FWD'};
+const MAX_N = 10;
+
+/* ── I18N ──────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    lightMode:'Light mode', darkMode:'Dark mode',
+    tabPicks:'Picks', tabMyTeam:'My Team', tabLeagues:'My Leagues', tabXI:'Best XI',
+    tabTable:'All players', tabPlan:'Season plan', tabOdds:'GW odds', tabTargets:'Fixture targets', tabPrices:'Price changes', tabDiag:'Diagnostics',
+    titleA:'Fixture', titleB:'targets',
+    loading:'Loading fixtures…',
+    couldntReach:"Couldn't reach the app's data.", retry:'RETRY',
+    window:'Window', rateFor:'Rate fixtures for', attackers:'Attackers', defenders:'Defenders',
+    players:'Players', showTop3:'Show top 3', hide:'Hide',
+    gwWord:'GW', weeks:n=>n+(n===1?' gameweek':' gameweeks'),
+    subline:(n,m)=>`Next <b>${n}</b> gameweek${n>1?'s':''}, easiest first · rated for <b>${m==='att'?'attackers':'defenders'}</b>`,
+    hintAtt:'Attackers: how many goals each club should score. Top 3 shows MID/FWD.',
+    hintDef:'Defenders: how few goals each club should concede. Top 3 shows GKP/DEF.',
+    lvl:['','Very easy','Easy','Medium','Hard','Very hard'],
+    team:'TEAM', avgEase:'AVG EASE', xpWord:'xP', noPlayers:'No eligible players',
+    modelOff:e=>`The xP model couldn't load (${e}), so this is ranked on FPL's FDR alone and players are hidden.`,
+    cellTitle:(a,b,d,f,lf,la)=>`${a} v ${b} · difficulty ${d} · FDR ${f}`+(lf!=null?` · model goals for ${lf} / against ${la}`:''),
+    howH:"HOW IT'S RATED",
+    how1:"Each fixture's difficulty is half FPL's official FDR and half the model's team ratings (the same attack/defence ratings the xP engine uses, fitted on xG). <b>Attackers</b> rates a fixture by how many goals the club is expected to score; <b>Defenders</b> by how many it's expected to concede. The model half is rescaled to FPL's 1–5 spread (same average and spread) so the two halves weigh the same.",
+    how2:"<b>Avg ease</b> = sum of (6 − difficulty) for every fixture in the window ÷ number of gameweeks. A blank adds 0, so it drags a club down; a double adds both, so it lifts them. Higher is better.",
+    how3:"<b>Top 3</b> = the three highest summed xP over the same window: MID/FWD in Attackers mode, GKP/DEF in Defenders mode. Price and expected minutes alongside; minutes in red when under 60 or the player is flagged.",
+    footer:(eng,gws)=>`${TARGETS_BUILD} · engine ${eng} · ratings from ${gws} settled gameweek${gws===1?'':'s'} + last season · FPL data via /api/fpl`,
+  },
+  es: {
+    lightMode:'Modo claro', darkMode:'Modo oscuro',
+    tabPicks:'Selecciones', tabMyTeam:'Mi equipo', tabLeagues:'Mis ligas', tabXI:'Mejor XI',
+    tabTable:'Jugadores', tabPlan:'Plan de temporada', tabOdds:'Cuotas', tabTargets:'Objetivos por calendario', tabPrices:'Cambios de precio', tabDiag:'Diagnóstico',
+    titleA:'Objetivos', titleB:'por calendario',
+    loading:'Cargando partidos…',
+    couldntReach:'No se pudieron obtener los datos de la app.', retry:'REINTENTAR',
+    window:'Periodo', rateFor:'Valorar partidos para', attackers:'Atacantes', defenders:'Defensas',
+    players:'Jugadores', showTop3:'Ver top 3', hide:'Ocultar',
+    gwWord:'J', weeks:n=>n+(n===1?' jornada':' jornadas'),
+    subline:(n,m)=>`Próximas <b>${n}</b> jornada${n>1?'s':''}, de más fácil a más difícil · valorado para <b>${m==='att'?'atacantes':'defensas'}</b>`,
+    hintAtt:'Atacantes: cuántos goles debería marcar cada club. El top 3 muestra MED/DEL.',
+    hintDef:'Defensas: cuán pocos goles debería encajar cada club. El top 3 muestra POR/DEF.',
+    lvl:['','Muy fácil','Fácil','Media','Difícil','Muy difícil'],
+    team:'EQUIPO', avgEase:'FACILIDAD MEDIA', xpWord:'xP', noPlayers:'Sin jugadores elegibles',
+    modelOff:e=>`El modelo xP no se pudo cargar (${e}); la clasificación usa solo el FDR de FPL y los jugadores se ocultan.`,
+    cellTitle:(a,b,d,f,lf,la)=>`${a} v ${b} · dificultad ${d} · FDR ${f}`+(lf!=null?` · goles del modelo a favor ${lf} / en contra ${la}`:''),
+    howH:'CÓMO SE VALORA',
+    how1:'La dificultad de cada partido es mitad el FDR oficial de FPL y mitad las valoraciones de equipo del modelo (las mismas de ataque/defensa que usa el motor xP, ajustadas con xG). <b>Atacantes</b> valora un partido por los goles que se espera que marque el club; <b>Defensas</b> por los que se espera que encaje. La mitad del modelo se reescala a la escala 1–5 de FPL (misma media y dispersión) para que ambas mitades pesen igual.',
+    how2:'<b>Facilidad media</b> = suma de (6 − dificultad) de cada partido del periodo ÷ número de jornadas. Una jornada sin partido suma 0 y hunde al club; una doble suma ambos y lo sube. Más alto es mejor.',
+    how3:'<b>Top 3</b> = los tres xP sumados más altos del mismo periodo: MED/DEL en Atacantes, POR/DEF en Defensas. Precio y minutos esperados al lado; minutos en rojo si son menos de 60 o el jugador tiene aviso.',
+    footer:(eng,gws)=>`${TARGETS_BUILD} · motor ${eng} · valoraciones de ${gws} jornada${gws===1?'':'s'} cerrada${gws===1?'':'s'} + temporada anterior · datos de FPL vía /api/fpl`,
+  },
+};
+const POS_ES = {GKP:'POR',DEF:'DEF',MID:'MED',FWD:'DEL'};
+let LANG = (function(){ try{ return localStorage.getItem('fplLang') || 'en'; }catch(e){ return 'en'; } })();
+if (!I18N[LANG]) LANG = 'en';
+function t(key){ const v = I18N[LANG][key]; return v !== undefined ? v : I18N.en[key]; }
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n); if (typeof v === 'string') el.textContent = v;
+  });
+  document.title = t('titleA') + ' ' + t('titleB') + ' — FPL Model';
+  applyTheme(document.documentElement.classList.contains('light-theme'));
+}
+function setLang(l){
+  LANG = l;
+  try{ localStorage.setItem('fplLang', l); }catch(e){}
+  document.documentElement.lang = l;
+  document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+  applyStaticI18n();
+  if (DATA) { fillWindowSelect(); render(); }
+}
+document.querySelectorAll('.langbtn').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+/* ── THEME (shared key with index.html) ──────────────────── */
+const THEME_KEY = 'fplTheme';
+function applyTheme(light){
+  document.documentElement.classList.toggle('light-theme', !!light);
+  $('themeBtn').textContent = light ? t('darkMode') : t('lightMode');
+}
+(function(){ let s=null; try{ s=localStorage.getItem(THEME_KEY); }catch(e){} applyTheme(s==='light'); })();
+$('themeBtn').addEventListener('click', () => {
+  const l = !document.documentElement.classList.contains('light-theme');
+  applyTheme(l); try{ localStorage.setItem(THEME_KEY, l ? 'light' : 'dark'); }catch(e){}
+});
+
+/* ── BALL ──────────────────────────────────────────────────
    The same ⚽ emoji as the other pages, drawn by the device's own emoji font,
    with its dark patches turned blue. Only dark pixels are recoloured, keeping
    their shading; the white panels and their grey shading are untouched. If
@@ -150,7 +299,7 @@ const $=id=>document.getElementById(id);
     for(let i=0;i<a.length;i+=4){
       if(!a[i+3])continue;
       const L=.299*a[i]+.587*a[i+1]+.114*a[i+2];
-      const w=L>=150?0:L<=95?1:(150-L)/55;          // only the dark patches and their seams
+      const w=L>=150?0:L<=95?1:(150-L)/55;
       if(w) for(let k=0;k<3;k++){ const blue=Math.min(255,B[k]*(.7+L/170)); a[i+k]=a[i+k]*(1-w)+blue*w; }
       const x=(i/4)%c.width, y=(i/4)/c.width|0;
       if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;
@@ -166,82 +315,228 @@ const $=id=>document.getElementById(id);
   }catch(e){}
 })();
 
-const TEAM=Object.fromEntries(DATA.teams.map(t=>[t.id,t]));
-const GWS=DATA.gws;
-let N=5, MODE='att', SHOWPL=true;
-
-/* ── THEME (shared key with index.html) ── */
-const THEME_KEY='fplTheme';
-function applyTheme(light){document.documentElement.classList.toggle('light-theme',!!light);$('themeBtn').textContent=light?'Dark mode':'Light mode';}
-(function(){let s=null;try{s=localStorage.getItem(THEME_KEY);}catch(e){}applyTheme(s==='light');})();
-$('themeBtn').onclick=()=>{const l=!document.documentElement.classList.contains('light-theme');applyTheme(l);try{localStorage.setItem(THEME_KEY,l?'light':'dark');}catch(e){}};
-
-/* ── FIXTURE SIDES ──
-   One entry per team per fixture: FPL's FDR plus the model's expected goals
-   for (lf) and against (la). */
-const sides=[];
-for(const f of DATA.fx){
-  sides.push({gw:f.gw,team:f.h,opp:f.a,home:true, fdr:f.hd,lf:f.lh,la:f.la});
-  sides.push({gw:f.gw,team:f.a,opp:f.h,home:false,fdr:f.ad,lf:f.la,la:f.lh});
+/* ── DATA ──────────────────────────────────────────────── */
+function currentSeason(d){
+  d = d || new Date();
+  const y = d.getUTCFullYear(), start = d.getUTCMonth() >= 6 ? y : y - 1;
+  return start + '-' + String((start + 1) % 100).padStart(2, '0');
+}
+async function getJSON(url, opts){
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(url + ' — ' + r.status);
+  return r.json();
+}
+async function getJSONorNull(url){ try{ return await getJSON(url, { cache:'force-cache' }); }catch(e){ return null; } }
+function loadEngine(){
+  if (typeof XPE !== 'undefined') return Promise.resolve(true);
+  return new Promise(res => {
+    const s = document.createElement('script');
+    s.src = './model/xp-engine.js?b=' + TARGETS_BUILD;
+    s.onload = () => res(typeof XPE !== 'undefined');
+    s.onerror = () => res(false);
+    document.head.appendChild(s);
+  });
 }
 
-/* Put the model number on FPL's 1–5 scale: standardise it, then give it the
-   same mean and spread as FPL's FDRs across the same fixtures. Continuous, so
-   near-ties stay apart, and both halves of the blend weigh the same. */
-const mean=a=>a.reduce((x,y)=>x+y,0)/a.length, sd=a=>{const m=mean(a);return Math.sqrt(mean(a.map(v=>(v-m)**2)));};
-const fM=mean(sides.map(s=>s.fdr)), fS=sd(sides.map(s=>s.fdr));
-function quantileMap(vals){ const m=mean(vals), d=sd(vals)||1; return vals.map(v=>Math.min(5,Math.max(1,fM+fS*(v-m)/d))); }
-/* Attack: more goals for = easier, so rank on −lf. Defence: more goals against = harder. */
-const mAtt=quantileMap(sides.map(s=>-s.lf)), mDef=quantileMap(sides.map(s=>s.la));
-sides.forEach((s,i)=>{ s.diff={att:.5*s.fdr+.5*mAtt[i], def:.5*s.fdr+.5*mDef[i]}; });
-
-const band=d=>d<1.9?1:d<2.6?2:d<3.4?3:d<4.1?4:5;
-const COL=['','var(--d1)','var(--d2)','var(--d3)','var(--d4)','var(--d5)'];
-const LBL=['','Very easy','Easy','Medium','Hard','Very hard'];
-$('legend').innerHTML=[1,2,3,4,5].map(b=>`<span class="sw" style="background:${COL[b]}"></span><span>${LBL[b]}</span>`).join('&nbsp;&nbsp;');
-
-function render(){
-  const win=GWS.slice(0,N);
-  $('nVal').textContent=`GW${win[0]}–GW${win[win.length-1]} (${N})`;
-  if(N===1)$('nVal').textContent=`GW${win[0]} (1)`;
-  $('sub').innerHTML=`Next <b>${N}</b> gameweek${N>1?'s':''}, easiest first · rated for <b>${MODE==='att'?'attackers':'defenders'}</b>`;
-  $('hint').textContent=MODE==='att'
-    ?'Attackers: how many goals each team should score. Top 3 shows MID/FWD.'
-    :'Defenders: how few goals each team should concede. Top 3 shows GKP/DEF.';
-
-  const rows=DATA.teams.map(t=>{
-    const cells=win.map(gw=>sides.filter(s=>s.team===t.id&&s.gw===gw));
-    const ease=cells.flat().reduce((a,s)=>a+(6-s.diff[MODE]),0)/N;
-    const posOK=MODE==='att'?['MID','FWD']:['GKP','DEF'];
-    const top=DATA.players.filter(p=>p.t===t.id&&posOK.includes(p.p))
-      .map(p=>({...p,sum:p.xp.slice(0,N).reduce((a,b)=>a+b,0)}))
-      .sort((a,b)=>b.sum-a.sum).slice(0,3);
-    return {t,cells,ease,top};
-  }).sort((a,b)=>b.ease-a.ease);
-
-  const cols=3+N;
-  let h=`<thead><tr><th class="sticky">#</th><th class="l sticky" style="left:30px">TEAM</th><th>AVG EASE</th>${win.map(g=>`<th>GW${g}</th>`).join('')}</tr></thead><tbody>`;
-  rows.forEach((r,i)=>{
-    h+=`<tr class="team"><td class="rk sticky">${i+1}</td><td class="tm sticky" style="left:30px">${r.t.short}<span class="full">${r.t.name}</span></td>
-      <td class="ease">${r.ease.toFixed(2)}<div class="bar"><i style="width:${Math.max(0,(r.ease-1)/4*100)}%"></i></div></td>`;
-    for(const c of r.cells){
-      if(!c.length){h+=`<td><div class="cell"><span class="chip blank">–</span></div></td>`;continue;}
-      h+=`<td><div class="cell">${c.map(s=>{const d=s.diff[MODE];
-        return `<span class="chip" style="background:${COL[band(d)]}" title="${TEAM[s.team].short} v ${TEAM[s.opp].short} · blended ${d.toFixed(2)} · FDR ${s.fdr} · model xG for ${s.lf.toFixed(2)} / against ${s.la.toFixed(2)}">${TEAM[s.opp].short}<small>${s.home?'H':'A'}</small></span>`;}).join('')}</div></td>`;
+/* Team ratings and per-player inputs, assembled exactly as index.html's
+   XPD.ensure() does, so the numbers here match the app's xP. */
+async function buildModel(boot, next, season){
+  if (!(await loadEngine())) throw new Error('model/xp-engine.js did not load');
+  const gws = []; for (let g = 1; g < next; g++) gws.push(g);
+  const [pri, ...posts] = await Promise.all([
+    getJSONorNull('./history/fpl/priors/' + season + '.json'),
+    ...gws.map(g => getJSONorNull('./history/fpl/' + season + '/post/gw-' + g + '.json')),
+  ]);
+  if (!pri || !pri.pl) throw new Error('no priors file for ' + season);
+  const rules = XPE.rulesFor(season);
+  const teamCode = Object.fromEntries(boot.teams.map(t => [t.id, t.code]));
+  const byId = Object.fromEntries(boot.elements.map(e => [e.id, e]));
+  const me = {}, fxXG = {}, matches = []; let aThis = 0, xaThis = 0, loaded = 0;
+  const blank = () => ({ mins:0, xg:0, xa:0, bn:0, yc:0, sv:0, dc:0, dcMins:0, dcSt:0, dcHit:0, win:[] });
+  posts.forEach(j => {
+    if (!j || !j.players) return;
+    loaded++;
+    const fxById = Object.fromEntries((j.fixtures || []).map(f => [f.id, f]));
+    for (const id in j.players){
+      const p = j.players[id], legs = p.fixtures || [], n = legs.length;
+      if (!n) continue;
+      const el = byId[id], pos = el ? POSN[el.element_type] : null;
+      const m = me[id] || (me[id] = blank());
+      const mins = +p.minutes || 0, st = +p.starts || 0, xg = +p.expected_goals || 0, xa = +p.expected_assists || 0, dc = +p.defensive_contribution || 0;
+      m.mins += mins; m.xg += xg; m.xa += xa; m.bn += +p.bonus || 0; m.yc += +p.yellow_cards || 0; m.sv += +p.saves || 0;
+      m.dc += dc; m.dcMins += mins; m.dcSt += st;
+      if (pos && dc / n >= (XPE.DCTHR[pos] ?? Infinity)) m.dcHit += n;
+      for (let k = 0; k < n; k++) m.win.push({ minutes: mins / n, starts: st > k ? 1 : 0 });
+      aThis += +p.assists || 0; xaThis += xa;
+      for (const L of legs){
+        const f = fxById[L.fixture]; if (!f) continue;
+        const team = L.venue === 'H' ? f.team_h : f.team_a;
+        const key = f.id + ':' + team; fxXG[key] = (fxXG[key] || 0) + xg / n;
+      }
     }
-    h+='</tr>';
-    if(SHOWPL){
-      h+=`<tr class="pl"><td colspan="${cols}"><div class="picks">${r.top.map(p=>{
-        const risky=p.xm<60||p.st!=='a';
-        return `<div class="pk"><b>${p.n}</b><span class="pos">${p.p}</span><span class="meta">£${p.c.toFixed(1)}</span><span class="meta ${risky?'warn':''}">${p.xm}′</span><span class="xp">${p.sum.toFixed(1)} xP</span></div>`;}).join('')}</div></td></tr>`;
+    for (const f of (j.fixtures || [])){
+      const h = fxXG[f.id + ':' + f.team_h], a = fxXG[f.id + ':' + f.team_a];
+      if (f.finished && h != null && a != null)
+        matches.push({ home: teamCode[f.team_h], away: teamCode[f.team_a], hxg: h, axg: a });
     }
   });
-  $('tbl').innerHTML=h+'</tbody>';
+  const team = { ...pri.team, att: { ...pri.team.att }, def: { ...pri.team.def } };
+  for (const tm of boot.teams) if (!(tm.code in team.att)) { team.att[tm.code] = pri.team.promoted.att; team.def[tm.code] = pri.team.promoted.def; }
+  const T = XPE.teamRatings(matches, team, {});
+  const assistRatio = (aThis + 60 * pri.assistRatio) / (xaThis + 60);
+  return { XPE, pri, rules, teamCode, me, T, assistRatio, loaded, blank };
 }
-$('n').onchange=e=>{N=+e.target.value;render();};
-$('mode').onclick=e=>{const b=e.target.closest('button');if(!b)return;MODE=b.dataset.m;[...$('mode').children].forEach(x=>x.setAttribute('aria-pressed',x===b));render();};
-$('showPl').onclick=e=>{const b=e.target.closest('button');if(!b)return;SHOWPL=b.dataset.v==='1';[...$('showPl').children].forEach(x=>x.setAttribute('aria-pressed',x===b));render();};
-render();
+
+/* ── BUILD THE TABLE DATA ────────────────────────────────── */
+let DATA = null, N = 5, MODE = 'att', SHOWPL = true;
+
+function prepare(boot, fixtures, next, M){
+  const gws = []; for (let g = next; g < next + MAX_N && g <= 38; g++) gws.push(g);
+  const fx = fixtures.filter(f => f.event != null && f.event >= next && f.event < next + MAX_N);
+  const teams = boot.teams.map(t => ({ id:t.id, short:t.short_name, name:t.name }));
+
+  /* One entry per club per fixture. */
+  const sides = [];
+  for (const f of fx){
+    let lh = null, la = null;
+    if (M){ const L = M.XPE.lambdas(M.T, M.teamCode[f.team_h], M.teamCode[f.team_a]); lh = L.home; la = L.away; }
+    sides.push({ gw:f.event, team:f.team_h, opp:f.team_a, home:true,  fdr:f.team_h_difficulty, lf:lh, la:la });
+    sides.push({ gw:f.event, team:f.team_a, opp:f.team_h, home:false, fdr:f.team_a_difficulty, lf:la, la:lh });
+  }
+  /* Blend. Model half standardised onto FPL's FDR mean/spread over the same
+     fixtures (all ten gameweeks, so a club's colours don't shift with N). */
+  const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
+  const sd = a => { const m = mean(a); return Math.sqrt(mean(a.map(v => (v-m)**2))); };
+  if (sides.length){
+    const fM = mean(sides.map(s=>s.fdr)), fS = sd(sides.map(s=>s.fdr)) || 1;
+    const onFdr = vals => { const m = mean(vals), d = sd(vals) || 1; return vals.map(v => Math.min(5, Math.max(1, fM + fS*(v-m)/d))); };
+    const mAtt = M ? onFdr(sides.map(s => -s.lf)) : null;
+    const mDef = M ? onFdr(sides.map(s =>  s.la)) : null;
+    sides.forEach((s,i) => { s.diff = M ? { att:.5*s.fdr+.5*mAtt[i], def:.5*s.fdr+.5*mDef[i] } : { att:s.fdr, def:s.fdr }; });
+  }
+
+  /* Players: summed xP per gameweek over the window, from the engine. */
+  const players = [];
+  if (M){
+    for (const el of boot.elements){
+      const pos = POSN[el.element_type]; if (!pos) continue;
+      const price = (el.now_cost || 0) / 10;
+      const inp = M.XPE.playerInputs(pos, price, M.me[el.id] || M.blank(), M.pri.pl[el.code] || null, M.pri, M.rules, {}, null);
+      const a0 = M.XPE.availability(el.status, el.chance_of_playing_next_round, 0);
+      const xp = gws.map(gw => {
+        const a = M.XPE.availability(el.status, el.chance_of_playing_next_round, Math.max(0, gw - next));
+        const mins = M.XPE.scaleMinutes(inp.mins, a);
+        let s = 0;
+        for (const f of fx) if (f.event === gw && (f.team_h === el.team || f.team_a === el.team)){
+          const isH = f.team_h === el.team;
+          const ctx = M.XPE.fixtureContext(M.T, M.rules, M.teamCode[f.team_h], M.teamCode[f.team_a], isH, M.assistRatio);
+          s += M.XPE.fixtureXP({ pos, rates: inp.rates, mins }, ctx).total;
+        }
+        return s;
+      });
+      players.push({ n:el.web_name, t:el.team, p:pos, c:price, st:el.status, xm:Math.round(M.XPE.scaleMinutes(inp.mins, a0).xMins), xp });
+    }
+  }
+  return { gws, teams, sides, players, model: !!M };
+}
+
+/* ── RENDER ────────────────────────────────────────────── */
+const band = d => d < 1.9 ? 1 : d < 2.6 ? 2 : d < 3.4 ? 3 : d < 4.1 ? 4 : 5;
+const COL = ['', 'var(--d1)', 'var(--d2)', 'var(--d3)', 'var(--d4)', 'var(--d5)'];
+const posLbl = p => LANG === 'es' ? POS_ES[p] : p;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function fillWindowSelect(){
+  const sel = $('n'), max = DATA.gws.length;
+  N = Math.min(N, max);
+  sel.innerHTML = Array.from({length:max}, (_,i) => i+1)
+    .map(i => `<option value="${i}"${i===N?' selected':''}>${t('weeks')(i)}</option>`).join('');
+}
+
+function render(){
+  const D = DATA, win = D.gws.slice(0, N), G = t('gwWord');
+  const TEAM = Object.fromEntries(D.teams.map(x => [x.id, x]));
+  $('nVal').textContent = N === 1 ? `${G}${win[0]}` : `${G}${win[0]}–${G}${win[win.length-1]}`;
+  $('subline').innerHTML = t('subline')(N, MODE);
+  $('hint').textContent = MODE === 'att' ? t('hintAtt') : t('hintDef');
+  $('legend').innerHTML = [1,2,3,4,5].map(b => `<span class="sw" style="background:${COL[b]}"></span><span>${t('lvl')[b]}</span>`).join('&nbsp;&nbsp;');
+  $('how1').innerHTML = t('how1'); $('how2').innerHTML = t('how2'); $('how3').innerHTML = t('how3');
+
+  const posOK = MODE === 'att' ? ['MID','FWD'] : ['GKP','DEF'];
+  const rows = D.teams.map(tm => {
+    const cells = win.map(gw => D.sides.filter(s => s.team === tm.id && s.gw === gw));
+    const ease = cells.flat().reduce((a,s) => a + (6 - s.diff[MODE]), 0) / N;
+    const top = D.players.filter(p => p.t === tm.id && posOK.includes(p.p))
+      .map(p => ({ ...p, sum: p.xp.slice(0, N).reduce((a,b) => a+b, 0) }))
+      .sort((a,b) => b.sum - a.sum).slice(0, 3);
+    return { tm, cells, ease, top };
+  }).sort((a,b) => b.ease - a.ease || a.tm.short.localeCompare(b.tm.short));
+
+  const showPl = SHOWPL && D.model, cols = 3 + N;
+  let h = `<div class="tablewrap"><table><thead><tr><th class="sticky">#</th><th class="l sticky" style="left:30px">${t('team')}</th><th>${t('avgEase')}</th>${win.map(g => `<th>${G}${g}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach((r, i) => {
+    h += `<tr class="team"><td class="rk sticky">${i+1}</td><td class="tm sticky" style="left:30px">${esc(r.tm.short)}<span class="full">${esc(r.tm.name)}</span></td>
+      <td class="ease">${r.ease.toFixed(2)}<div class="bar"><i style="width:${Math.max(0, Math.min(100, (r.ease-1)/4*100))}%"></i></div></td>`;
+    for (const c of r.cells){
+      if (!c.length){ h += `<td><div class="cell"><span class="chip blank">–</span></div></td>`; continue; }
+      h += `<td><div class="cell">${c.map(s => {
+        const d = s.diff[MODE], o = TEAM[s.opp];
+        const tip = t('cellTitle')(TEAM[s.team].short, o.short, d.toFixed(2), s.fdr, s.lf != null ? s.lf.toFixed(2) : null, s.la != null ? s.la.toFixed(2) : null);
+        return `<span class="chip" style="background:${COL[band(d)]}" title="${esc(tip)}">${esc(o.short)}<small>${s.home ? 'H' : 'A'}</small></span>`;
+      }).join('')}</div></td>`;
+    }
+    h += '</tr>';
+    if (showPl){
+      h += `<tr class="pl"><td colspan="${cols}"><div class="picks">${r.top.length ? r.top.map(p => {
+        const risky = p.xm < 60 || p.st !== 'a';
+        return `<div class="pk"><b>${esc(p.n)}</b><span class="pos">${posLbl(p.p)}</span><span class="meta">£${p.c.toFixed(1)}</span><span class="meta ${risky ? 'warn' : ''}">${p.xm}′</span><span class="xp">${p.sum.toFixed(1)} ${t('xpWord')}</span></div>`;
+      }).join('') : `<div class="pk none">${t('noPlayers')}</div>`}</div></td></tr>`;
+    }
+  });
+  $('content').innerHTML = h + '</tbody></table></div>';
+}
+
+$('n').addEventListener('change', e => { N = +e.target.value; render(); });
+$('mode').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; MODE = b.dataset.m; [...$('mode').children].forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
+$('showPl').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; SHOWPL = b.dataset.v === '1'; [...$('showPl').children].forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); });
+
+/* ── LOAD ──────────────────────────────────────────────── */
+async function load(){
+  $('content').innerHTML = `<div class="state">${t('loading')}</div>`;
+  try{
+    const bundle = await getJSON('/api/fpl', { cache:'no-store' });
+    const boot = bundle.bootstrap, fixtures = bundle.fixtures || [];
+    if (!boot || !boot.teams || !boot.elements) throw new Error('bootstrap-static missing');
+    const events = boot.events || [];
+    const nx = events.find(e => e.is_next) || events.find(e => !e.finished);
+    if (!nx) throw new Error('no upcoming gameweek');
+    const season = currentSeason();
+    $('seasonLbl').textContent = season.replace('-', '/');
+
+    let M = null, err = null;
+    try{ M = await buildModel(boot, nx.id, season); }catch(e){ err = String(e && e.message || e); console.warn('xP model unavailable:', err); }
+    DATA = prepare(boot, fixtures, nx.id, M);
+    if (!DATA.gws.length) throw new Error('no fixtures ahead');
+
+    $('modelWarn').style.display = M ? 'none' : '';
+    if (!M) $('modelWarn').textContent = t('modelOff')(err);
+    $('controls').style.display = ''; $('notes').style.display = '';
+    $('footer').style.display = '';
+    $('footer').textContent = M ? t('footer')(M.XPE.STAMP || '—', M.loaded) : TARGETS_BUILD;
+    fillWindowSelect();
+    render();
+  }catch(e){
+    console.error(e);
+    $('content').innerHTML = `<div class="state">${t('couldntReach')}<div class="mono">${esc(e && e.message || e)}</div><button class="retry" onclick="load()">${t('retry')}</button></div>`;
+  }
+}
+
+$('buildStamp').textContent = TARGETS_BUILD;
+try{ console.log('%cFixture Targets build: ' + TARGETS_BUILD, 'color:#d9a441;font-weight:bold'); }catch(e){}
+document.documentElement.lang = LANG;
+document.querySelectorAll('.langbtn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
+applyStaticI18n();
+load();
 </script>
 </body>
 </html>
