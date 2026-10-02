@@ -1436,17 +1436,9 @@ tbody tr.dead td:first-child{padding-left:26px}
   <div id="warnNote" class="note warn" hidden></div>
 
   <!-- TABS -->
-  <div class="tabs" role="tablist" id="tabs" hidden>
-    <button class="tab" role="tab" aria-selected="true" data-view="picks" data-i18n="tabPicks">Picks</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="myteam" data-i18n="tabMyTeam">My Team</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="leagues" data-i18n="tabLeagues">My Leagues</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="xi" data-i18n="tabXI">Best XI</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="table" data-i18n="tabTable">All players</button>
-    <button class="tab" role="tab" aria-selected="false" data-view="plan" data-i18n="tabPlan">Season plan</button>
-    <a class="tab" href="gw-odds.html" data-i18n="tabOdds">GW odds</a>
-    <a class="tab" href="price-changes.html" data-i18n="tabPrices">Price changes</a>
-    <button class="tab" role="tab" aria-selected="false" data-view="diag" data-i18n="tabDiag">Diagnostics</button>
-  </div>
+  <!-- Menu items come from nav.js — it must load here, before the main script binds .tab clicks. -->
+  <nav class="tabs" role="tablist" id="tabs" data-page="index" hidden></nav>
+  <script src="nav.js"></script>
 
   <div class="view on" id="view-picks"><div class="pickgrid" id="pickGrid"></div></div>
   
@@ -1620,7 +1612,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-09-20b';
+const APP_BUILD = 'app-2026-10-02b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1657,7 +1649,7 @@ const I18N={
     gContext:'Context', gContextD:'Fixtures, minutes, market',
     pBalanced:'Balanced', pForm:'Form', pFixtures:'Fixtures', pThreat:'Threat', pDefensive:'Defensive', pDifferential:'Differential',
     tagLive:'live only', tagCold:'cold start', tagPos:'by position', tagPlayed:'from GW1',
-    tabMyTeam:'My Team', myTeam:'My Team',
+    myTeam:'My Team',
     tabLeagues:'My Leagues', mtChangeId:'Change ID',
     lightMode:'Light mode', darkMode:'Dark mode',
     lgModeChip:'Chips',
@@ -1711,8 +1703,7 @@ const I18N={
     lgMore:'more', lgNobody:'nobody',
     lgBenchNote:'Benched means picked at position 12 to 15 at the deadline. It is read from position rather than multiplier, so Bench Boost does not distort it, and it is unaffected by auto-subs. The number beside each manager is their league rank.',
     lgCapNote:'Solid bar is captain, faded bar is vice. Tap a row for the names. A captain nobody else has is the differential worth knowing about before the deadline.',
-    tabPicks:'Picks', tabXI:'Best XI', tabTable:'All players', tabPlan:'Season plan', tabDiag:'Diagnostics',
-    tabOdds:'GW odds', tabPrices:'Price changes',
+    /* Menu labels live in nav.js. */
     allPlayers:'All players', searchPh:'Player or club', searchAria:'Search players',
     allPos:'All positions', posGK:'Goalkeeper', posDF:'Defender', posMD:'Midfielder', posFW:'Forward',
     anyPrice:'Any price', upTo:'Up to ', allAvail:'All players', fitOnly:'Fully available only',
@@ -1915,7 +1906,7 @@ const I18N={
     gContext:'Contexto', gContextD:'Calendario, minutos, mercado',
     pBalanced:'Equilibrado', pForm:'Forma', pFixtures:'Calendario', pThreat:'Amenaza', pDefensive:'Defensivo', pDifferential:'Diferencial',
     tagLive:'solo actual', tagCold:'arranque frío', tagPos:'por posición', tagPlayed:'desde J1',
-    tabMyTeam:'Mi equipo', myTeam:'Mi equipo',
+    myTeam:'Mi equipo',
     tabLeagues:'Mis ligas', mtChangeId:'Cambiar ID',
     lightMode:'Modo claro', darkMode:'Modo oscuro',
     lgModeChip:'Comodines',
@@ -1969,8 +1960,7 @@ const I18N={
     lgMore:'más', lgNobody:'nadie',
     lgBenchNote:'Banquillo significa elegido en la posición 12 a 15 al cierre. Se lee de la posición y no del multiplicador, así que el Bench Boost no lo distorsiona, y no le afectan los cambios automáticos. El número junto a cada mánager es su posición en la liga.',
     lgCapNote:'La barra sólida son capitanes, la tenue subcapitanes. Toca una fila para ver los nombres. Un capitán que no tiene nadie más es el diferencial que conviene conocer antes del cierre.',
-    tabPicks:'Selecciones', tabXI:'Mejor XI', tabTable:'Jugadores', tabPlan:'Plan de temporada', tabDiag:'Diagnóstico',
-    tabOdds:'Cuotas', tabPrices:'Cambios de precio',
+    /* Menu labels live in nav.js. */
     allPlayers:'Todos los jugadores', searchPh:'Jugador o club', searchAria:'Buscar jugadores',
     allPos:'Todas las posiciones', posGK:'Portero', posDF:'Defensa', posMD:'Centrocampista', posFW:'Delantero',
     anyPrice:'Cualquier precio', upTo:'Hasta ', allAvail:'Todos', fitOnly:'Solo plenamente disponibles',

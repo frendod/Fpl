@@ -155,17 +155,8 @@
       <div class="epc-sub" id="nextChangeStatus" style="margin-top:2px"></div>
     </div>
   </div>
-  <div class="tabs" role="tablist">
-    <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
-    <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
-    <a class="tab" href="index.html?view=leagues" data-i18n="tabLeagues">My Leagues</a>
-    <a class="tab" href="index.html?view=xi" data-i18n="tabXI">Best XI</a>
-    <a class="tab" href="index.html?view=table" data-i18n="tabTable">All players</a>
-    <a class="tab" href="index.html?view=plan" data-i18n="tabPlan">Season plan</a>
-    <a class="tab" href="gw-odds.html" data-i18n="tabOdds">GW odds</a>
-    <span class="tab" aria-selected="true" data-i18n="tabPrices">Price changes</span>
-    <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
-  </div>
+  <nav class="tabs" role="tablist" data-page="prices"></nav>
+  <script src="nav.js"></script>
   <div class="epc-toolbar">
     <div class="epc-tabs" id="viewTabs">
       <button class="epc-tab" data-view="ledger" data-i18n="tabLedger">Ledger</button>
@@ -190,7 +181,7 @@
 
 <script>
 'use strict';
-const APP_BUILD = 'price-changes-2026-09-20g';
+const APP_BUILD = 'price-changes-2026-10-02b';
 console.log('FPL Rock price changes build:', APP_BUILD);
 document.getElementById('buildStamp').textContent = APP_BUILD;
 
@@ -221,8 +212,6 @@ const I18N = {
     tabLedger: 'Ledger',
     tabCards: 'Cards',
     tabDashboard: 'Dashboard',
-    tabPicks: 'Picks', tabMyTeam: 'My Team', tabLeagues: 'My Leagues', tabXI: 'Best XI',
-    tabTable: 'All players', tabPlan: 'Season plan', tabOdds: 'GW odds', tabPrices: 'Price changes', tabDiag: 'Diagnostics',
     teamId: 'Team ID',
     teamIdPh: 'e.g. 1234567',
     checkSquad: 'Check my squad',
@@ -270,8 +259,6 @@ const I18N = {
     tabLedger: 'Registro',
     tabCards: 'Tarjetas',
     tabDashboard: 'Panel',
-    tabPicks: 'Selecciones', tabMyTeam: 'Mi equipo', tabLeagues: 'Mis ligas', tabXI: 'Mejor XI',
-    tabTable: 'Jugadores', tabPlan: 'Plan de temporada', tabOdds: 'Cuotas', tabPrices: 'Cambios de precio', tabDiag: 'Diagnóstico',
     teamId: 'ID de equipo',
     teamIdPh: 'p. ej. 1234567',
     checkSquad: 'Ver mi plantilla',

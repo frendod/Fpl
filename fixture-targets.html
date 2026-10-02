@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-build="targets-2026-09-27a">
+<html lang="en" data-build="targets-2026-10-02a">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10151c">
-<meta name="build" content="targets-2026-09-27a">
+<meta name="build" content="targets-2026-10-02a">
 <title>Fixture Targets — FPL Model</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* targets-2026-09-27a — companion to index.html, same token system as gw-odds.html */
+/* targets-2026-10-02a — companion to index.html, same token system as gw-odds.html */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -121,18 +121,8 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
     </div>
     <h1><span class="ball" id="ball">⚽</span> <span data-i18n="titleA">Fixture</span> <em data-i18n="titleB">targets</em></h1>
     <div class="subline" id="subline" data-i18n="loading">Loading fixtures…</div>
-    <div class="tabs" role="tablist">
-      <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
-      <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
-      <a class="tab" href="index.html?view=leagues" data-i18n="tabLeagues">My Leagues</a>
-      <a class="tab" href="index.html?view=xi" data-i18n="tabXI">Best XI</a>
-      <a class="tab" href="index.html?view=table" data-i18n="tabTable">All players</a>
-      <a class="tab" href="index.html?view=plan" data-i18n="tabPlan">Season plan</a>
-      <a class="tab" href="gw-odds.html" data-i18n="tabOdds">GW odds</a>
-      <span class="tab" aria-selected="true" data-i18n="tabTargets">Fixture targets</span>
-      <a class="tab" href="price-changes.html" data-i18n="tabPrices">Price changes</a>
-      <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
-    </div>
+    <nav class="tabs" role="tablist" data-page="targets"></nav>
+    <script src="nav.js"></script>
   </div>
 
   <div class="controls" id="controls" style="display:none">
@@ -171,7 +161,7 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
 </div>
 
 <script>
-const TARGETS_BUILD = 'targets-2026-09-27a';
+const TARGETS_BUILD = 'targets-2026-10-02a';
 
 /* ══ WHAT THIS PAGE DOES ════════════════════════════════
    One row per club, the next N gameweeks (1–10), easiest first.
@@ -203,8 +193,6 @@ const MAX_N = 10;
 const I18N = {
   en: {
     lightMode:'Light mode', darkMode:'Dark mode',
-    tabPicks:'Picks', tabMyTeam:'My Team', tabLeagues:'My Leagues', tabXI:'Best XI',
-    tabTable:'All players', tabPlan:'Season plan', tabOdds:'GW odds', tabTargets:'Fixture targets', tabPrices:'Price changes', tabDiag:'Diagnostics',
     titleA:'Fixture', titleB:'targets',
     loading:'Loading fixtures…',
     couldntReach:"Couldn't reach the app's data.", retry:'RETRY',
@@ -226,8 +214,6 @@ const I18N = {
   },
   es: {
     lightMode:'Modo claro', darkMode:'Modo oscuro',
-    tabPicks:'Selecciones', tabMyTeam:'Mi equipo', tabLeagues:'Mis ligas', tabXI:'Mejor XI',
-    tabTable:'Jugadores', tabPlan:'Plan de temporada', tabOdds:'Cuotas', tabTargets:'Objetivos por calendario', tabPrices:'Cambios de precio', tabDiag:'Diagnóstico',
     titleA:'Objetivos', titleB:'por calendario',
     loading:'Cargando partidos…',
     couldntReach:'No se pudieron obtener los datos de la app.', retry:'REINTENTAR',

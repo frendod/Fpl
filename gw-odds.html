@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-09-20d — companion to index.html, same token system */
+/* odds-page-2026-10-02b — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -208,17 +208,8 @@ footer a{color:var(--dim)}
     </div>
     <h1>⚽ <span data-i18n="gwWord">Gameweek</span> <em id="gwNum">—</em> <span data-i18n="oddsWord">odds</span></h1>
     <div class="subline" id="subline" data-i18n="loadingFixtures">Loading fixtures…</div>
-    <div class="tabs" role="tablist">
-      <a class="tab" href="index.html?view=picks" data-i18n="tabPicks">Picks</a>
-      <a class="tab" href="index.html?view=myteam" data-i18n="tabMyTeam">My Team</a>
-      <a class="tab" href="index.html?view=leagues" data-i18n="tabLeagues">My Leagues</a>
-      <a class="tab" href="index.html?view=xi" data-i18n="tabXI">Best XI</a>
-      <a class="tab" href="index.html?view=table" data-i18n="tabTable">All players</a>
-      <a class="tab" href="index.html?view=plan" data-i18n="tabPlan">Season plan</a>
-      <span class="tab" aria-selected="true" data-i18n="tabOdds">GW odds</span>
-      <a class="tab" href="price-changes.html" data-i18n="tabPrices">Price changes</a>
-      <a class="tab" href="index.html?view=diag" data-i18n="tabDiag">Diagnostics</a>
-    </div>
+    <nav class="tabs" role="tablist" data-page="odds"></nav>
+    <script src="nav.js"></script>
   </div>
 
   <div id="content"></div>
@@ -235,7 +226,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-09-20d';
+const ODDS_PAGE_BUILD = 'odds-page-2026-10-02b';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
@@ -243,8 +234,6 @@ const I18N = {
   en: {
     lightMode: 'Light mode',
     darkMode: 'Dark mode',
-    tabPicks: 'Picks', tabMyTeam: 'My Team', tabLeagues: 'My Leagues', tabXI: 'Best XI',
-    tabTable: 'All players', tabPlan: 'Season plan', tabOdds: 'GW odds', tabPrices: 'Price changes', tabDiag: 'Diagnostics',
     gwWord: 'Gameweek',
     oddsWord: 'odds',
     loadingFixtures: 'Loading fixtures…',
@@ -279,8 +268,6 @@ const I18N = {
   es: {
     lightMode: 'Modo claro',
     darkMode: 'Modo oscuro',
-    tabPicks: 'Selecciones', tabMyTeam: 'Mi equipo', tabLeagues: 'Mis ligas', tabXI: 'Mejor XI',
-    tabTable: 'Jugadores', tabPlan: 'Plan de temporada', tabOdds: 'Cuotas', tabPrices: 'Cambios de precio', tabDiag: 'Diagnóstico',
     gwWord: 'Jornada',
     oddsWord: 'cuotas',
     loadingFixtures: 'Cargando partidos…',

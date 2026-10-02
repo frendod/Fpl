@@ -27,9 +27,11 @@
  */
 import fs from 'node:fs';
 const html = fs.readFileSync(new URL('./index.html', import.meta.url), 'utf8');
-const m = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
-if (!m) { console.error('no script block found in index.html'); process.exit(1); }
-const src = m[1];
+// The app's code is the largest inline <script>. Not the first: index.html now
+// loads nav.js (an empty <script src>) ahead of it.
+const blocks = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(x => x[1]);
+if (!blocks.length) { console.error('no script block found in index.html'); process.exit(1); }
+const src = blocks.reduce((a, b) => b.length > a.length ? b : a, '');
 const grab = name => {
   const i = src.indexOf('function '+name+'(');
   if(i<0) throw new Error('missing '+name);
