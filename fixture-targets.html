@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* targets-2026-10-02b — companion to index.html, same token system as gw-odds.html */
+/* targets-2026-10-02c — companion to index.html, same token system as gw-odds.html */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -100,7 +100,12 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
 @media (max-width:640px){
   td.tm .full{display:none}
   .picks{padding-left:10px;flex-direction:column;gap:5px}
-  .pk{justify-content:space-between}
+  /* Fixed columns so position, price, minutes and xP line up whatever the name length. */
+  .pk{display:grid;grid-template-columns:minmax(0,1fr) 2.6em 3.7em 2.7em 4.9em;gap:0 6px;align-items:baseline}
+  .pk b{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pk .pos{text-align:center}
+  .pk .meta,.pk .xp{text-align:right;white-space:nowrap}
+  .pk.none{display:block}
   td.ease{min-width:60px;padding:0 6px}
   .cell{min-width:54px}
 }
@@ -171,7 +176,7 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
 </div>
 
 <script>
-const TARGETS_BUILD = 'targets-2026-10-02b';
+const TARGETS_BUILD = 'targets-2026-10-02c';
 
 /* ══ WHAT THIS PAGE DOES ════════════════════════════════
    One row per club, the next N gameweeks (1–10), easiest first.
