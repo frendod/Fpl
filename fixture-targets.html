@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-build="targets-2026-10-02a">
+<html lang="en" data-build="targets-2026-10-02d">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10151c">
-<meta name="build" content="targets-2026-10-02a">
+<meta name="build" content="targets-2026-10-02d">
 <title>Fixture Targets — FPL Model</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* targets-2026-10-02c — companion to index.html, same token system as gw-odds.html */
+/* targets-2026-10-02d — companion to index.html, same token system as gw-odds.html */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -140,7 +140,8 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
     <div class="ctl">
       <span class="lbl" data-i18n="rateFor">Rate fixtures for</span>
       <div class="seg" id="mode">
-        <button data-m="att" aria-pressed="true" data-i18n="attackers">Attackers</button>
+        <button data-m="all" aria-pressed="true" data-i18n="overall">Overall</button>
+        <button data-m="att" aria-pressed="false" data-i18n="attackers">Attackers</button>
         <button data-m="def" aria-pressed="false" data-i18n="defenders">Defenders</button>
       </div>
     </div>
@@ -176,7 +177,7 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
 </div>
 
 <script>
-const TARGETS_BUILD = 'targets-2026-10-02c';
+const TARGETS_BUILD = 'targets-2026-10-02d';
 
 /* ══ WHAT THIS PAGE DOES ════════════════════════════════
    One row per club, the next N gameweeks (1–10), easiest first.
@@ -187,6 +188,7 @@ const TARGETS_BUILD = 'targets-2026-10-02c';
    does (priors + every settled post/gw-N snapshot):
      Attackers  goals the club is expected to score in that fixture
      Defenders  goals the club is expected to concede
+     Overall    (default) the mean of the Attackers and Defenders difficulty
    It is put on FPL's 1–5 scale by matching the mean and spread of FPL's FDRs
    over the same fixtures, so both halves weigh the same.
 
@@ -194,7 +196,7 @@ const TARGETS_BUILD = 'targets-2026-10-02c';
    A blank adds 0 (drags a club down); a double adds both (lifts it).
 
    Top 3: summed xP over the same window, straight from the engine —
-   MID/FWD for Attackers, GKP/DEF for Defenders.
+   any position for Overall, MID/FWD for Attackers, GKP/DEF for Defenders.
 
    GW odds (toggle, off by default): where a bookmaker capture exists in
    history/odds/<season>/pre/ (late → adhoc → early → preview), the model
@@ -218,14 +220,15 @@ const I18N = {
     titleA:'Fixture', titleB:'targets',
     loading:'Loading fixtures…',
     couldntReach:"Couldn't reach the app's data.", retry:'RETRY',
-    window:'Window', rateFor:'Rate fixtures for', attackers:'Attackers', defenders:'Defenders',
+    window:'Window', rateFor:'Rate fixtures for', overall:'Overall', attackers:'Attackers', defenders:'Defenders',
     players:'Players', showTop3:'Show top 3', hide:'Hide',
     gwOdds:'Include GW odds', on:'On', off:'Off', oddsWord:'Odds',
     oddsPart:(k,n)=>`odds for ${k} of ${n} fixtures`,
     oddsTip:(lf,la,pt)=>` · market goals for ${lf} / against ${la} (${pt} capture)`,
     how4:"<b>Include GW odds</b>: when on, any fixture with a bookmaker capture uses the market's expected goals (devigged Correct Score) for the model half instead of the xG ratings. Odds usually only exist for the next gameweek or two, so the column headers show <b>Odds ✅</b> where they're used and <b>Odds ❌</b> where the xG model stands in. Chips priced from odds have a white underline. Top 3 xP is unchanged.",
     gwWord:'GW', weeks:n=>n+(n===1?' gameweek':' gameweeks'),
-    subline:(n,m)=>`Next <b>${n}</b> gameweek${n>1?'s':''}, easiest first · rated for <b>${m==='att'?'attackers':'defenders'}</b>`,
+    subline:(n,m)=>`Next <b>${n}</b> gameweek${n>1?'s':''}, easiest first · rated for <b>${m==='all'?'attack and defence':m==='att'?'attackers':'defenders'}</b>`,
+    hintAll:'Overall: attack and defence averaged — the best all-round fixtures. Top 3 shows any position.',
     hintAtt:'Attackers: how many goals each club should score. Top 3 shows MID/FWD.',
     hintDef:'Defenders: how few goals each club should concede. Top 3 shows GKP/DEF.',
     lvl:['','Very easy','Easy','Medium','Hard','Very hard'],
@@ -233,9 +236,9 @@ const I18N = {
     modelOff:e=>`The xP model couldn't load (${e}), so this is ranked on FPL's FDR alone and players are hidden.`,
     cellTitle:(a,b,d,f,lf,la,mk)=>`${a} v ${b} · difficulty ${d} · FDR ${f}`+(mk?'':(lf!=null?` · model goals for ${lf} / against ${la}`:'')),
     howH:"HOW IT'S RATED",
-    how1:"Each fixture's difficulty is half FPL's official FDR and half the model's team ratings (the same attack/defence ratings the xP engine uses, fitted on xG). <b>Attackers</b> rates a fixture by how many goals the club is expected to score; <b>Defenders</b> by how many it's expected to concede. The model half is rescaled to FPL's 1–5 spread (same average and spread) so the two halves weigh the same.",
+    how1:"Each fixture's difficulty is half FPL's official FDR and half the model's team ratings (the same attack/defence ratings the xP engine uses, fitted on xG). <b>Attackers</b> rates a fixture by how many goals the club is expected to score; <b>Defenders</b> by how many it's expected to concede. <b>Overall</b> (the default) is the average of the two. The model half is rescaled to FPL's 1–5 spread (same average and spread) so the two halves weigh the same.",
     how2:"<b>Avg ease</b> = sum of (6 − difficulty) for every fixture in the window ÷ number of gameweeks. A blank adds 0, so it drags a club down; a double adds both, so it lifts them. Higher is better.",
-    how3:"<b>Top 3</b> = the three highest summed xP over the same window: MID/FWD in Attackers mode, GKP/DEF in Defenders mode. Price and expected minutes alongside; minutes in red when under 60 or the player is flagged.",
+    how3:"<b>Top 3</b> = the three highest summed xP over the same window: any position in Overall, MID/FWD in Attackers, GKP/DEF in Defenders. Price and expected minutes alongside; minutes in red when under 60 or the player is flagged.",
     footer:(eng,gws)=>`${TARGETS_BUILD} · engine ${eng} · ratings from ${gws} settled gameweek${gws===1?'':'s'} + last season · FPL data via /api/fpl`,
   },
   es: {
@@ -243,10 +246,11 @@ const I18N = {
     titleA:'Objetivos', titleB:'por calendario',
     loading:'Cargando partidos…',
     couldntReach:'No se pudieron obtener los datos de la app.', retry:'REINTENTAR',
-    window:'Periodo', rateFor:'Valorar partidos para', attackers:'Atacantes', defenders:'Defensas',
+    window:'Periodo', rateFor:'Valorar partidos para', overall:'General', attackers:'Atacantes', defenders:'Defensas',
     players:'Jugadores', showTop3:'Ver top 3', hide:'Ocultar',
     gwWord:'J', weeks:n=>n+(n===1?' jornada':' jornadas'),
-    subline:(n,m)=>`Próximas <b>${n}</b> jornada${n>1?'s':''}, de más fácil a más difícil · valorado para <b>${m==='att'?'atacantes':'defensas'}</b>`,
+    subline:(n,m)=>`Próximas <b>${n}</b> jornada${n>1?'s':''}, de más fácil a más difícil · valorado para <b>${m==='all'?'ataque y defensa':m==='att'?'atacantes':'defensas'}</b>`,
+    hintAll:'General: media de ataque y defensa — los mejores partidos en conjunto. El top 3 muestra cualquier posición.',
     hintAtt:'Atacantes: cuántos goles debería marcar cada club. El top 3 muestra MED/DEL.',
     hintDef:'Defensas: cuán pocos goles debería encajar cada club. El top 3 muestra POR/DEF.',
     lvl:['','Muy fácil','Fácil','Media','Difícil','Muy difícil'],
@@ -258,9 +262,9 @@ const I18N = {
     oddsTip:(lf,la,pt)=>` · goles del mercado a favor ${lf} / en contra ${la} (captura ${pt})`,
     how4:'<b>Incluir cuotas de la jornada</b>: si está activado, cada partido con captura de casas de apuestas usa los goles esperados del mercado (marcador exacto sin margen) para la mitad del modelo en lugar de las valoraciones xG. Normalmente solo hay cuotas para la próxima jornada o dos, así que las cabeceras muestran <b>Cuotas ✅</b> donde se usan y <b>Cuotas ❌</b> donde se usa el modelo xG. Las fichas con cuotas llevan un subrayado blanco. El xP del top 3 no cambia.',
     howH:'CÓMO SE VALORA',
-    how1:'La dificultad de cada partido es mitad el FDR oficial de FPL y mitad las valoraciones de equipo del modelo (las mismas de ataque/defensa que usa el motor xP, ajustadas con xG). <b>Atacantes</b> valora un partido por los goles que se espera que marque el club; <b>Defensas</b> por los que se espera que encaje. La mitad del modelo se reescala a la escala 1–5 de FPL (misma media y dispersión) para que ambas mitades pesen igual.',
+    how1:'La dificultad de cada partido es mitad el FDR oficial de FPL y mitad las valoraciones de equipo del modelo (las mismas de ataque/defensa que usa el motor xP, ajustadas con xG). <b>Atacantes</b> valora un partido por los goles que se espera que marque el club; <b>Defensas</b> por los que se espera que encaje. <b>General</b> (por defecto) es la media de ambos. La mitad del modelo se reescala a la escala 1–5 de FPL (misma media y dispersión) para que ambas mitades pesen igual.',
     how2:'<b>Facilidad media</b> = suma de (6 − dificultad) de cada partido del periodo ÷ número de jornadas. Una jornada sin partido suma 0 y hunde al club; una doble suma ambos y lo sube. Más alto es mejor.',
-    how3:'<b>Top 3</b> = los tres xP sumados más altos del mismo periodo: MED/DEL en Atacantes, POR/DEF en Defensas. Precio y minutos esperados al lado; minutos en rojo si son menos de 60 o el jugador tiene aviso.',
+    how3:'<b>Top 3</b> = los tres xP sumados más altos del mismo periodo: cualquier posición en General, MED/DEL en Atacantes, POR/DEF en Defensas. Precio y minutos esperados al lado; minutos en rojo si son menos de 60 o el jugador tiene aviso.',
     footer:(eng,gws)=>`${TARGETS_BUILD} · motor ${eng} · valoraciones de ${gws} jornada${gws===1?'':'s'} cerrada${gws===1?'':'s'} + temporada anterior · datos de FPL vía /api/fpl`,
   },
 };
@@ -446,7 +450,7 @@ async function loadOdds(season, gws){
 }
 
 /* ── BUILD THE TABLE DATA ────────────────────────────────── */
-let DATA = null, N = 5, MODE = 'att', SHOWPL = true, USEODDS = false, ODDS = null;
+let DATA = null, N = 5, MODE = 'all', SHOWPL = true, USEODDS = false, ODDS = null;
 
 function prepare(boot, fixtures, next, M){
   const gws = []; for (let g = next; g < next + MAX_N && g <= 38; g++) gws.push(g);
@@ -513,6 +517,7 @@ function blend(sides, useOdds){
   onFdr('lf', -1); onFdr('la', 1);
   sides.forEach(s => {
     s.diff = s.lf != null ? { att:.5*s.fdr+.5*s.m_lf, def:.5*s.fdr+.5*s.m_la } : { att:s.fdr, def:s.fdr };
+    s.diff.all = (s.diff.att + s.diff.def) / 2;   // Overall: attack and defence weighted equally
   });
 }
 
@@ -534,7 +539,7 @@ function render(){
   const TEAM = Object.fromEntries(D.teams.map(x => [x.id, x]));
   $('nVal').textContent = N === 1 ? `${G}${win[0]}` : `${G}${win[0]}–${G}${win[win.length-1]}`;
   $('subline').innerHTML = t('subline')(N, MODE);
-  $('hint').textContent = MODE === 'att' ? t('hintAtt') : t('hintDef');
+  $('hint').textContent = t(MODE === 'all' ? 'hintAll' : MODE === 'att' ? 'hintAtt' : 'hintDef');
   $('legend').innerHTML = [1,2,3,4,5].map(b => `<span class="sw" style="background:${COL[b]}"></span><span>${t('lvl')[b]}</span>`).join('&nbsp;&nbsp;');
   $('how1').innerHTML = t('how1'); $('how2').innerHTML = t('how2'); $('how3').innerHTML = t('how3'); $('how4').innerHTML = t('how4');
   const nFx = gw => D.sides.filter(s => s.gw === gw).length / 2;
@@ -545,7 +550,7 @@ function render(){
     return `${G}${gw}<span class="odds"${tip}>${t('oddsWord')} ${k ? '✅' : '❌'}</span>`;
   };
 
-  const posOK = MODE === 'att' ? ['MID','FWD'] : ['GKP','DEF'];
+  const posOK = MODE === 'all' ? ['GKP','DEF','MID','FWD'] : MODE === 'att' ? ['MID','FWD'] : ['GKP','DEF'];
   const rows = D.teams.map(tm => {
     const cells = win.map(gw => D.sides.filter(s => s.team === tm.id && s.gw === gw));
     const ease = cells.flat().reduce((a,s) => a + (6 - s.diff[MODE]), 0) / N;
