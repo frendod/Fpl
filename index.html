@@ -971,6 +971,68 @@ textarea:focus{border-color:var(--accent)}
 .hist-empty{padding:26px 20px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.6}
 .hist-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--dim)}
 .hist-venue{display:inline-block;width:20px;font-size:11px;color:var(--dim)}
+/* ─── PLAYER CARD (card-2026-10-07a) ───────────────────────
+   The dark theme sets --dim and --dimmer to pure white, so inside the card
+   every label, caption and footnote was the same weight as the numbers and
+   nothing read as secondary. Restored here, scoped to the modal so the rest
+   of the app is untouched. Mono stays for small labels only; figures are
+   Plex Sans with tabular digits so columns line up without the typewriter look. */
+:root:not(.light-theme) .hist-modal{--dim:rgba(255,255,255,.56);--dimmer:rgba(255,255,255,.38)}
+.hist-body{padding:0 0 12px}
+.hist-foot{display:none}
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:14px 16px 10px;
+  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.hero-cell{display:flex;flex-direction:column;gap:4px;padding:12px 12px 11px;background:var(--panel2)}
+.hero-cell .k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.hero-cell .v{font-size:22px;font-weight:600;line-height:1;color:var(--paper);
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.hero-cell.hero-xp .v{color:var(--accent)}
+.sum-block{margin:0 16px 14px;padding:14px 14px 4px;background:transparent;border:1px solid var(--line);border-radius:12px}
+.sum-season{font-size:9.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:12px}
+.sum-grid{grid-template-columns:repeat(4,1fr);gap:0 14px}
+.sum-cell{gap:3px;padding:0 0 12px}
+.sum-k{font-size:9.5px;letter-spacing:.1em;color:var(--dim);white-space:nowrap}
+.sum-v{font-size:18px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.sum-cap{font-size:11.5px;color:var(--dim);line-height:1.25;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sum-k2,.sum-v2{display:none}
+@media(max-width:520px){
+  .hero{grid-template-columns:repeat(2,1fr)}
+  .sum-grid{grid-template-columns:repeat(2,1fr)}
+}
+/* Tabs: one row that scrolls sideways and sticks under the header, instead
+   of seven boxed buttons wrapping to three ragged rows. */
+.sum-options{position:sticky;top:0;z-index:3;flex-wrap:nowrap;overflow-x:auto;gap:4px;
+  margin:0;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sum-options::-webkit-scrollbar{display:none}
+.sum-option-btn{flex:0 0 auto;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;
+  letter-spacing:0;text-transform:none;padding:7px 13px;border-radius:999px;border:1px solid transparent;
+  color:var(--dim);font-weight:500}
+.sum-option-btn:hover{color:var(--paper);border-color:var(--line2)}
+.sum-option-btn.active{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+.hist-tab-content{padding:12px 16px 4px}
+.vs-controls{gap:8px;margin:0 0 10px;flex-wrap:nowrap}
+.vs-filter{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px;padding:7px 10px;
+  border-radius:8px;max-width:none;flex:1 1 0;min-width:0}
+.vs-filter-sm{max-width:none;flex:0 0 auto}
+.hist-table th{font-size:9.5px;color:var(--dim);padding:8px 6px;border-bottom:1px solid var(--line2)}
+.hist-table td{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13.5px;padding:10px 6px;
+  font-variant-numeric:tabular-nums;color:var(--paper)}
+.hist-table td:first-child{font-size:14px;font-weight:500}
+.hist-table th:first-child,.hist-table td:first-child{padding-left:2px}
+.hist-table tbody tr:hover{background:rgba(255,255,255,.035)}
+.hist-total-row td{border-top:1px solid var(--line2);border-bottom:none;color:var(--accent);font-weight:600}
+.hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em}
+.vs-table tbody tr[data-opp]{cursor:pointer}
+.vs-table tr.vs-none td{color:var(--dimmer)}
+.vs-table tr.vs-none td:first-child{font-weight:400}
+.vs-table .vs-none-note{text-align:right;font-size:12px}
+.vs-bar{position:relative;min-width:64px}
+.vs-bar i{position:absolute;right:6px;bottom:4px;height:3px;border-radius:2px;background:var(--accent);opacity:.75}
+.vs-bar-h{min-width:64px}
+.hist-venue{font-family:'IBM Plex Mono',monospace;font-size:11px}
 /* Score / xP breakdown tabs (bd-2026-09-10a). Rows are a three-column grid
    rather than a table: label and working on the left, percentile bar in the
    middle, contribution pinned right, so the right edge reads as a column of
@@ -1612,7 +1674,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-02b';
+const APP_BUILD = 'app-2026-10-07a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1820,6 +1882,8 @@ const I18N={
     sumKP:'Key passes', sumBigCh:'Big chances', sumDefCon:'Def Con', sumSeasonTag:'season',
     histUnderstatNote:'Multi-season xG by opponent.',
     hSeasons:'Seasons', hApps:'Apps',
+    hxGApp:'xG / app', histNoMeet:'No meetings in the data', histLastNOpt:n=>'Last '+n, histAllSeasons:'All seasons',
+    tabFix:'Fixtures', tabSeasons:'Seasons', tabVsAll:'Opponents', tabVsThis:'Opponents (season)', tabGames:'Match log',
     hSeason:'Season', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'CS', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Price', hStarts:'Starts', hBonus:'Bonus', hRound:'GW', hOpp:'Opp', hVenue:'H/A',
     histNoThis:'No games played yet this season — this season\u2019s log and per-opponent breakdown will fill in once the season is underway.',
@@ -2074,6 +2138,8 @@ const I18N={
     sumKP:'Pases clave', sumBigCh:'Ocasiones', sumDefCon:'Def Con', sumSeasonTag:'temporada',
     histUnderstatNote:'xG por rival multitemporada.',
     hSeasons:'Temp.', hApps:'PJ',
+    hxGApp:'xG / PJ', histNoMeet:'Sin partidos en los datos', histLastNOpt:n=>'Últimas '+n, histAllSeasons:'Todas las temporadas',
+    tabFix:'Calendario', tabSeasons:'Temporadas', tabVsAll:'Rivales', tabVsThis:'Rivales (temporada)', tabGames:'Partido a partido',
     hSeason:'Temp.', hPts:'Pts', hMin:'Min', hGoals:'G', hAssists:'A', hCS:'PI', hxG:'xG', hxA:'xA',
     hDefcon:'DefCon', hPrice:'Precio', hStarts:'Titular', hBonus:'Bonus', hRound:'J', hOpp:'Rival', hVenue:'L/V',
     histNoThis:'Aún no se han jugado partidos esta temporada — el registro de esta temporada y el desglose por rival se completarán cuando arranque la temporada.',
@@ -5262,6 +5328,27 @@ async function loadUTeamFile(file){
   return data;
 }
 
+/* One key per club across FPL and Understat. FPL says "Man City", "Spurs",
+   "Nott'm Forest", "Ipswich Town"; Understat says "Manchester City",
+   "Tottenham", "Nottingham Forest", "Ipswich". The opponent table used to
+   match on exact name, so every club spelt differently fell out of it —
+   eight of nineteen for a Man Utd player in 2026/27. */
+const CLUB_ALIAS={
+  'man city':'manchester city','man utd':'manchester united','man united':'manchester united',
+  'spurs':'tottenham','tottenham hotspur':'tottenham',
+  "nott'm forest":'nottingham forest','nottm forest':'nottingham forest',
+  'wolves':'wolverhampton wanderers','newcastle':'newcastle united',
+  'sheffield utd':'sheffield united','west brom':'west bromwich albion',
+  'brighton and hove albion':'brighton','brighton & hove albion':'brighton','qpr':'queens park rangers',
+};
+function clubKey(n){
+  let s=String(n||'').toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').trim();
+  s=CLUB_ALIAS[s]||s;
+  // drop generic suffixes, except where they are the only thing telling two clubs apart
+  if(!/^manchester /.test(s))s=s.replace(/ (city|town|united|fc|afc)$/,'');
+  return s;
+}
+
 // aggregate a player's Understat matches into multi-season vs-club rows
 function understatVsClub(matches){
   const by={};
@@ -5377,6 +5464,7 @@ async function openHistory(pid,pname){
        fixture strip both need xp1/xp3, which only exist after build(). */
     d.p=plObj||null;
     d.understat=understat;   // so the summary can pull xG/xA/shots from Understat
+    if(understat)understat.fplTeamId=d.teamId;   // opponent table leaves out his own club
     renderHistory(d, understat);
   }catch(e){
     $('histBody').innerHTML='<div class="hist-empty">'+t('histErr')
@@ -5406,69 +5494,85 @@ function seasonsInScope(matches, n){
   return new Set(all.slice(all.length-n));                  // last N
 }
 
+// '2024' -> '2024/25' (Understat keys a season by its starting year)
+const seasonLabel=s=>/^\d{4}$/.test(String(s))?s+'/'+String(+s+1).slice(2):String(s);
 function renderVsClub(understat, filter){
   const allMatches=understat.matches||[];
   const scope=seasonsInScope(allMatches, histSeasonN);
   const matches=allMatches.filter(m=>scope.has(m.season));
   const vc=understatVsClub(matches);          // recompute vs-club within scope
-  
-  // Filter opponents to only current Premier League teams
-  const currentTeams=new Set((bootstrap.teams||[]).map(t=>t.name));
-  const vcFiltered=vc.filter(c=>currentTeams.has(c.opponent));
-  
-  const opts=vcFiltered.map(c=>c.opponent).sort();
-  
-  // season-range dropdown: All, then last 1..5 (only offer counts we have)
+
+  /* Every club in this season's league except his own, matched to Understat
+     by clubKey(). Clubs he has never faced in the data (promoted sides,
+     or before his time) stay in the table as an empty row rather than
+     vanishing, so the table always has the whole league in it. */
+  const byKey={};
+  vc.forEach(c=>{ byKey[clubKey(c.opponent)]=c; });
+  const ownId=understat.fplTeamId;
+  const rows=(bootstrap.teams||[]).filter(tm=>tm.id!==ownId).map(tm=>{
+    const c=byKey[clubKey(tm.name)];
+    return c?Object.assign({},c,{club:tm.name,has:true})
+            :{club:tm.name,has:false,games:0,goals:0,assists:0,xg:0,xa:0,seasons:[]};
+  }).sort((a,b)=>(b.has-a.has)||(b.goals-a.goals)||(b.xg-a.xg)||a.club.localeCompare(b.club));
+
   const seasonCount=new Set(allMatches.map(m=>m.season)).size;
-  let seasonOpts='<option value="0"'+(histSeasonN===0?' selected':'')+'>'+t('hAll')+'</option>';
+  let seasonOpts='<option value="0"'+(histSeasonN===0?' selected':'')+'>'+t('histAllSeasons')+'</option>';
   for(let n=1;n<=Math.min(5,seasonCount);n++)
-    seasonOpts+='<option value="'+n+'"'+(histSeasonN===n?' selected':'')+'>'+n+'</option>';
+    seasonOpts+='<option value="'+n+'"'+(histSeasonN===n?' selected':'')+'>'+t('histLastNOpt')(n)+'</option>';
   const seasonSel='<select id="vsSeasonFilter" class="vs-filter vs-filter-sm">'+seasonOpts+'</select>';
 
   const oppSel='<select id="vsOppFilter" class="vs-filter">'
     +'<option value="">'+t('histFilterAll')+'</option>'
-    +opts.map(o=>'<option value="'+o.replace(/"/g,'&quot;')+'"'+(o===filter?' selected':'')+'>'+o+'</option>').join('')
+    +rows.map(r=>r.club).sort().map(o=>'<option value="'+o.replace(/"/g,'&quot;')+'"'+(o===filter?' selected':'')+'>'+o+'</option>').join('')
     +'</select>';
 
+  const f1=v=>v.toFixed(1);
   let body;
   if(!filter){
-    // summary: one row per opponent + TOTAL row
-    const tot=vcFiltered.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
+    const tot=rows.reduce((a,c)=>({g:a.g+c.games,go:a.go+c.goals,as:a.as+c.assists,xg:a.xg+c.xg,xa:a.xa+c.xa}),
       {g:0,go:0,as:0,xg:0,xa:0});
-    body='<table class="hist-table"><thead><tr>'
+    // xG per appearance as a bar: the column that actually separates opponents
+    const per=rows.filter(r=>r.has&&r.games).map(r=>r.xg/r.games);
+    const top=Math.max(0.01,...per);
+    body='<div class="tscroll"><table class="hist-table vs-table"><thead><tr>'
       +'<th>'+t('hOpp')+'</th><th>'+t('hApps')+'</th><th>'+t('hGoals')+'</th>'
       +'<th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th>'
-      +'<th>'+t('hSeasons')+'</th></tr></thead><tbody>'
-      +vcFiltered.map(c=>'<tr><td>'+c.opponent+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
-        +'<td>'+c.assists+'</td><td>'+c.xg.toFixed(1)+'</td><td>'+c.xa.toFixed(1)+'</td>'
-        +'<td style="color:var(--dim);font-size:11px">'+c.seasons.length+'</td></tr>').join('')
-      +'<tr class="hist-total-row"><td>'+t('histTotal')+'</td><td>'+tot.g+'</td><td>'+tot.go+'</td>'
-      +'<td>'+tot.as+'</td><td>'+tot.xg.toFixed(1)+'</td><td>'+tot.xa.toFixed(1)+'</td><td></td></tr>'
-      +'</tbody></table>';
+      +'<th class="vs-bar-h">'+t('hxGApp')+'</th></tr></thead><tbody>'
+      +rows.map(c=>{
+        if(!c.has)return '<tr class="vs-none" data-opp="'+c.club.replace(/"/g,'&quot;')+'"><td>'+c.club+'</td>'
+          +'<td colspan="6" class="vs-none-note">'+t('histNoMeet')+'</td></tr>';
+        const pa=c.xg/c.games;
+        return '<tr data-opp="'+c.club.replace(/"/g,'&quot;')+'"><td>'+c.club+'</td><td>'+c.games+'</td><td>'+c.goals+'</td>'
+          +'<td>'+c.assists+'</td><td>'+f1(c.xg)+'</td><td>'+f1(c.xa)+'</td>'
+          +'<td class="vs-bar"><span class="vs-bar-v">'+pa.toFixed(2)+'</span>'
+          +'<i style="width:'+Math.round(pa/top*100)+'%"></i></td></tr>';
+      }).join('')
+      +'</tbody><tfoot><tr class="hist-total-row"><td>'+t('histTotal')+'</td><td>'+tot.g+'</td><td>'+tot.go+'</td>'
+      +'<td>'+tot.as+'</td><td>'+f1(tot.xg)+'</td><td>'+f1(tot.xa)+'</td>'
+      +'<td class="vs-bar"><span class="vs-bar-v">'+(tot.g?(tot.xg/tot.g).toFixed(2):'—')+'</span></td></tr></tfoot>'
+      +'</table></div>';
   } else {
-    const games=matches.filter(m=>m.opponent===filter)
+    const key=clubKey(filter);
+    const games=matches.filter(m=>clubKey(m.opponent)===key)
       .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     if(!games.length){
       body='<div class="hist-empty">'+t('histNoVs')+'</div>';
     } else {
       const tot=games.reduce((a,m)=>({min:a.min+m.min,g:a.g+m.goals,as:a.as+m.assists,xg:a.xg+ +m.xg,xa:a.xa+ +m.xa}),
         {min:0,g:0,as:0,xg:0,xa:0});
-      body='<table class="hist-table"><thead><tr>'
+      body='<div class="tscroll"><table class="hist-table vs-table"><thead><tr>'
         +'<th>'+t('hSeason')+'</th><th>'+t('hVenue')+'</th><th>'+t('hMin')+'</th>'
         +'<th>'+t('hGoals')+'</th><th>'+t('hAssists')+'</th><th>'+t('hxG')+'</th><th>'+t('hxA')+'</th></tr></thead><tbody>'
-        +games.map(m=>'<tr><td>'+m.season+'</td>'
+        +games.map(m=>'<tr><td>'+seasonLabel(m.season)+'</td>'
           +'<td><span class="hist-venue">'+m.venue+'</span></td><td>'+m.min+'</td>'
           +'<td>'+m.goals+'</td><td>'+m.assists+'</td><td>'+(+m.xg).toFixed(2)+'</td><td>'+(+m.xa).toFixed(2)+'</td></tr>').join('')
-        +'<tr class="hist-total-row"><td>'+t('histTotal')+'</td><td></td><td>'+tot.min+'</td>'
-        +'<td>'+tot.g+'</td><td>'+tot.as+'</td><td>'+tot.xg.toFixed(2)+'</td><td>'+tot.xa.toFixed(2)+'</td></tr>'
-        +'</tbody></table>';
+        +'</tbody><tfoot><tr class="hist-total-row"><td>'+t('histTotal')+'</td><td></td><td>'+tot.min+'</td>'
+        +'<td>'+tot.g+'</td><td>'+tot.as+'</td><td>'+tot.xg.toFixed(2)+'</td><td>'+tot.xa.toFixed(2)+'</td></tr></tfoot>'
+        +'</table></div>';
     }
   }
 
-  // Return controls + body (section wrapper is handled in renderHistoryInner)
-  return '<div class="vs-controls"><label class="vs-lab">'+t('histLastN')+'</label>'+seasonSel+oppSel+'</div>'
-    +body
-    +'<div style="padding:8px 2px 0;font-size:11px;color:var(--dimmer)">'+t('histUnderstatNote')+'</div>';
+  return '<div class="vs-controls">'+seasonSel+oppSel+'</div>'+body;
 }
 
 // per-season stats block (Understat): totals per season across all opponents
@@ -5547,14 +5651,22 @@ function renderHistory(d, understat){
 function playerProjection(d){
   if(!d||!d.p)return '';
   const one=Number(d.p.xp1)||0, run=Number(d.p.xp3)||0;
-  if(!one&&!run)return '';
-  const cell=(k,v)=>'<div class="xp-strip-cell"><span class="k">'+k+'</span>'
-    +'<span class="v">'+v.toFixed(1)+'</span></div>';
-  return '<div class="xp-strip" title="'+esc(t('xp3Tip')(XP_RUN_GWS))+'">'
-    +'<span class="xp-strip-k">'+t('thXP')+'</span>'
-    +cell(t('sumXP'),one)
-    +cell(t('sumXP3'),run)
-    +'</div>';
+  const el=d.el;
+  /* Price and ownership sit up here with xP rather than in the season block:
+     they are today's figures, not something the season has added up. */
+  const cell=(k,v,cls)=>'<div class="hero-cell'+(cls?' '+cls:'')+'"><span class="k">'+k+'</span>'
+    +'<span class="v">'+v+'</span></div>';
+  let h='';
+  if(one||run){
+    h+=cell(t('sumXP'),one.toFixed(1),'hero-xp');
+    h+=cell(t('sumXP3'),run.toFixed(1),'hero-xp');
+  }
+  if(el){
+    h+=cell(t('sumPrice'),'£'+(el.now_cost/10).toFixed(1)+'m');
+    h+=cell(t('sumOwn'),(+el.selected_by_percent).toFixed(1)+'%');
+  }
+  if(!h)return '';
+  return '<div class="hero" title="'+esc(t('xp3Tip')(XP_RUN_GWS))+'">'+h+'</div>';
 }
 
 /* ══ BREAKDOWN TABS ════════════════════════════════════
@@ -5815,11 +5927,14 @@ function playerSummary(d){
 
   // helper: a greyed placeholder for unavailable fields
   const NA='<span class="sum-na">—</span>';
+  /* Every tile is the same shape — label, figure, one caption line — so the
+     grid lines up instead of growing a sub-row in some cells and not others. */
   const g=(label,val,val2,label2)=>{
+    const cap=label2!=null&&label2!==''
+      ? '<span class="sum-cap">'+(val2==null?'—':val2)+' '+(/^x[GA]$/.test(label2)?label2:label2.toLowerCase())+'</span>'
+      : (val2!=null?'<span class="sum-cap">'+val2+'</span>':'<span class="sum-cap">&nbsp;</span>');
     return '<div class="sum-cell"><span class="sum-k">'+label+'</span>'
-      +'<span class="sum-v">'+(val==null?NA:val)+'</span>'
-      +(label2?'<span class="sum-k2">'+label2+'</span><span class="sum-v2">'+(val2==null?NA:val2)+'</span>':'')
-      +'</div>';
+      +'<span class="sum-v">'+(val==null?NA:val)+'</span>'+cap+'</div>';
   };
 
   let season, pts, ppg, min, games, goals, assists, xg, xa, bonus, defcon, cs;
@@ -5848,8 +5963,11 @@ function playerSummary(d){
   // live-only fields (always current, from element)
   const price=el?('£'+(el.now_cost/10).toFixed(1)+'m'):null;
   const own=el?(el.selected_by_percent+'%'):null;
-  const tin=el?('+'+(el.transfers_in_event||0)):null;
-  const tout=el?('-'+(el.transfers_out_event||0)):null;
+  const kfmt=n=>{ n=Number(n)||0; const a=Math.abs(n);
+    return a>=1e6?(n/1e6).toFixed(1)+'m':a>=1e4?Math.round(n/1e3)+'k':a>=1e3?(n/1e3).toFixed(1)+'k':String(n); };
+  const netT=el?(el.transfers_in_event||0)-(el.transfers_out_event||0):null;
+  const tin=el?((netT>=0?'+':'\u2212')+kfmt(Math.abs(netT))):null;
+  const tout=el?(kfmt(el.transfers_in_event||0)+' in \u00b7 '+kfmt(el.transfers_out_event||0)+' out'):null;
   const form=el?el.form:null;
 
   // Understat-derived shots / key passes for the shown season (if we have it)
@@ -5869,12 +5987,9 @@ function playerSummary(d){
 
   // Build position-specific summary grid
   let gridHtml='';
-  gridHtml+=g(t('sumPrice'),price);
-  gridHtml+=g(t('sumOwn'),own);
-  gridHtml+=g(t('sumTransfers'),tin,tout,'');
   gridHtml+=g(t('sumPts'),pts,ppg,t('sumPPG'));
-  gridHtml+=g(t('sumMin'),min,games==null?NA:games,t('sumGames'));
   gridHtml+=g(t('sumForm'),form,bonus,t('sumBonus'));
+  gridHtml+=g(t('sumMin'),min,games,t('sumGames'));
   
   // Position-specific rows
   if(pos==='GKP' || pos==='DEF'){
@@ -5917,8 +6032,9 @@ function playerSummary(d){
     if(defcon!=null&&games!=null&&games>0){
       defconPg=(defcon/games).toFixed(1);
     }
-    gridHtml+=g(t('sumDefCon'),defcon,defconPg,'per game');
+    gridHtml+=g(t('sumDefCon'),defcon,defconPg,t('sumPPG').toLowerCase());
   }
+  gridHtml+=g(t('sumTransfers'),tin,tout);
   
   return '<div class="sum-block">'
     +'<div class="sum-season">'+season+' '+t('sumSeasonTag')+'</div>'
@@ -5938,19 +6054,19 @@ function renderHistoryInner(d, understat, upcomingFixtures){
 
   // Build tab bar with all available sections (no Summary tab - always shown above)
   const tabs=[];
-  if(d.teamId) tabs.push({id:'upcoming', label:t('histUpcoming')});
+  if(d.teamId) tabs.push({id:'upcoming', label:t('tabFix')});
   const bdScore=scoreBreakdown(d.p), bdXP=xpBreakdown(d);
   if(bdXP) tabs.push({id:'bdxp', label:t('tabXP')});
   if(bdScore) tabs.push({id:'bdscore', label:t('tabScore')});
   // Combined seasons tab (past + per-season stats)
-  if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:'Seasons'});
-  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('histVsClubAll')});
-  if(vs.length) tabs.push({id:'vsthis', label:t('histVsClub')});
-  if(ts.length) tabs.push({id:'gbg', label:t('histThis')});
+  if(past.length||( understat&&understat.vsClub&&understat.vsClub.length)) tabs.push({id:'seasons', label:t('tabSeasons')});
+  if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('tabVsAll')});
+  if(vs.length) tabs.push({id:'vsthis', label:t('tabVsThis')});
+  if(ts.length) tabs.push({id:'gbg', label:t('tabGames')});
   
   // Tab buttons
   if(tabs.length>0){
-    html+='<div class="sum-options">';
+    html+='<div class="sum-options" role="tablist">';
     tabs.forEach((tab,i)=>{
       html+='<button class="sum-option-btn '+(i===0?'active':'')+'" data-tab="'+tab.id+'">'+tab.label+'</button>';
     });
@@ -6067,6 +6183,7 @@ function renderHistoryInner(d, understat, upcomingFixtures){
       const tab=document.querySelector('[data-tab="'+tabId+'"].hist-tab-content');
       if(tab) tab.classList.add('shown');
       this.classList.add('active');
+      this.scrollIntoView({inline:'nearest',block:'nearest'});
     });
   });
 }
@@ -7860,6 +7977,14 @@ document.addEventListener('change',e=>{
       tab.innerHTML=newContent;
     }
   }
+});
+// tap an opponent row in the all-seasons table to drill into those matches
+document.addEventListener('click',e=>{
+  const tr=e.target.closest&&e.target.closest('.vs-table tr[data-opp]');
+  if(!tr||!curUnderstat)return;
+  histOppFilter=tr.getAttribute('data-opp');
+  const tabs=document.querySelectorAll('.hist-tab-content[data-tab="vsall"]');
+  if(tabs.length)tabs[tabs.length-1].innerHTML=renderVsClub(curUnderstat, histOppFilter);
 });
 // one delegated handler: any .phist element in any view opens that player's history
 document.addEventListener('click',e=>{
