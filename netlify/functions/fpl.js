@@ -6,7 +6,7 @@
 //   /api/fpl                     -> bundle of bootstrap-static + fixtures
 //   /api/fpl?path=entry/123/     -> passthrough to that FPL endpoint
 
-const BUILD = 'fpl-v5';
+const BUILD = 'fpl-v6';
 const FPL = 'https://fantasy.premierleague.com/api/';
 
 // FPL answers bootstrap-static to almost anything, but guards the entry and
@@ -179,6 +179,7 @@ const ALLOWED = [
   /^fixtures\/$/,
   /^entry\/\d+\/$/,
   /^entry\/\d+\/history\/$/,
+  /^entry\/\d+\/transfers\/$/,          // planner: purchase prices for selling price
   /^entry\/\d+\/event\/\d+\/picks\/$/,
   /^element-summary\/\d+\/$/,
   /^event\/\d+\/live\/$/,
