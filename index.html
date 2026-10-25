@@ -544,6 +544,17 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
 .bench-cards{display:flex;justify-content:center;align-items:flex-start;gap:1%;width:100%}
 .benchstrip .pcard{flex:0 1 22%}
 .bench-sep{flex:0 0 4%;align-self:stretch}
+/* Club shirts from shirts.js. On pitch cards the shirt IS the disc (.pkit):
+   armband and status flag keep their corners, the figure moves to the plate. */
+svg.shirt{display:inline-block;vertical-align:middle;flex:0 0 auto}
+.pdisc.pkit,.pdisc.pkit.GKP,.pdisc.pkit.DEF,.pdisc.pkit.MID,.pdisc.pkit.FWD{
+  width:62%;background:transparent;border:0;border-radius:0;line-height:0;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.pdisc.pkit svg.shirt{width:100%;height:100%}
+.pcard.autosub-in .pdisc.pkit{box-shadow:none;filter:drop-shadow(0 0 3px var(--live))}
+/* Points / Price switch above the pitch */
+.cvbar{display:flex;justify-content:flex-end;margin:0 0 8px}
+.hist-name svg.shirt{margin-right:8px;vertical-align:-5px}
 .club-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle;flex:0 0 auto}
 .datasource{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2)}
 .datasource-summary{cursor:pointer;padding:14px 18px;display:flex;align-items:center;gap:12px;
@@ -1501,6 +1512,8 @@ tbody tr.dead td:first-child{padding-left:26px}
   <!-- Menu items come from nav.js — it must load here, before the main script binds .tab clicks. -->
   <nav class="tabs" role="tablist" id="tabs" data-page="index" hidden></nav>
   <script src="nav.js"></script>
+  <!-- Club shirt icons (shirtSVG). Optional: if it fails to load, shirts are simply left out. -->
+  <script src="shirts.js"></script>
 
   <div class="view on" id="view-picks"><div class="pickgrid" id="pickGrid"></div></div>
   
@@ -1674,7 +1687,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-07a';
+const APP_BUILD = 'app-2026-10-25b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1867,7 +1880,7 @@ const I18N={
     pasteOffline:'Offline mode: expected goals come from FPL\u2019s own figures, not Understat.',
     pasteBsFirst:'Paste the bootstrap-static response into the first box.',
     confMatched:'matched to last season', confFpl:'FPL data only',
-    histTitle:'Player history', histLoading:'Loading history…',
+    cvPoints:'Points', cvPrice:'Price', histTitle:'Player history', histLoading:'Loading history…',
     histErr:'Could not load history for this player.',
     histPast:'Previous seasons', histThis:'This season', histVsClub:'By opponent (this season)',
     histVsClubAll:'By opponent (all seasons xG)',
@@ -2123,7 +2136,7 @@ const I18N={
     pasteOffline:'Modo sin conexión: los goles esperados vienen de las cifras propias de FPL, no de Understat.',
     pasteBsFirst:'Pega la respuesta de bootstrap-static en el primer recuadro.',
     confMatched:'emparejado con la temporada pasada', confFpl:'solo datos FPL',
-    histTitle:'Historial del jugador', histLoading:'Cargando historial…',
+    cvPoints:'Puntos', cvPrice:'Precio', histTitle:'Historial del jugador', histLoading:'Cargando historial…',
     histErr:'No se pudo cargar el historial de este jugador.',
     histPast:'Temporadas anteriores', histThis:'Esta temporada', histVsClub:'Por rival (esta temporada)',
     histVsClubAll:'Por rival (todas las temporadas xG)',
@@ -2255,6 +2268,28 @@ const CLUB_COLORS={
   NOR:'#00A650', WBA:'#122F67',
 };
 const clubColor=short=>CLUB_COLORS[short]||'#9ca3af';
+// What the pitch plate shows under the name: 'pts' (default) or 'price'.
+let CARD_VAL=(function(){try{return localStorage.getItem('fplCardVal')==='price'?'price':'pts'}catch(e){return 'pts'}})();
+function cardValBar(){
+  return '<div class="cvbar"><span class="objseg">'
+    +'<button data-cardval="pts" aria-pressed="'+(CARD_VAL==='pts')+'">'+t('cvPoints')+'</button>'
+    +'<button data-cardval="price" aria-pressed="'+(CARD_VAL==='price')+'">'+t('cvPrice')+'</button>'
+    +'</span></div>';
+}
+// One delegated listener for both pitches, so re-renders never stack handlers.
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-cardval]');
+  if(!b||b.dataset.cardval===CARD_VAL)return;
+  CARD_VAL=b.dataset.cardval;
+  try{localStorage.setItem('fplCardVal',CARD_VAL)}catch(err){}
+  if(b.closest('#xiBody'))renderXI(); else renderUserTeam();
+});
+// Club shirt icon by FPL short_name. Goalkeepers wear the GK shirt.
+// Returns '' if shirts.js didn't load, so every caller degrades to text only.
+function clubShirt(short,size,pos,kit){
+  if(typeof window.shirtSVG!=='function'||!short)return '';
+  return window.shirtSVG(short,{size:size||20,kit:pos==='GKP'?'gk':(kit||'home')});
+}
 const RAMP_GWS=8;          // gameweeks until live data carries full weight
 const PAGE=30;
 
@@ -3147,7 +3182,7 @@ function pickCard(title,note,list,metaFn,valFn){
   const rows=list.map((p,i)=>
     '<div class="prow phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><div class="pidx'+(i===0?' lead':'')+'">'+(i+1)+'</div>'
     +'<div class="pinfo"><div class="pname">'+p.name+(p.status!=='a'?'<span class="pbadge '+(p.status==='d'?'doubt':p.status==='i'?'inj':p.status==='s'?'inj':p.status==='u'?'unav':'new')+'" style="margin-left:6px" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</div>'
-    +'<div class="pmeta">'+p.club+' · '+p.pos+' · '+p.price.toFixed(1)+metaFn(p)+'</div></div>'
+    +'<div class="pmeta">'+clubShirt(p.club,14,p.pos)+' '+p.club+' · '+p.pos+' · '+p.price.toFixed(1)+metaFn(p)+'</div></div>'
     +'<div class="pscore"><b>'+(Number(valFn(p))||0).toFixed(1)+'</b></div></div>').join('');
   return '<div class="panel"><div class="panel-head"><div class="panel-title">'+title+'</div>'
     +'<div class="panel-meta">'+note+'</div></div>'+rows+'</div>';
@@ -3731,7 +3766,6 @@ function renderUserTeam(){
     if(!player)return '';
 
     const short=teamsMap[player.teamId]||player.club;
-    const col=clubColor(short);
 
     // A future gameweek has no result, so show expected points rather than
     // a misleading zero. Either way the armband doubles (or triples) the figure
@@ -3763,11 +3797,13 @@ function renderUserTeam(){
     fixBoxes+='</div>';
 
     return '<div class="pcard phist" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
-      +'<div class="pdisc '+player.pos+'" style="border-bottom:3px solid '+col+'">'
-        +'<span data-gw-score>'+gwScore+'</span>'+capMark+injBadge+'</div>'
+      +'<div class="pdisc pkit '+player.pos+'">'
+        +clubShirt(short,64,player.pos)+capMark+injBadge+'</div>'
       +'<div class="pcinfo">'
         +'<div class="pcname'+nameClass+'">'+player.name+'</div>'
-        +'<div class="pcsub">£'+player.price.toFixed(1)+'</div>'
+        +'<div class="pcsub">'+(CARD_VAL==='price'
+          ? '£'+player.price.toFixed(1)
+          : '<span data-gw-score>'+gwScore+'</span>')+'</div>'
         +'<div class="pcnote" data-note></div>'
       +'</div>'
       +fixBoxes
@@ -3828,6 +3864,7 @@ function renderUserTeam(){
     .concat(benchOut.map((p,i)=>slot(p,(i+1)+'. '+posOf(p)))).join('');
 
   html+='<div style="padding:0 10px 4px">'
+    +cardValBar()
     +'<div class="pitch">'
       +'<div class="prow-xi prow-gkp">'+byPos('GKP').map(card).join('')+'</div>'
       +'<div class="prow-xi">'+byPos('DEF').map(card).join('')+'</div>'
@@ -4891,7 +4928,6 @@ function renderXI(){
 
   const disc=p=>{
     const short=(bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name||'';
-    const col=clubColor(short);
     const pct=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
 
@@ -4907,7 +4943,7 @@ function renderXI(){
     fixBoxes+='</div>';
 
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
-      +'<div class="pdisc '+p.pos+'" style="border-bottom:3px solid '+col+'">'+objDisplay(p).toFixed(1)
+      +'<div class="pdisc pkit '+p.pos+'">'+clubShirt(short,64,p.pos)
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')+'</div>'
       +'<div class="pcinfo">'
@@ -4916,7 +4952,8 @@ function renderXI(){
         // A badge at mid-left was the only free spot left on the disc and it
         // sat straight over the leading digits of the score, so a 5.8 read as
         // "200 .8" - the number it obscured mattered more than the one it added.
-        +'<div class="pcsub">£'+p.price.toFixed(1)+(pct==null?'':' \u00b7 '+pct+'%')+'</div>'
+        +'<div class="pcsub">'+(CARD_VAL==='price'?'£'+p.price.toFixed(1):objDisplay(p).toFixed(1))
+          +(pct==null?'':' \u00b7 '+pct+'%')+'</div>'
       +'</div>'
       +fixBoxes+'</div>';
   };
@@ -4933,7 +4970,7 @@ function renderXI(){
       +'<td>'+(inXI(p.id)?'●':'○')+'</td>'
       +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock">'
         +(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
-      +'<td style="display:flex;align-items:center;gap:6px"><span class="club-dot" style="background:'+clubColor((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name)+'"></span><span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
+      +'<td style="display:flex;align-items:center;gap:6px">'+clubShirt((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name,18,p.pos)+'<span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
       +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
       +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
       +'<td class="mono">'+p.price.toFixed(1)+'</td>'
@@ -4989,6 +5026,7 @@ function renderXI(){
     +'<div class="xistat"><span>'+t('sqRemaining')+'</span><b>'+(XI_BUDGET-cost).toFixed(1)+'</b></div>'
     +'<div class="xistat"><span>'+t('captain')+'</span><b style="font-size:18px">'+cap.name+(cap.status!=='a'?'<span class="pbadge '+(cap.status==='d'?'doubt':cap.status==='i'?'inj':cap.status==='s'?'inj':cap.status==='u'?'unav':'new')+'" style="margin-left:6px;font-size:10px" title="'+(cap.status==='d'?'Doubt':cap.status==='i'?'Injured':cap.status==='s'?'Suspended':cap.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')+'</b></div>'
     +'</div>'
+    +cardValBar()
     +'<div class="pitch">'
       +'<div class="prow-xi prow-gkp">'+gkX.map(disc).join('')+'</div>'
       +'<div class="prow-xi">'+dfX.map(disc).join('')+'</div>'
@@ -5190,7 +5228,7 @@ function renderTable(){
     +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
     +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name
     +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')
-    +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim)">'+p.club+'</div></td>'
+    +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px">'+clubShirt(p.club,16,p.pos)+p.club+'</div></td>'
     +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
     +'<td class="mono">'+p.price.toFixed(1)+'</td>'
     +'<td class="sc">'+xpCell(p.xp1)+'</td>'
@@ -5437,7 +5475,8 @@ async function openHistory(pid,pname){
   const statusClass=player?.status==='d'?'doubt':player?.status==='i'?'inj':player?.status==='s'?'inj':player?.status==='u'?'unav':'';
   
   // Display player name with injury badge if applicable
-  let nameHtml=pname;
+  const shirtRow=players.find(p=>String(p.id)===String(pid));
+  let nameHtml=(shirtRow?clubShirt(shirtRow.club,30,shirtRow.pos):'')+pname;
   if(statusText){
     nameHtml+=' <span class="pbadge '+statusClass+'" style="margin-left:8px;cursor:help" title="'+statusText+'">!</span>';
   }
@@ -7673,7 +7712,7 @@ function lgSquadCard(row,other,live){
       +'<span class="pos">'+esc(p.pos)+'</span>'
       +'<span class="lg-sqnm phist" data-pid="'+el+'" data-pname="'+encodeURIComponent(p.name)+'">'
       +  esc(p.name)+'</span>'
-      +'<span class="lg-sqclub">'+esc(p.club)+'</span>'+sub+arm
+      +'<span class="lg-sqclub">'+clubShirt(p.club,14,p.pos)+' '+esc(p.club)+'</span>'+sub+arm
       +'<span class="lg-sqpts">'+pts+'</span></div>';
   };
 
