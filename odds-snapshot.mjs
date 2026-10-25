@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-09-18a
+/* odds-snapshot.mjs — odds-2026-09-06d
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -49,20 +49,6 @@
  * information production will not have. Same trap as a post-deadline ep_next,
  * in a different coat. Use late as the input and the delta as a signal.
  *
- * A THIRD, OPPORTUNISTIC POINT: PREVIEW
- *
- * `next.id` flips to the following gameweek the moment the current one's
- * deadline passes — not when its matches finish. So while GW N is being
- * played, the script is already targeting GW N+1. `preview` exploits that: it
- * fires on the very first cron tick after that flip, days before `early`
- * would, giving a first look at a gameweek's lines while the previous one is
- * still live. It is opportunistic because odds books do not always have that
- * gameweek's markets open yet — if the join comes back empty, capturePre()
- * already writes nothing (see "nothing matched" below), so a too-early
- * preview just costs an API call, not a bad file. Never a substitute for
- * early or late; those still run on schedule regardless of whether preview
- * caught anything.
- *
  * Commands:
  *   node odds-snapshot.mjs probe    dump raw responses, confirm slugs and the join
  *   node odds-snapshot.mjs pre      capture whichever point the clock is in
@@ -71,9 +57,8 @@
  *   --out <dir>       root output dir (default ./history/odds)
  *   --season <s>      season folder name (default derived from date)
  *   --bookmakers <l>  comma-separated (default Bet365,Unibet)
- *   --point <p>       force a capture point (early|late|preview), bypassing the clock
- *   --any             capture regardless of the clock; claims an open band whose
- *                     capture is still missing, otherwise tagged 'adhoc'
+ *   --point <p>       force a capture point (early|late), bypassing the clock
+ *   --any             capture regardless of the clock, tagged 'adhoc'
  *   --force           overwrite files that already exist
  *   --dry             fetch and report, write nothing
  *
@@ -117,22 +102,10 @@ const DEFAULT_BOOKMAKERS = 'Bet365,Unibet';
  * capture on either side of this band ever sees a confirmed lineup. What the
  * early-to-late delta actually measures is the market repricing on press
  * conference news from the preceding day or two, and a 24h span brackets that
- * comfortably regardless of where inside the band the late capture lands.
- *
- * `preview`'s lower bound sits one minute above `early`'s upper bound, so the
- * two never overlap and never race for the same file. Its upper bound (10
- * days) comfortably covers a normal ~7-day gap between gameweeks, so it fires
- * on the first cron tick after `next.id` flips — i.e. as soon as the
- * previous gameweek opens. It deliberately does NOT try to cover the one
- * three-week gap in the calendar (the GW5→GW6 international break): at that
- * gap's actual size, "preview" would just mean "very early and very likely
- * empty" for days on end. It still catches that gameweek eventually, once the
- * countdown drops inside 10 days — just not on the first tick after the
- * previous gameweek opens, same as any other week. */
+ * comfortably regardless of where inside the band the late capture lands. */
 const CAPTURES = [
-  { point: 'preview', minMins: 26 * 60 + 1, maxMins: 10 * 24 * 60 },
-  { point: 'early',   minMins: 22 * 60,     maxMins: 26 * 60 },
-  { point: 'late',    minMins: 55,          maxMins: 175 },
+  { point: 'early', minMins: 22 * 60, maxMins: 26 * 60 },
+  { point: 'late',  minMins: 55,      maxMins: 175 },
 ];
 
 /* Odds-API club names on the left, FPL bootstrap `name` on the right.
@@ -450,28 +423,8 @@ async function capturePre() {
     }
     console.log(`  forced capture point: ${point}`);
   } else if (has('any')) {
-    /* --any means "capture now, whatever the clock says". But when the clock
-     * happens to be inside a real band, tagging the result 'adhoc' throws away
-     * the fact that it IS that band's capture — the data is identical, only the
-     * filename differs, and downstream the file is then treated as a curiosity
-     * rather than the late capture the model actually wants.
-     *
-     * So: if a band is open and its file does not exist yet, claim it. That is
-     * the case where a manual run is standing in for a cron that did not fire,
-     * which is the main reason anyone reaches for --any near a deadline.
-     *
-     * If the band's file already exists, fall back to 'adhoc' so the manual run
-     * cannot clobber a good scheduled capture. Same if no band is open — which
-     * is --any's original purpose, capturing well outside the schedule. */
-    const band = mins == null ? null : CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
-    if (band && !await exists(join(OUT, season, 'pre', `gw-${next.id}-${band.point}.json`))) {
-      point = band.point;
-      console.log(`  --any: ${mins}m out is inside the "${point}" band and that capture is missing — claiming it`);
-    } else {
-      point = 'adhoc';
-      const why = band ? `"${band.point}" already captured` : 'no band open';
-      console.log(`  --any: capturing regardless of clock, tagged adhoc (${why})`);
-    }
+    point = 'adhoc';
+    console.log('  --any: capturing regardless of clock, tagged adhoc');
   } else {
     if (mins == null) { console.log('  no deadline on this event, skipping'); return; }
     const band = CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
@@ -577,7 +530,7 @@ async function capturePre() {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-09-18a',
+    stamp: 'odds-2026-09-06d',
     season, gw: next.id,
     capturePoint: point,
     capturedAt: now.toISOString(),
@@ -612,7 +565,7 @@ if (commands[cmd] && !KEY) {
 }
 
 if (!commands[cmd]) {
-  console.log('usage: node odds-snapshot.mjs <probe|pre> [--point early|late|preview] [--any] [--bookmakers l] [--out dir] [--season s] [--force] [--dry]');
+  console.log('usage: node odds-snapshot.mjs <probe|pre> [--point early|late] [--any] [--bookmakers l] [--out dir] [--season s] [--force] [--dry]');
   console.log('       ODDS_API_KEY must be set in the environment');
   process.exit(1);
 }
