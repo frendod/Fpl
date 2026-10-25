@@ -1206,7 +1206,7 @@ select.pln-btn{padding:5px 8px}
   position:sticky;left:0;background:var(--panel);z-index:2;white-space:nowrap}
 .fxgrid tbody tr:hover{background:none}
 .fxgrid tbody tr:hover td:not(.club){filter:brightness(1.25)}
-.cell{min-width:44px;padding:5px 3px;border-radius:2px;font-family:'IBM Plex Mono',monospace;
+.cell{min-width:44px;padding:5px 3px;border-radius:0;font-family:'IBM Plex Mono',monospace;
   font-size:9.5px;text-align:center;line-height:1.25}
 .d1{background:#2ecc71;color:#bff0dd}
 .d2{background:rgba(46,204,113,.5);color:#a9e2cc}
@@ -1223,10 +1223,16 @@ select.pln-btn{padding:5px 8px}
   color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
 .cell .dbl{display:block;font-size:9px;letter-spacing:.08em;color:var(--live);margin-top:1px}
 .cell.good5run{border-top:3px solid var(--accent)!important;border-bottom:3px solid var(--accent)!important}
-.halfmark{border-left:2px solid var(--accent)!important}
+/* Chip deadline (between GW19 and GW20). Drawn as one bar in the 2px gap
+   before the column rather than a border on each cell: per-cell borders broke
+   into segments at every row gap and sat on the cell edge, not between
+   columns. top/bottom reach across the row spacing so the bar is unbroken. */
+.fxgrid .halfmark{position:relative}
+.fxgrid .halfmark::before{content:'';position:absolute;left:-3px;top:-2px;bottom:-2px;width:4px;
+  background:#e8202a;pointer-events:none;z-index:1}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);align-items:center}
-.legend i{display:inline-block;width:16px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.legend i{display:inline-block;width:16px;height:9px;border-radius:0;margin-right:5px;vertical-align:middle}
 .chipcard{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;gap:16px;
   align-items:flex-start;flex-wrap:wrap}
 .chipcard:last-child{border-bottom:none}
@@ -1804,7 +1810,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25f';
+const APP_BUILD = 'app-2026-10-25h';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -7046,7 +7052,7 @@ function renderPlan(){
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
       +'<span style="color:var(--dimmer)">H '+t('legHome')+' \u00b7 A '+t('legAway')+'</span>'
-      +'<span style="color:var(--accent)">| '+t('legDeadline')+'</span></div>'
+      +'<span style="color:#e8202a;font-weight:700">| '+t('legDeadline')+'</span></div>'
     +'<div class="gridscroll"><table class="fxgrid"><thead><tr><th class="club">'+t('club')+'</th>'
     +head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 
