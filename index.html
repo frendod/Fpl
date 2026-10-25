@@ -1008,6 +1008,11 @@ select.pln-btn{padding:5px 8px}
    only the outer corners keep the radius - rounding every box would leave four
    little notches down the middle of the block. */
 .fixbox+.fixbox{margin-left:-1px}
+.fx-ha{font-size:.62em;font-weight:600;margin-left:.5px;letter-spacing:0;opacity:.85}
+/* With the venue tag a pitch box holds four characters, not three. On a phone
+   card 14cqw left no room for it, so the code steps down to 12cqw there; the
+   15px ceiling still decides the size on any desktop pitch. */
+.pcard .fixbox{font-size:clamp(6px,12cqw,15px);letter-spacing:-.02em}
 .fixrow .fixbox{border-radius:0}
 .fixrow .fixbox:first-child{border-radius:2px 0 0 2px}
 .fixrow .fixbox:last-child{border-radius:0 2px 2px 0}
@@ -1799,7 +1804,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25e';
+const APP_BUILD = 'app-2026-10-25f';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1955,7 +1960,7 @@ const I18N={
     noPlan:'No fixture data loaded, so there is nothing to plan against. Load with the network on, or paste the fixtures response too.',
     fixtureRuns:'Fixture runs', runsMeta:(a,b)=>'GW'+a+'\u2013'+b+' · easiest run first',
     highlight5Good:'Highlight 5+ week good runs',
-    legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legAway:'away', legDeadline:'chip deadline',
+    legEasy:'easy', legEven:'even', legHard:'hard', legBlank:'blank', legDouble:'double', legHome:'home', legAway:'away', legDeadline:'chip deadline',
     leg2:'easier', leg4:'harder',
     fdrDark:'Dark', fdrLight:'Light', fdrTheme:'FDR theme',
     club:'Club',
@@ -2243,7 +2248,7 @@ const I18N={
     noPlan:'No hay datos de calendario cargados, así que no hay nada que planificar. Carga con la red activa, o pega también la respuesta de fixtures.',
     fixtureRuns:'Rachas de calendario', runsMeta:(a,b)=>'J'+a+'\u2013'+b+' · racha más fácil primero',
     highlight5Good:'Destacar rachas de 5+ semanas fáciles',
-    legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legAway:'fuera', legDeadline:'límite de comodín',
+    legEasy:'fácil', legEven:'igualado', legHard:'difícil', legBlank:'sin partido', legDouble:'doble', legHome:'casa', legAway:'fuera', legDeadline:'límite de comodín',
     leg2:'más fácil', leg4:'más difícil',
     fdrDark:'Oscuro', fdrLight:'Claro', fdrTheme:'Tema FDR',
     club:'Club',
@@ -3557,6 +3562,11 @@ function loadSavedFplId(){
   }
 }
 
+/* Venue tag after an opponent code: small H or A, the same convention as
+   Fixture Targets. Used everywhere a fixture is shown as one club's
+   opponent; fixtures shown as home-v-away pairs need no tag. */
+function fxHA(home){return home==null?'':'<small class="fx-ha">'+(home?'H':'A')+'</small>'}
+
 // Get next 3 fixtures for a team — same approach as the player history modal
 function getNext3Fixtures(teamId,startGW){
   const blanks=[{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null},{gw:0,opp:'—',difficulty:null}];
@@ -3575,6 +3585,7 @@ function getNext3Fixtures(teamId,startGW){
     out.push({
       gw,
       opp:(opp&&opp.short_name)||'?',
+      home:isH,
       difficulty:isH?fx.team_h_difficulty:fx.team_a_difficulty
     });
   }
@@ -4414,7 +4425,7 @@ function renderUserTeam(){
     next3.forEach(f=>{
       fixBoxes+=f.opp==='—'
         ? '<div class="fixbox fdr-blank">—</div>'
-        : '<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+'</div>';
+        : '<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+fxHA(f.home)+'</div>';
     });
     fixBoxes+='</div>';
 
@@ -5562,7 +5573,7 @@ function renderXI(){
       if(f.opp==='—'){
         fixBoxes+='<div class="fixbox fdr-blank">—</div>';
       }else{
-        fixBoxes+='<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+'</div>';
+        fixBoxes+='<div class="fixbox '+getFDRClass(f.difficulty)+'">'+f.opp+fxHA(f.home)+'</div>';
       }
     });
     fixBoxes+='</div>';
@@ -6886,7 +6897,7 @@ function buildGrid(){
       const c=grid[tid]&&grid[tid][f.event]; if(!c)return;
       c.n++; c.diff=(c.diff*(c.n-1)+(Number(d)||3))/c.n;
       const o=bootstrap.teams.find(t=>t.id===oid);
-      c.opps.push(((o||{}).short_name||'?')+(home?'':'*'));
+      c.opps.push(((o||{}).short_name||'?')+fxHA(home));
     });
   });
   return{gws,grid};
@@ -7034,7 +7045,7 @@ function renderPlan(){
       +'<span><i class="d3"></i>'+t('legEven')+'</span><span><i class="d4"></i>'+t('leg4')+'</span>'
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
-      +'<span style="color:var(--dimmer)">* '+t('legAway')+'</span>'
+      +'<span style="color:var(--dimmer)">H '+t('legHome')+' \u00b7 A '+t('legAway')+'</span>'
       +'<span style="color:var(--accent)">| '+t('legDeadline')+'</span></div>'
     +'<div class="gridscroll"><table class="fxgrid"><thead><tr><th class="club">'+t('club')+'</th>'
     +head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
