@@ -806,6 +806,108 @@ textarea:focus{border-color:var(--accent)}
 /* MY TEAM pitch extras */
 .xp-note{padding:6px 20px 8px;font-size:10.5px;line-height:1.35;color:var(--dimmer);border-bottom:1px solid var(--line)}
 
+/* ─── TRANSFER PLANNER (future gameweeks on My Team) ──────
+   Everything is prefixed pln- so nothing collides with the league view's
+   .lg-* classes. Text uses --paper on --panel so it is white on dark and
+   black on light. */
+.pln-ledger{display:flex;gap:6px;padding:12px;overflow-x:auto;align-items:stretch;border-bottom:1px solid var(--line)}
+.pln-lg{flex:0 0 auto;min-width:84px;border:1px solid var(--line2);border-radius:8px;background:var(--panel2);
+  padding:7px 9px;cursor:pointer;color:var(--paper);text-align:left;font:inherit}
+.pln-lg.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.pln-lg-gw{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.06em;
+  display:flex;justify-content:space-between;gap:6px;align-items:center}
+.pln-tag{font-size:8.5px;padding:1px 4px;border-radius:3px;background:var(--accent);color:#000;font-weight:700;
+  white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.pln-tag.live{background:#7fb8ff}
+.pln-lg-ft{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:4px;color:var(--paper)}
+.pln-dots{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
+.pln-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--paper)}
+.pln-dot.used{background:var(--paper)}
+.pln-dot.hit{border-color:var(--bad);background:var(--bad)}
+.pln-nav{flex:0 0 auto;width:30px;border:1px solid var(--line2);border-radius:8px;background:var(--panel2);
+  color:var(--paper);font:700 18px Inter,system-ui,sans-serif;cursor:pointer}
+.pln-nav[disabled]{opacity:.3;cursor:default}
+.pln-win{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:8px 16px;
+  font:12px 'IBM Plex Mono',monospace;color:var(--paper);border-bottom:1px solid var(--line)}
+.pln-win b{color:var(--accent)}
+.pln-bad{color:var(--bad);font-weight:700}
+.pln-good{color:var(--good)}
+.pln-mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper)}
+.pln-sum{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--line)}
+.pln-sum>div{padding:10px 6px;text-align:center;border-right:1px solid var(--line)}
+.pln-sum>div:last-child{border-right:0}
+.pln-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper)}
+.pln-v{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;margin-top:3px;color:var(--paper)}
+.pln-v.bad{color:var(--bad)} .pln-v.acc{color:var(--accent)}
+@media(max-width:520px){.pln-v{font-size:14px}.pln-k{font-size:8px;letter-spacing:.05em}}
+.pln-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pln-sp{flex:1}
+.pln-btn{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);border-radius:6px;
+  padding:6px 10px;font:600 12px Inter,system-ui,sans-serif;cursor:pointer}
+.pln-btn:hover{border-color:var(--accent)}
+.pln-btn.bad{border-color:var(--bad);color:var(--bad)}
+select.pln-btn{padding:5px 8px}
+.pln-warn{padding:8px 16px;font-size:12px;color:var(--paper);background:rgba(229,101,122,.16);border-bottom:1px solid var(--bad)}
+.pln-note{padding:8px 16px;font-size:12px;color:var(--paper);border-bottom:1px solid var(--line)}
+.pln-mode{display:flex;gap:10px;align-items:center;padding:8px 16px;font-size:12px;color:var(--paper);
+  background:var(--accent-soft);border-bottom:1px solid var(--accent)}
+.pln-moves{padding:8px 16px;border-bottom:1px solid var(--line)}
+.pln-moves-h{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  margin-bottom:6px;color:var(--paper)}
+.pln-mv{display:grid;grid-template-columns:1fr auto 1fr auto auto;gap:8px;align-items:center;padding:5px 0;
+  border-top:1px solid var(--line);font-size:13px;color:var(--paper)}
+.pln-mv:first-of-type{border-top:0}
+.pln-mv .out{color:var(--bad);font-weight:600}
+.pln-mv .in{color:var(--good);font-weight:600}
+.pln-x{background:none;border:0;color:var(--paper);cursor:pointer;font-size:16px;padding:0 4px}
+.pln-none{font-size:12px;color:var(--paper)}
+/* cards on a planned week */
+.pcard.pplan{cursor:pointer;border-radius:6px}
+.pcard.pln-sel{outline:3px solid #fff;outline-offset:1px}
+.pcard.pln-target{outline:3px dashed #0b3d2a;outline-offset:1px}
+.pcard.pln-dim{opacity:.35;cursor:default}
+.pln-inmark{position:absolute;top:-4px;left:-6px;padding:2px 4px;border-radius:3px;background:#0b3d2a;color:#fff;
+  font:700 8px 'IBM Plex Mono',monospace;line-height:1;letter-spacing:.05em;z-index:2}
+/* sheets: below the player history overlay (z-index 50) so "Player details" opens over nothing */
+.pln-veil{position:fixed;inset:0;z-index:45;background:rgba(8,11,16,.6);display:flex;align-items:flex-end;justify-content:center}
+.pln-veil[hidden]{display:none}
+.pln-sheet{background:var(--panel);color:var(--paper);border:1px solid var(--line2);border-radius:12px 12px 0 0;
+  width:100%;max-width:640px;max-height:84vh;display:flex;flex-direction:column}
+@media(min-width:700px){.pln-veil{align-items:center}.pln-sheet{border-radius:12px}}
+.pln-sh-h{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.pln-sh-t{font-family:'Instrument Serif',serif;font-size:22px;flex:1}
+.pln-sh-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:8px 16px;border-bottom:1px solid var(--line);line-height:1.6}
+.pln-sh-b{overflow-y:auto}
+.pln-act{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;
+  border-bottom:1px solid var(--line);color:var(--paper);padding:13px 16px;font:600 14px Inter,system-ui,sans-serif;cursor:pointer}
+.pln-act:hover{background:var(--panel2)}
+.pln-act small{display:block;font-weight:400;font-size:12px;margin-top:2px}
+.pln-ic{flex:0 0 32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;gap:1px}
+.pln-ic svg{display:block}
+.pln-ic-t{font:700 12px 'IBM Plex Mono',monospace;color:var(--accent)}
+.pln-filt{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.pln-filt input,.pln-filt select{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
+  border-radius:6px;padding:7px 9px;font:13px Inter,system-ui,sans-serif}
+.pln-filt input{flex:1;min-width:0}
+.pln-tbl{width:100%;border-collapse:collapse}
+.pln-tbl th{font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;text-align:right;
+  padding:8px 10px;position:sticky;top:0;background:var(--panel2);color:var(--paper)}
+.pln-tbl th:first-child,.pln-tbl td:first-child{text-align:left}
+.pln-tbl td{padding:8px 10px;border-top:1px solid var(--line);text-align:right;font-family:'IBM Plex Mono',monospace;
+  font-size:12px;color:var(--paper)}
+.pln-tbl td:first-child{font-family:Inter,system-ui,sans-serif;font-size:13px}
+.pln-tbl tr.pick{cursor:pointer}
+.pln-tbl tr.pick:hover td{background:var(--panel2)}
+.pln-tbl tr.no td{opacity:.45}
+.pln-tbl td.pln-bad{color:var(--bad)} .pln-tbl td.pln-good{color:var(--good)}
+.pln-why{font-size:10.5px;color:var(--bad);display:block;font-family:'IBM Plex Mono',monospace}
+.pln-why.pln-good{color:var(--good)}
+.pln-cl{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-left:5px}
+.pln-warnc{color:var(--accent);font-weight:700}
+/* Gold is unreadable on white: light theme draws the accent figures in black. */
+:root.light-theme .pln-v.acc,:root.light-theme .pln-win b,:root.light-theme .pln-ic-t,:root.light-theme .pln-warnc{color:var(--paper)}
+
 /* ─── NO TRANSFERS / NO CHIPS TOGGLE ────────────────────── */
 .mt-nt{padding:10px 20px;border-bottom:1px solid var(--line)}
 .mt-nt-btn{width:100%;padding:9px 12px;background:transparent;border:1px solid var(--line2);
@@ -1514,6 +1616,8 @@ tbody tr.dead td:first-child{padding-left:26px}
   <script src="nav.js"></script>
   <!-- Club shirt icons (shirtSVG). Optional: if it fails to load, shirts are simply left out. -->
   <script src="shirts.js"></script>
+  <!-- Transfer planner rules (FPLPlanner). Optional: if it fails to load, future gameweeks fall back to the current squad. -->
+  <script src="model/planner.js?b=planner-2026-10-25a"></script>
 
   <div class="view on" id="view-picks"><div class="pickgrid" id="pickGrid"></div></div>
   
@@ -1687,7 +1791,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25b';
+const APP_BUILD = 'app-2026-10-25c';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1908,6 +2012,33 @@ const I18N={
     mtLoadingGw:gw=>'Loading GW '+gw+'\u2026', mtGwUnavail:gw=>'GW '+gw+' unavailable',
     mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Projected: '+n+' xP',
     mtNoChip:'No chip in play',
+    plnGw:g=>'GW'+g, plnLive:'live · locked', plnNext:n=>'next: '+n+' FT', plnFreeInf:'∞ free',
+    plnEarlier:'Earlier gameweeks', plnLater:'Later gameweeks', plnInvalid:'Squad or chip invalid this week',
+    plnNet:'net', plnHits:n=>n+' hits', plnChips:'Chips', plnNone:'none',
+    plnBank:'Bank', plnFT:'Free transfers', plnUsed:'Used', plnHit:'Hit', plnAfterHits:'xP after hits',
+    plnNoChip:'No chip', plnHalf1:'1st-half chips · expire GW19', plnHalf2:'2nd-half chips',
+    plnPlayedGw:g=>'played GW'+g, plnPlannedGw:g=>'planned GW'+g,
+    plnNextFt:n=>'next GW: '+n+' FT', plnResetGw:g=>'Reset '+g, plnResetAll:'Reset plan',
+    plnConfirmReset:'Clear every planned week?',
+    plnOver:a=>'Over budget by '+a+'. FPL would not accept this squad.',
+    plnClub:c=>'More than 3 players from '+c+'.',
+    plnClash:c=>c+' is already played or planned elsewhere in this half.',
+    plnDropped:n=>n+' planned move'+(n>1?'s':'')+' no longer appl'+(n>1?'y':'ies')+' because an earlier week changed the squad. Ignored.',
+    plnFhNote:g=>'Free Hit: squad and bank go back to the '+g+' team next week. Banked free transfers are kept.',
+    plnSubMode:n=>'Substitute: tap a highlighted player to swap with <b>'+n+'</b>', plnCancel:'Cancel',
+    plnTransfers:g=>'Transfers '+g, plnNoMoves:'None planned. Tap a player and choose Transfer out.',
+    plnLocked:'made on FPL', plnUndo:'Undo transfer', plnIn:'IN',
+    plnPricesApprox:'Your transfer history could not be loaded, so selling prices are taken as today’s price. Bank may be slightly off.',
+    plnSquadNote:' Squad shown includes your planned moves. Prices are held at today’s.',
+    plnClose:'Close', plnNow:'now', plnBought:'bought', plnSells:'sells for', plnNext3:'next 3',
+    plnTransferOut:'Transfer out', plnFreeChip:'Free — chip active', plnUsesFt:n=>'Uses 1 of '+n+' remaining FT',
+    plnCostsHit:'Costs −4 (no free transfers left)', plnCostsHitShort:'This move costs −4',
+    plnSub:'Substitute', plnSubXI:'Swap with a bench player', plnSubBench:'Bring into the XI or reorder the bench',
+    plnCap:'Make captain', plnVc:'Make vice-captain', plnDetails:'Player details',
+    plnReplace:n=>'Replace '+n, plnBudget:'budget', plnFreeLeft:n=>'Free: '+n+' FT left this week',
+    plnSearch:'Search player or club', plnSortX3:'Sort: xP next 3', plnSortX1:g=>'Sort: xP '+g, plnSortPrice:'Sort: price',
+    plnPlayer:'Player', plnPrice:'Price', plnShort:a=>a+' short', plnClubFull:c=>'3 from '+c+' already',
+    plnRestore:'↺ cancels this week’s move', plnOff:e=>'Planner unavailable ('+e+'). Showing your current squad.',
     mtNoTransShow:"What if you'd made no changes?",
     mtNoTransHide:'Hide no-changes comparison',
     mtNoTransLoading:'Playing out your season with no transfers or chips\u2026',
@@ -2163,7 +2294,34 @@ const I18N={
     mtPrev:'\u2190 Anterior', mtNext:'Siguiente \u2192', mtSelectGw:'Elegir jornada',
     mtLoadingGw:gw=>'Cargando J'+gw+'\u2026', mtGwUnavail:gw=>'J'+gw+' no disponible',
     mtTotal:n=>'Total: '+n+' pts', mtProjected:n=>'Previsi\u00f3n: '+n+' xP',
-    mtNoChip:'Sin comod\u00edn activo',
+    mtNoChip:'Sin comodín activo',
+    plnGw:g=>'J'+g, plnLive:'en juego · cerrada', plnNext:n=>'próx.: '+n+' gratis', plnFreeInf:'∞ gratis',
+    plnEarlier:'Jornadas anteriores', plnLater:'Jornadas siguientes', plnInvalid:'Plantilla o comodín no válido esta jornada',
+    plnNet:'neto', plnHits:n=>n+' de penalización', plnChips:'Comodines', plnNone:'ninguno',
+    plnBank:'Banco', plnFT:'Fichajes gratis', plnUsed:'Usados', plnHit:'Penalización', plnAfterHits:'xP tras penalización',
+    plnNoChip:'Sin comodín', plnHalf1:'Comodines 1ª vuelta · caducan en J19', plnHalf2:'Comodines 2ª vuelta',
+    plnPlayedGw:g=>'jugado J'+g, plnPlannedGw:g=>'previsto J'+g,
+    plnNextFt:n=>'próx. J: '+n+' gratis', plnResetGw:g=>'Borrar '+g, plnResetAll:'Borrar plan',
+    plnConfirmReset:'¿Borrar todas las jornadas planificadas?',
+    plnOver:a=>'Te pasas del presupuesto en '+a+'. La FPL no aceptaría esta plantilla.',
+    plnClub:c=>'Más de 3 jugadores de '+c+'.',
+    plnClash:c=>c+' ya está jugado o previsto en otra jornada de esta vuelta.',
+    plnDropped:n=>n+' fichaje'+(n>1?'s':'')+' previsto'+(n>1?'s ya no se aplican':' ya no se aplica')+' porque una jornada anterior cambió la plantilla. Se ignora'+(n>1?'n':'')+'.',
+    plnFhNote:g=>'Free Hit: la plantilla y el banco vuelven al equipo de la '+g+' la jornada siguiente. Se conservan los fichajes gratis acumulados.',
+    plnSubMode:n=>'Cambio: toca un jugador resaltado para cambiarlo por <b>'+n+'</b>', plnCancel:'Cancelar',
+    plnTransfers:g=>'Fichajes '+g, plnNoMoves:'Ninguno previsto. Toca un jugador y elige Vender.',
+    plnLocked:'hecho en la FPL', plnUndo:'Deshacer fichaje', plnIn:'ALTA',
+    plnPricesApprox:'No se pudo cargar tu historial de fichajes, así que el precio de venta es el de hoy. El banco puede variar algo.',
+    plnSquadNote:' La plantilla incluye tus fichajes previstos. Precios fijados a los de hoy.',
+    plnClose:'Cerrar', plnNow:'ahora', plnBought:'comprado', plnSells:'se vende por', plnNext3:'próx. 3',
+    plnTransferOut:'Vender', plnFreeChip:'Gratis — comodín activo', plnUsesFt:n=>'Usa 1 de '+n+' fichajes gratis',
+    plnCostsHit:'Cuesta −4 (sin fichajes gratis)', plnCostsHitShort:'Este fichaje cuesta −4',
+    plnSub:'Cambio', plnSubXI:'Cambiar con un suplente', plnSubBench:'Meter en el once u ordenar el banquillo',
+    plnCap:'Hacer capitán', plnVc:'Hacer vicecapitán', plnDetails:'Ficha del jugador',
+    plnReplace:n=>'Sustituir a '+n, plnBudget:'presupuesto', plnFreeLeft:n=>'Gratis: quedan '+n+' esta jornada',
+    plnSearch:'Buscar jugador o club', plnSortX3:'Orden: xP próx. 3', plnSortX1:g=>'Orden: xP '+g, plnSortPrice:'Orden: precio',
+    plnPlayer:'Jugador', plnPrice:'Precio', plnShort:a=>'faltan '+a, plnClubFull:c=>'ya tienes 3 de '+c,
+    plnRestore:'↺ anula el fichaje de esta jornada', plnOff:e=>'Planificador no disponible ('+e+'). Se muestra tu plantilla actual.',
     mtNoTransShow:'\u00bfQu\u00e9 pasar\u00eda si no hubieras hecho nada?',
     mtNoTransHide:'Ocultar comparaci\u00f3n sin cambios',
     mtNoTransLoading:'Calculando tu temporada sin fichajes ni comodines\u2026',
@@ -2231,6 +2389,9 @@ function setLang(l){
   if(typeof players!=='undefined'&&players.length){renderWeights();renderAll();}
   else{renderWeights();paintState();}
   if(typeof renderLeagues==='function')renderLeagues();
+  // My Team draws its text through t() at render time, planner included, so it
+  // has to be redrawn or it stays in the old language until the next change.
+  if(typeof userTeam!=='undefined'&&userTeam&&userTeam.picks)renderUserTeam();
 }
 
 function paintThemeBtn(){
@@ -3274,6 +3435,9 @@ async function loadUserTeam(fplId, bust){
     // itself still renders correctly for the current gameweek because that
     // uses picksData.picks directly, untouched below.
     let basePicksForFuture=picksData.picks;
+    // Bank the planner starts from. A Free Hit bank is a loan too, so it
+    // reverts with the squad just below.
+    let baseBank=(picksData.entry_history&&picksData.entry_history.bank)||0;
     const isFreeHitNow=picksData.active_chip&&String(picksData.active_chip).toLowerCase()==='freehit';
     if(isFreeHitNow){
       try{
@@ -3282,11 +3446,21 @@ async function loadUserTeam(fplId, bust){
         if(prevRes.ok){
           const prevData=await prevRes.json();
           if(prevData.picks)basePicksForFuture=prevData.picks;
+          if(prevData.entry_history&&prevData.entry_history.bank!=null)baseBank=prevData.entry_history.bank;
         }
       }catch(e){
         console.warn('Could not fetch pre-Free Hit squad — future gameweeks will show the FH squad instead:',e.message);
       }
     }
+
+    // Transfer list, for the planner only: purchase prices (so selling prices
+    // are FPL's, not today's) and any moves already made for the next deadline.
+    // Failure is not fatal; the planner falls back to today's prices and says so.
+    let transferList=null;
+    try{
+      const trRes=await fetch(proxyBase+encodeURIComponent('entry/'+fplId+'/transfers/')+bustQS,opts);
+      if(trRes.ok){const j=await trRes.json();if(Array.isArray(j))transferList=j;}
+    }catch(e){console.warn('Transfer list unavailable:',e.message)}
 
     // Overall rank: the live entry summary is the freshest, but mid-gameweek FPL
     // sometimes leaves it null until the week is scored, so fall back to the last
@@ -3317,6 +3491,9 @@ async function loadUserTeam(fplId, bust){
       noTransfers:{open:false,status:'idle',data:null,error:null},
       rolled:{open:false,status:'idle',data:null,error:null}
     };
+    userTeam.plan=plnBuild({currentGW,basePicks:basePicksForFuture,bank:baseBank,hist,transfers:transferList});
+    userTeam.planIntent=userTeam.plan.ok?plnLoadIntent(userTeam.plan.fromGw):{};
+    PLN.winStart=null; PLN.ui={mode:null,src:null,targets:[]};
     
     $('gwSelect').max=38;
     $('gwSelect').value=currentGW;
@@ -3562,6 +3739,7 @@ async function changeGameweek(gw){
   const status=$('gwStatus');
   userTeam.gw=gw;
   userTeam.isFuture=gw>current;
+  PLN.ui={mode:null,src:null,targets:[]};
 
   // scores from the previous gameweek must not leak into the new view
   userTeam.gwScores={};
@@ -3712,6 +3890,339 @@ function mtFixtures(gw, teamsMap){
     +'<div class="mt-fxkey">'+esc(t('mtFxKey'))+'</div></div>';
 }
 
+/* ══ TRANSFER PLANNER ════════════════════════════════════
+   Future gameweeks on My Team: transfer, substitute, captain and chip per week,
+   with free transfers, bank and hits worked out the way FPL does. The rules
+   live in model/planner.js (FPLPlanner) and are tested by planner-test.mjs;
+   this block is only the screen.
+
+   - userTeam.plan        base squad/bank/FT/buy prices built at load, never edited
+   - userTeam.planIntent  what the user asked for, per gameweek, saved per FPL ID
+   Everything shown (bank, FT, hits, validity) is re-derived from those two on
+   every render, so there is no cached number to go stale.
+
+   On a future gameweek renderUserTeam takes its picks and chip from the
+   resolved plan, so the existing card, total and armband code draws the
+   planned squad without knowing it is a plan.
+════════════════════════════════════════════════════════ */
+const PLN={ui:{mode:null,src:null,targets:[]},winStart:null,WIN:6};
+const plnTeamShort=id=>{const tm=bootstrap&&bootstrap.teams&&bootstrap.teams.find(x=>x.id===id);return tm?tm.short_name:String(id)};
+const plnMoney=v=>(v<0?'−':'')+'£'+(Math.abs(v)/10).toFixed(1)+'m';
+const plnP=id=>players.find(x=>x.id===id);
+function plnKey(){return 'fplRockPlan_'+userTeam.entryId}
+function plnReady(){return !!(window.FPLPlanner&&userTeam&&userTeam.plan&&userTeam.plan.ok)}
+function plnSave(){try{localStorage.setItem(plnKey(),JSON.stringify(userTeam.planIntent||{}))}catch(e){}}
+function plnLoadIntent(fromGw){
+  let o={};
+  try{o=JSON.parse(localStorage.getItem(plnKey())||'{}')||{}}catch(e){o={}}
+  // weeks whose deadline has gone are history now, not plans
+  Object.keys(o).forEach(k=>{if(+k<fromGw)delete o[k]});
+  return o;
+}
+
+/* Built once per team load from data loadUserTeam already has, plus the
+   transfers list. Never throws: a failure leaves the planner off with a note. */
+function plnBuild(o){
+  const PL=window.FPLPlanner;
+  if(!PL)return {ok:false,err:'planner script did not load'};
+  try{
+    const fromGw=o.currentGW+1;
+    if(fromGw>38)return {ok:false,err:'season finished'};
+    const picks=(o.basePicks||[]).slice().sort((a,b)=>a.position-b.position);
+    const order=picks.map(p=>p.element);
+    if(order.length!==15)return {ok:false,err:'squad incomplete'};
+    const cap=(picks.find(p=>p.is_captain)||{}).element;
+    const vc=(picks.find(p=>p.is_vice_captain)||{}).element;
+    const chips=o.hist&&o.hist.chips||[];
+    const ftw=PL.deriveFT(o.hist&&o.hist.current||[],chips);
+    const lastEv=((o.hist&&o.hist.current)||[]).reduce((m,r)=>Math.max(m,r.event),0);
+    if(lastEv&&lastEv<o.currentGW)console.warn('Planner: history ends at GW'+lastEv+', current is GW'+o.currentGW+'; FT may be off by a week');
+    const all=Array.isArray(o.transfers)?o.transfers:[];
+    const past=all.filter(t=>t.event<=o.currentGW);
+    const el=id=>{const p=plnP(id);return p&&p.el};
+    const buy=PL.purchasePrices(order,past,chips,
+      id=>{const e=el(id);return e?e.now_cost:0},
+      id=>{const e=el(id);return e&&e.cost_change_start!=null?e.now_cost-e.cost_change_start:null});
+    // Moves already confirmed on FPL for the coming deadline: FPL has priced
+    // them, so they go in as given and cannot be undone here.
+    const locked=all.filter(t=>t.event===fromGw)
+      .map(t=>({out:t.element_out,in:t.element_in,sell:t.element_out_cost,cost:t.element_in_cost}));
+    return {ok:true,fromGw,locked,played:chips,pricesExact:Array.isArray(o.transfers),
+      base:{order,cap,vc,bank:o.bank||0,buy,ft:ftw.next}};
+  }catch(e){
+    console.warn('Planner build failed:',e);
+    return {ok:false,err:e.message};
+  }
+}
+
+/* xP is the one expensive call; resolve() asks for the same player-week many
+   times while sorting captains, so memoise it for the duration of one render. */
+function plnResolve(){
+  const pl=userTeam.plan, memo=new Map();
+  const deps={
+    pos:id=>{const p=plnP(id);return p?p.pos:''},
+    club:id=>{const p=plnP(id);return p?p.teamId:0},
+    now:id=>{const p=plnP(id);return p&&p.el?p.el.now_cost:0},
+    xp:(id,gw)=>{const k=id+':'+gw;if(!memo.has(k)){const p=plnP(id);memo.set(k,p?projectedPoints(p,gw):0)}return memo.get(k)}
+  };
+  return FPLPlanner.resolve({base:pl.base,plan:userTeam.planIntent||{},fromGw:pl.fromGw,toGw:38,
+    locked:pl.locked,played:pl.played,deps});
+}
+function plnPicksFor(r){
+  return r.order.map((id,i)=>({element:id,position:i+1,
+    multiplier:i<11||r.chip==='bboost'?(id===r.cap?(r.chip==='3xc'?3:2):1):0,
+    is_captain:id===r.cap,is_vice_captain:id===r.vc}));
+}
+function plnXp3(p,gw){let s=0;for(let i=0;i<3&&gw+i<=38;i++)s+=projectedPoints(p,gw+i);return s}
+function plnGp(gw){const I=userTeam.planIntent=userTeam.planIntent||{};return (I[gw]=I[gw]||{tr:[]})}
+function plnChanged(){plnSave();renderUserTeam()}
+
+/* Card hooks used by renderUserTeam's card(). */
+function plnCardClass(id){
+  const u=PLN.ui;
+  if(u.src===id)return ' pln-sel';
+  if(u.mode==='sub'&&u.src)return u.targets.includes(id)?' pln-target':' pln-dim';
+  return '';
+}
+function plnInBadge(id){
+  return userTeam.plan&&!userTeam.plan.base.order.includes(id)?'<span class="pln-inmark">'+t('plnIn')+'</span>':'';
+}
+
+function plnChipWhere(c,gw){
+  const x=FPLPlanner.chipTaken(c,gw,userTeam.plan.played,userTeam.planIntent||{});
+  return x?(x.where==='played'?t('plnPlayedGw')(x.gw):t('plnPlannedGw')(x.gw)):'';
+}
+
+/* Ledger, summary, warnings and the week's moves — everything above the pitch. */
+function plnHTML(R){
+  const pl=userTeam.plan, gw=userTeam.gw, cur=userTeam.currentEvent, live=gw<=cur;
+  const first=pl.fromGw, lastStart=Math.max(first,38-PLN.WIN+1);
+  if(PLN.winStart==null)PLN.winStart=first;
+  if(!live){if(gw<PLN.winStart)PLN.winStart=gw;if(gw>PLN.winStart+PLN.WIN-1)PLN.winStart=gw-PLN.WIN+1}
+  PLN.winStart=Math.max(first,Math.min(lastStart,PLN.winStart));
+  const ws=PLN.winStart, we=Math.min(38,ws+PLN.WIN-1);
+  const G=t('plnGw');
+  let h='<div class="pln">';
+  h+='<div class="pln-ledger">';
+  h+='<button class="pln-lg'+(gw===cur?' on':'')+'" data-pln-gw="'+cur+'"><div class="pln-lg-gw">'+G(cur)
+    +'<span class="pln-tag live">FPL</span></div><div class="pln-lg-ft">'+t('plnLive')+'</div>'
+    +'<div class="pln-lg-ft">'+t('plnNext')(pl.base.ft)+'</div></button>';
+  h+='<button class="pln-nav" data-pln-page="-1"'+(ws<=first?' disabled':'')+' aria-label="'+esc(t('plnEarlier'))+'">‹</button>';
+  for(let k=ws;k<=we;k++){
+    const r=R[k],free=r.chip==='wildcard'||r.chip==='freehit';
+    let dots='';
+    if(!free)for(let i=0;i<Math.max(r.avail,r.used);i++)
+      dots+='<span class="pln-dot'+(i<r.used?(i<r.avail?' used':' hit'):'')+'"></span>';
+    h+='<button class="pln-lg'+(k===gw?' on':'')+'" data-pln-gw="'+k+'"><div class="pln-lg-gw">'+G(k)
+      +(r.chip?'<span class="pln-tag">'+esc(CHIP_LABELS[r.chip]||r.chip)+'</span>':'')
+      +(r.valid?'':'<span class="pln-bad" title="'+esc(t('plnInvalid'))+'">!</span>')+'</div>'
+      +'<div class="pln-lg-ft">'+(free?t('plnFreeInf'):r.used+'/'+r.avail+' FT')
+      +(r.hits?' <span class="pln-bad">−'+r.hits+'</span>':'')+'</div>'
+      +'<div class="pln-dots">'+dots+'</div></button>';
+  }
+  h+='<button class="pln-nav" data-pln-page="1"'+(we>=38?' disabled':'')+' aria-label="'+esc(t('plnLater'))+'">›</button>';
+  h+='</div>';
+  let wx=0,wh=0;for(let k=ws;k<=we;k++){wx+=R[k].xp;wh+=R[k].hits}
+  const chipsUsed=(pl.played||[]).map(c=>esc(CHIP_LABELS[c.name]||c.name)+' '+G(c.event)+' ✓')
+    .concat(Object.keys(userTeam.planIntent||{}).filter(k=>userTeam.planIntent[k]&&userTeam.planIntent[k].chip)
+      .sort((a,b)=>a-b).map(k=>esc(CHIP_LABELS[userTeam.planIntent[k].chip]||'')+' '+G(+k)));
+  h+='<div class="pln-win"><span>'+G(ws)+'–'+G(we).replace(/^\D+/,'')+' · <b>'+(wx-wh).toFixed(1)+' xP</b> '+t('plnNet')
+    +(wh?' <span class="pln-bad">('+wx.toFixed(1)+' − '+t('plnHits')(wh)+')</span>':'')+'</span>'
+    +'<span>'+t('plnChips')+': '+(chipsUsed.length?chipsUsed.join(' · '):t('plnNone'))+'</span></div>';
+
+  if(live){h+='</div>';return h}
+
+  const r=R[gw], free=r.chip==='wildcard'||r.chip==='freehit';
+  h+='<div class="pln-sum">'
+    +'<div><div class="pln-k">'+t('plnBank')+'</div><div class="pln-v'+(r.bank<0?' bad':'')+'">'+plnMoney(r.bank)+'</div></div>'
+    +'<div><div class="pln-k">'+t('plnFT')+'</div><div class="pln-v">'+(free?'∞':r.avail)+'</div></div>'
+    +'<div><div class="pln-k">'+t('plnUsed')+'</div><div class="pln-v">'+r.used+'</div></div>'
+    +'<div><div class="pln-k">'+t('plnHit')+'</div><div class="pln-v'+(r.hits?' bad':'')+'">'+(r.hits?'−'+r.hits:'0')+'</div></div>'
+    +'<div><div class="pln-k">'+t('plnAfterHits')+'</div><div class="pln-v acc">'+r.net.toFixed(1)+'</div></div></div>';
+  h+='<div class="pln-tools"><select class="pln-btn" id="plnChip" aria-label="'+esc(t('plnChips'))+'">'
+    +'<option value="">'+esc(t('plnNoChip'))+'</option>'
+    +FPLPlanner.CHIPS.map(c=>{
+      const on=r.chip===c, where=on?'':plnChipWhere(c,gw);
+      return '<option value="'+c+'"'+(on?' selected':'')+(where?' disabled':'')+'>'
+        +esc(CHIP_LABELS[c])+(where?' — '+esc(where):'')+'</option>'}).join('')+'</select>'
+    +'<span class="pln-mono">'+(FPLPlanner.half(gw)===1?t('plnHalf1'):t('plnHalf2'))+'</span>'
+    +'<span class="pln-sp"></span><span class="pln-mono">'+t('plnNextFt')(gw<38?r.nextFt:'–')+'</span>'
+    +'<button class="pln-btn" data-pln-reset="gw">'+t('plnResetGw')(G(gw))+'</button>'
+    +'<button class="pln-btn bad" data-pln-reset="all">'+t('plnResetAll')+'</button></div>';
+  const warn=s=>'<div class="pln-warn">'+s+'</div>';
+  if(r.bank<0)h+=warn(t('plnOver')(plnMoney(-r.bank)));
+  if(r.overClub.length)h+=warn(t('plnClub')(r.overClub.map(plnTeamShort).join(', ')));
+  if(r.chipClash)h+=warn(t('plnClash')(CHIP_LABELS[r.chip]));
+  if(r.dropped.length)h+=warn(t('plnDropped')(r.dropped.length));
+  if(r.chip==='freehit')h+='<div class="pln-note">'+t('plnFhNote')(G(gw-1))+'</div>';
+  if(PLN.ui.mode==='sub'){const sp=plnP(PLN.ui.src);
+    h+='<div class="pln-mode">'+t('plnSubMode')(esc(sp?sp.name:''))+'<span class="pln-sp"></span>'
+      +'<button class="pln-btn" data-pln-cancel>'+t('plnCancel')+'</button></div>'}
+  h+='<div class="pln-moves"><div class="pln-moves-h">'+t('plnTransfers')(G(gw))+'</div>';
+  if(!r.trs.length)h+='<div class="pln-none">'+t('plnNoMoves')+'</div>';
+  r.trs.forEach(tr=>{
+    const po=plnP(tr.out),pn=plnP(tr.in);if(!po||!pn)return;
+    const d=plnXp3(pn,gw)-plnXp3(po,gw);
+    h+='<div class="pln-mv"><span class="out">'+esc(po.name)+' <span class="pln-mono">'+plnMoney(tr.sell)+'</span></span><span>→</span>'
+      +'<span class="in">'+esc(pn.name)+' <span class="pln-mono">'+plnMoney(tr.cost)+'</span></span>'
+      +'<span class="pln-mono '+(d>=0?'pln-good':'pln-bad')+'">'+(d>=0?'+':'')+d.toFixed(1)+' xP/3</span>'
+      +(tr.locked?'<span class="pln-mono">'+t('plnLocked')+'</span>'
+        :'<button class="pln-x" data-pln-undo="'+tr.in+'" aria-label="'+esc(t('plnUndo'))+'">✕</button>')+'</div>';
+  });
+  h+='</div>';
+  if(!pl.pricesExact)h+='<div class="pln-note">'+t('plnPricesApprox')+'</div>';
+  h+='</div>';
+  return h;
+}
+
+/* ── sheets ── */
+function plnVeil(){
+  let v=$('plnVeil');
+  if(!v){v=document.createElement('div');v.id='plnVeil';v.className='pln-veil';v.hidden=true;
+    v.innerHTML='<div class="pln-sheet" id="plnSheet" role="dialog" aria-modal="true"></div>';
+    document.body.appendChild(v);
+    v.addEventListener('click',e=>{if(e.target===v)plnClose()});}
+  return v;
+}
+function plnOpen(html){plnVeil();$('plnSheet').innerHTML=html;$('plnVeil').hidden=false}
+function plnClose(){const v=$('plnVeil');if(v)v.hidden=true}
+const PLN_IC_OUT='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h10M8.5 4l4 4-4 4" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const PLN_IC_SUB='<svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><path d="M5 14V3M1.5 6.5L5 3l3.5 3.5" fill="none" stroke="var(--good)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  +'<svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><path d="M5 2v11M1.5 9.5L5 13l3.5-3.5" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function plnSubTargets(id,r){
+  const o=r.order,i=o.indexOf(id),pos=x=>{const p=plnP(x);return p?p.pos:''};
+  return o.filter(x=>x!==id).filter(x=>{
+    const j=o.indexOf(x);if(i<11&&j<11)return false;
+    const c=o.slice();[c[i],c[j]]=[c[j],c[i]];return FPLPlanner.validXI(c,pos)});
+}
+
+function plnTap(id){
+  if(!plnReady()||!userTeam.isFuture)return;
+  const R=plnResolve(),gw=userTeam.gw,r=R[gw];if(!r)return;
+  if(PLN.ui.mode==='sub'){
+    if(id===PLN.ui.src){PLN.ui={mode:null,src:null,targets:[]};return renderUserTeam()}
+    if(PLN.ui.targets.includes(id)){
+      const o=r.order.slice(),a=o.indexOf(PLN.ui.src),b=o.indexOf(id);[o[a],o[b]]=[o[b],o[a]];
+      plnGp(gw).order=o;PLN.ui={mode:null,src:null,targets:[]};plnChanged();
+    }
+    return;
+  }
+  const p=plnP(id);if(!p)return;
+  const inXI=r.order.indexOf(id)<11, free=r.chip==='wildcard'||r.chip==='freehit';
+  const sell=FPLPlanner.sellPrice(p.el.now_cost,r.buy[id]);
+  const left=r.avail-r.used;
+  plnOpen('<div class="pln-sh-h"><div class="pln-sh-t">'+esc(p.name)+'</div><button class="pln-btn" data-pln-close>'+t('plnClose')+'</button></div>'
+    +'<div class="pln-sh-sub">'+esc(p.club)+' · '+esc(p.pos)+' · '+t('plnNow')+' '+plnMoney(p.el.now_cost)
+    +' · '+t('plnBought')+' '+plnMoney(r.buy[id])+' · '+t('plnSells')+' '+plnMoney(sell)
+    +'<br>xP '+t('plnGw')(gw)+': '+projectedPoints(p,gw).toFixed(1)+' · '+t('plnNext3')+': '+plnXp3(p,gw).toFixed(1)+'</div>'
+    +'<div class="pln-sh-b">'
+    +'<button class="pln-act" data-pln-act="out" data-id="'+id+'"><span class="pln-ic">'+PLN_IC_OUT+'</span><span>'+t('plnTransferOut')
+      +'<small>'+(free?t('plnFreeChip'):left>0?t('plnUsesFt')(left):t('plnCostsHit'))+'</small></span></button>'
+    +'<button class="pln-act" data-pln-act="sub" data-id="'+id+'"><span class="pln-ic">'+PLN_IC_SUB+'</span><span>'+t('plnSub')
+      +'<small>'+(inXI?t('plnSubXI'):t('plnSubBench'))+'</small></span></button>'
+    +(inXI&&r.cap!==id?'<button class="pln-act" data-pln-act="cap" data-id="'+id+'"><span class="pln-ic pln-ic-t">C</span><span>'+t('plnCap')+'</span></button>':'')
+    +(inXI&&r.vc!==id&&r.cap!==id?'<button class="pln-act" data-pln-act="vc" data-id="'+id+'"><span class="pln-ic pln-ic-t">V</span><span>'+t('plnVc')+'</span></button>':'')
+    +'<button class="pln-act" data-pln-act="hist" data-id="'+id+'"><span class="pln-ic pln-ic-t">i</span><span>'+t('plnDetails')+'</span></button>'
+    +'</div>');
+}
+
+function plnReplace(outId){
+  const R=plnResolve(),gw=userTeam.gw,r=R[gw],out=plnP(outId);if(!r||!out)return;
+  const budget=r.bank+FPLPlanner.sellPrice(out.el.now_cost,r.buy[outId]);
+  const clubs={};r.order.filter(i=>i!==outId).forEach(i=>{const p=plnP(i);if(p)clubs[p.teamId]=(clubs[p.teamId]||0)+1});
+  // A player bought this week can always go back to the one he replaced: that
+  // cancels a pending move, it is not a new purchase.
+  const pend=r.trs.find(x=>x.in===outId&&!x.locked),restoreId=pend?pend.out:null;
+  const free=r.chip==='wildcard'||r.chip==='freehit', left=r.avail-r.used;
+  const x3out=plnXp3(out,gw);
+  plnOpen('<div class="pln-sh-h"><div class="pln-sh-t">'+t('plnReplace')(esc(out.name))+'</div><button class="pln-btn" data-pln-close>'+t('plnClose')+'</button></div>'
+    +'<div class="pln-sh-sub">'+t('plnSells')+' '+plnMoney(FPLPlanner.sellPrice(out.el.now_cost,r.buy[outId]))+' · '+t('plnBank').toLowerCase()+' '+plnMoney(r.bank)
+    +' · <b>'+t('plnBudget')+' '+plnMoney(budget)+'</b><br>'
+    +(free?t('plnFreeChip'):left>0?t('plnFreeLeft')(left):t('plnCostsHitShort'))+'</div>'
+    +'<div class="pln-filt"><input id="plnQ" placeholder="'+esc(t('plnSearch'))+'" aria-label="'+esc(t('plnSearch'))+'">'
+    +'<select id="plnSort" aria-label="Sort"><option value="x3">'+t('plnSortX3')+'</option><option value="x1">'+t('plnSortX1')(t('plnGw')(gw))
+    +'</option><option value="price">'+t('plnSortPrice')+'</option></select></div>'
+    +'<div class="pln-sh-b"><table class="pln-tbl" id="plnTbl"></table></div>');
+  // xP for every candidate is computed once, not on each keystroke
+  const pool=players.filter(p=>p.pos===out.pos&&!r.order.includes(p.id)).map(p=>{
+    const why=p.id===restoreId?'':p.el.now_cost>budget?t('plnShort')(plnMoney(p.el.now_cost-budget))
+      :(clubs[p.teamId]||0)>=FPLPlanner.CLUB_CAP?t('plnClubFull')(p.club):'';
+    return {p,why,x1:projectedPoints(p,gw),x3:plnXp3(p,gw)};
+  });
+  const draw=()=>{
+    const q=($('plnQ').value||'').toLowerCase().trim(),srt=$('plnSort').value;
+    const rows=pool.filter(o=>!q||o.p.name.toLowerCase().includes(q)||String(o.p.club).toLowerCase().includes(q)
+        ||(o.p.fullName||'').toLowerCase().includes(q))
+      .sort((a,b)=>((b.p.id===restoreId)-(a.p.id===restoreId))||(!!a.why-!!b.why)
+        ||(srt==='price'?b.p.el.now_cost-a.p.el.now_cost:srt==='x1'?b.x1-a.x1:b.x3-a.x3))
+      .slice(0,60);
+    $('plnTbl').innerHTML='<tr><th>'+t('plnPlayer')+'</th><th>'+t('plnPrice')+'</th><th>xP '+t('plnGw')(gw)+'</th><th>xP 3</th><th>Δ 3</th></tr>'
+      +rows.map(o=>{const d=o.x3-x3out,st=o.p.status!=='a'?' <span class="pln-cl pln-warnc">!</span>':'';
+        return '<tr class="'+(o.why?'no':'pick')+'" data-pln-in="'+o.p.id+'" data-out="'+outId+'"><td>'+esc(o.p.name)
+          +'<span class="pln-cl">'+esc(o.p.club)+'</span>'+st
+          +(o.why?'<span class="pln-why">'+o.why+'</span>':'')
+          +(o.p.id===restoreId?'<span class="pln-why pln-good">'+t('plnRestore')+'</span>':'')+'</td>'
+          +'<td>'+plnMoney(o.p.el.now_cost)+'</td><td>'+o.x1.toFixed(1)+'</td><td>'+o.x3.toFixed(1)+'</td>'
+          +'<td class="'+(d>=0?'pln-good':'pln-bad')+'">'+(d>=0?'+':'')+d.toFixed(1)+'</td></tr>'}).join('');
+  };
+  $('plnQ').oninput=draw;$('plnSort').onchange=draw;draw();
+}
+
+document.addEventListener('click',e=>{
+  if(!plnReady())return;
+  const card=e.target.closest('.pplan');
+  if(card&&card.dataset.pid){plnTap(+card.dataset.pid);return}
+  const lg=e.target.closest('[data-pln-gw]');
+  if(lg){PLN.ui={mode:null,src:null,targets:[]};changeGameweek(+lg.dataset.plnGw);return}
+  const pg=e.target.closest('[data-pln-page]');
+  if(pg&&!pg.disabled){
+    PLN.winStart=(PLN.winStart||userTeam.plan.fromGw)+(+pg.dataset.plnPage)*PLN.WIN;
+    PLN.winStart=Math.max(userTeam.plan.fromGw,Math.min(Math.max(userTeam.plan.fromGw,38-PLN.WIN+1),PLN.winStart));
+    PLN.ui={mode:null,src:null,targets:[]};
+    // the window owns the view: step to its first week, or redraw if on the live week
+    if(userTeam.isFuture)changeGameweek(PLN.winStart);else renderUserTeam();
+    return;
+  }
+  if(e.target.closest('[data-pln-close]')){plnClose();return}
+  if(e.target.closest('[data-pln-cancel]')){PLN.ui={mode:null,src:null,targets:[]};renderUserTeam();return}
+  const rs=e.target.closest('[data-pln-reset]');
+  if(rs){
+    if(rs.dataset.plnReset==='gw'){delete userTeam.planIntent[userTeam.gw];plnChanged()}
+    else if(confirm(t('plnConfirmReset'))){userTeam.planIntent={};plnChanged()}
+    return;
+  }
+  const un=e.target.closest('[data-pln-undo]');
+  // undo by the player bought, not by list position: the list on screen skips
+  // dropped moves, so an index would point at the wrong one
+  if(un){const g=plnGp(userTeam.gw),inId=+un.dataset.plnUndo;g.tr=(g.tr||[]).filter(x=>x.in!==inId);plnChanged();return}
+  const act=e.target.closest('[data-pln-act]');
+  if(act){
+    const id=+act.dataset.id,gw=userTeam.gw,R=plnResolve(),r=R[gw];
+    const a=act.dataset.plnAct;
+    if(a==='out'){plnReplace(id);return}
+    plnClose();
+    if(a==='sub'){PLN.ui={mode:'sub',src:id,targets:plnSubTargets(id,r)};renderUserTeam()}
+    else if(a==='cap'){const g=plnGp(gw);if(r.vc===id)g.vc=r.cap;g.cap=id;plnChanged()}
+    else if(a==='vc'){plnGp(gw).vc=id;plnChanged()}
+    else if(a==='hist'){const p=plnP(id);if(p)openHistory(String(id),p.name)}
+    return;
+  }
+  const row=e.target.closest('tr.pick[data-pln-in]');
+  if(row){
+    FPLPlanner.addTransfer(userTeam.planIntent=userTeam.planIntent||{},userTeam.gw,+row.dataset.out,+row.dataset.plnIn);
+    plnClose();plnChanged();
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='plnChip'&&plnReady()){
+    plnGp(userTeam.gw).chip=e.target.value||null;plnChanged();
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const v=$('plnVeil');if(v&&!v.hidden)plnClose()}
+});
+
 function renderUserTeam(){
   if(!userTeam.picks)return;
 
@@ -3733,6 +4244,18 @@ function renderUserTeam(){
     userTeam.autosubs=rolled.data.autosubs;
     userTeam.activeChip=null;                    // "no chip played" baseline
   }
+  // Planner: on a future week the squad and chip come from the resolved plan.
+  // Written onto userTeam so card(), the armband and the total all follow it.
+  // The live week also resolves, but only to draw the ledger.
+  let plnR=null;
+  if(plnReady()&&userTeam.gw>=(userTeam.currentEvent||0)){
+    try{plnR=plnResolve()}catch(e){console.warn('Planner resolve failed:',e);plnR=null}
+  }
+  const plnWeek=(plnR&&userTeam.isFuture)?plnR[userTeam.gw]:null;
+  if(plnWeek){
+    userTeam.picks=plnPicksFor(plnWeek);
+    userTeam.activeChip=plnWeek.chip;
+  }
   const picks=userTeam.picks;
 
   // short_name lookup, used for both the club label and the club colour
@@ -3744,7 +4267,8 @@ function renderUserTeam(){
   // gwStatus is reserved for transient loading/error messages; the gameweek
   // number is already in the selector beside it, so no counter is written here.
 
-  const totalPoints=calculateGWTotal();
+  // A planned week's projection is net of hits; the gross shows beside it.
+  const totalPoints=plnWeek?plnWeek.net.toFixed(1):calculateGWTotal();
 
   const xi=picks.filter(p=>p.position<12);
   const subs=picks.filter(p=>p.position>=12).sort((a,b)=>a.position-b.position);
@@ -3796,9 +4320,9 @@ function renderUserTeam(){
     });
     fixBoxes+='</div>';
 
-    return '<div class="pcard phist" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
+    return '<div class="pcard '+(plnWeek?'pplan'+plnCardClass(p.element):'phist')+'" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
       +'<div class="pdisc pkit '+player.pos+'">'
-        +clubShirt(short,64,player.pos)+capMark+injBadge+'</div>'
+        +clubShirt(short,64,player.pos)+capMark+injBadge+(plnWeek?plnInBadge(p.element):'')+'</div>'
       +'<div class="pcinfo">'
         +'<div class="pcname'+nameClass+'">'+player.name+'</div>'
         +'<div class="pcsub">'+(CARD_VAL==='price'
@@ -3817,7 +4341,8 @@ function renderUserTeam(){
 
   let html='';
   const fut=userTeam.isFuture;
-  const totalLabel=fut?t('mtProjected')(totalPoints):t('mtTotal')(totalPoints);
+  const totalLabel=(fut?t('mtProjected')(totalPoints):t('mtTotal')(totalPoints))
+    +(plnWeek&&plnWeek.hits?' <span class="pln-bad" style="font-size:12px">('+plnWeek.xp.toFixed(1)+' \u2212 '+plnWeek.hits+')</span>':'');
   html+='<div style="padding:14px 20px;border-bottom:1px solid var(--line);display:flex;'
     +'justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'
     +'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--dim);'
@@ -3843,11 +4368,13 @@ function renderUserTeam(){
     +metaRow('ID '+esc(String(userTeam.entryId)),
              shownRank?'Rank #'+Number(shownRank).toLocaleString():'')
     +'</div>';
+  if(plnR)html+=plnHTML(plnR);
+  else if(fut&&userTeam.plan&&!userTeam.plan.ok)html+='<div class="pln-note">'+esc(t('plnOff')(userTeam.plan.err||''))+'</div>';
   if(fut){
     const oneAhead=userTeam.gw<=(userTeam.currentEvent||0)+1;
     html+='<div class="xp-note">'
       +(oneAhead?t('mtXpNext'):t('mtXpLater')((userTeam.currentEvent||0)+1))
-      +t('mtSquadNote')
+      +(plnWeek?t('plnSquadNote'):t('mtSquadNote'))
       +'</div>';
   }
 
