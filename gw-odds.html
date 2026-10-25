@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-10-02b — companion to index.html, same token system */
+/* odds-page-2026-10-25a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -159,7 +159,7 @@ h1 em{font-style:italic;color:var(--accent)}
 }
 .derived{
   display:flex;gap:18px;justify-content:center;align-items:flex-start;
-  margin-top:auto;padding-top:11px;border-top:1px solid var(--line);
+  margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
 }
 .d-col{display:flex;flex-direction:column;gap:3px;text-align:right}
 .d-col.d-names{text-align:left}
@@ -181,6 +181,34 @@ h1 em{font-style:italic;color:var(--accent)}
   font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--paper);letter-spacing:.02em;
 }
 .problabels b{color:var(--paper);font-weight:600}
+
+/* Price timeline: 1X2 at each capture point, change vs the row above. */
+.sec-label{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:var(--dim);
+  text-transform:uppercase;margin:12px 0 6px;padding-top:11px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:10px;
+}
+.sec-label span:last-child{letter-spacing:.04em;text-transform:none}
+.tl{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper)}
+.tl th{font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;text-align:right;padding:0 0 4px;color:var(--dim)}
+.tl th:first-child,.tl td:first-child{text-align:left}
+.tl td{text-align:right;padding:3px 0;white-space:nowrap}
+.tl tr.now td{font-weight:600}
+.tl tr.pending td{font-style:italic}
+.delta{font-size:10.5px;margin-left:4px}
+.up{color:var(--good)} .down{color:var(--bad)}
+.card-pill{font-size:9.5px;padding:2px 7px;white-space:nowrap}
+/* Team news: worked out from the goalscorer market, deadline vs kickoff. */
+.news{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--paper)}
+.news-row{display:grid;grid-template-columns:16px 1fr auto;gap:8px;align-items:baseline}
+.news-row .ic{font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center}
+.news-row .who b{font-weight:500}
+.news-row .who span{font-size:11.5px;margin-left:6px}
+.news-row .px{font-family:'IBM Plex Mono',monospace;font-size:11.5px;white-space:nowrap}
+.news-row.out .ic,.news-row.out .px{color:var(--bad)}
+.news-row.bench .ic,.news-row.bench .px{color:var(--accent)}
+.news-row.start .ic,.news-row.start .px{color:var(--good)}
+.waitnote{font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center;padding:8px;border:1px dashed var(--line2);border-radius:4px;color:var(--paper)}
 
 footer{
   margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
@@ -220,13 +248,16 @@ footer a{color:var(--dim)}
     agrees with the bar above it. xG and clean-sheet figures are derived from the
     whole correct-score distribution and are the numbers worth acting on — a single
     scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
-    one book (Bet365, or Unibet as fallback) and captured pre-lineups. Not betting advice.
+    one book (Bet365, or Unibet as fallback). Each card uses its latest capture: 70
+    minutes before kickoff once lineups are out, otherwise the deadline price. Team news
+    is inferred from how goalscorer odds moved between those two captures, not from an
+    official lineup feed. Not betting advice.
   </footer>
 
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-10-02b';
+const ODDS_PAGE_BUILD = 'odds-page-2026-10-25a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
@@ -244,7 +275,26 @@ const I18N = {
     viewingGw: 'viewing GW',
     resultsUnavailable: 'results unavailable',
     gwOddsNotOutYet: (gw) => `GW ${gw} odds not out yet`,
-    pointLabel: { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture' },
+    pointLabel: { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture', deadline: 'deadline capture', kickoff: 'kickoff capture' },
+    pointShort: { early: 'early', late: 'late', adhoc: 'ad-hoc', preview: 'preview', deadline: 'deadline', kickoff: 'kickoff −70m' },
+    kickoffCount: (n, m) => `kickoff ${n} / ${m}`,
+    tlTitle: 'Price timeline',
+    tlCols: 'home · draw · away',
+    tlDraw: 'D',
+    dueAt: (time) => `due ${time}`,
+    notCaptured: 'not captured',
+    newsTitle: 'Team news',
+    newsSource: 'from scorer odds, deadline → kickoff',
+    thenWord: 'then',
+    newsOut: 'not in squad',
+    newsBench: 'likely benched',
+    newsStart: 'starting',
+    newsPulled: 'pulled',
+    newsNone: 'No big moves — lineups as expected',
+    newsNoMarket: 'Scorer market not available to compare',
+    newsMore: (n) => `+${n} more`,
+    newsWait: (lineups, by) => `Lineups out ${lineups} · captured by ${by}`,
+    movedTeamNews: (val, side) => `Moved ${val > 0 ? '+' : ''}${val}pt toward ${side} on team news`,
     capturedPrefix: 'captured',
     season: 'Season',
     drawWord: 'draw',
@@ -263,7 +313,10 @@ const I18N = {
     agrees with the bar above it. xG and clean-sheet figures are derived from the
     whole correct-score distribution and are the numbers worth acting on — a single
     scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
-    one book (Bet365, or Unibet as fallback) and captured pre-lineups. Not betting advice.`,
+    one book (Bet365, or Unibet as fallback). Each card uses its latest capture: 70
+    minutes before kickoff once lineups are out, otherwise the deadline price. Team news
+    is inferred from how goalscorer odds moved between those two captures, not from an
+    official lineup feed. Not betting advice.`,
   },
   es: {
     lightMode: 'Modo claro',
@@ -278,7 +331,26 @@ const I18N = {
     viewingGw: 'viendo J',
     resultsUnavailable: 'resultados no disponibles',
     gwOddsNotOutYet: (gw) => `Cuotas de la J${gw} aún no publicadas`,
-    pointLabel: { early: 'captura temprana', late: 'captura tardía', adhoc: 'captura puntual', preview: 'captura previa' },
+    pointLabel: { early: 'captura temprana', late: 'captura tardía', adhoc: 'captura puntual', preview: 'captura previa', deadline: 'captura al cierre', kickoff: 'captura pre-partido' },
+    pointShort: { early: 'temprana', late: 'tardía', adhoc: 'puntual', preview: 'previa', deadline: 'cierre', kickoff: 'inicio −70m' },
+    kickoffCount: (n, m) => `pre-partido ${n} / ${m}`,
+    tlTitle: 'Evolución de cuotas',
+    tlCols: 'local · empate · visitante',
+    tlDraw: 'X',
+    dueAt: (time) => `prevista ${time}`,
+    notCaptured: 'no capturada',
+    newsTitle: 'Noticias de equipo',
+    newsSource: 'cuotas de goleador, cierre → inicio',
+    thenWord: 'luego',
+    newsOut: 'fuera de la convocatoria',
+    newsBench: 'probable suplente',
+    newsStart: 'titular',
+    newsPulled: 'retirado',
+    newsNone: 'Sin cambios relevantes — alineaciones esperadas',
+    newsNoMarket: 'No hay mercado de goleador para comparar',
+    newsMore: (n) => `+${n} más`,
+    newsWait: (lineups, by) => `Alineaciones ${lineups} · captura antes de ${by}`,
+    movedTeamNews: (val, side) => `Se movió ${val > 0 ? '+' : ''}${val}pt hacia ${side} con las alineaciones`,
     capturedPrefix: 'capturado',
     season: 'Temporada',
     drawWord: 'empate',
@@ -297,8 +369,10 @@ const I18N = {
     que siempre coincide con la barra de arriba. Las cifras de xG y portería a cero se derivan de
     toda la distribución de resultados exactos y son las cifras que realmente importan — un
     marcador exacto rara vez supera el 11%, así que trátalo como una pista, no como una predicción.
-    Todo proviene de una casa de apuestas (Bet365, o Unibet como respaldo) y se captura antes de
-    las alineaciones. No es un consejo de apuestas.`,
+    Todo proviene de una casa de apuestas (Bet365, o Unibet como respaldo). Cada tarjeta usa su
+    captura más reciente: 70 minutos antes del inicio cuando ya hay alineaciones, si no la del
+    cierre. Las noticias de equipo se deducen de cómo cambiaron las cuotas de goleador entre esas
+    dos capturas, no de un feed oficial de alineaciones. No es un consejo de apuestas.`,
   },
 };
 let LANG = (function(){ try{ return localStorage.getItem('fplLang') || 'en'; }catch(e){ return 'en'; } })();
@@ -433,24 +507,43 @@ function scoresById(bundle){
   return map;
 }
 
-// Odds captures land as gw-N-early / gw-N-late / gw-N-adhoc. Prefer the most
-// recent point on the clock; fall back down the list if a file is missing.
+// Odds captures, one file per point:
+//   gw-N-preview / early / late / adhoc / deadline   whole gameweek
+//   gw-N-ko-YYYYMMDDTHHMMZ                           one kickoff slot, ~70m before
+// Every point is fetched (in parallel) because the cards now show a timeline,
+// not just the latest file. Missing files are normal and come back null.
+const PRE_POINTS = ['preview', 'early', 'late', 'adhoc', 'deadline'];
+// Latest first: the card headline uses the first of these that has the fixture.
+const PRIMARY_ORDER = ['kickoff', 'deadline', 'late', 'adhoc', 'early', 'preview'];
+
 async function fetchOddsFile(season, gw, point){
   const url = `${REPO_RAW}/${season}/pre/gw-${gw}-${point}.json`;
   try { return await getJSON(url); } catch(e){ return null; }
 }
-async function fetchOdds(season, gw){
-  const order = ['late', 'adhoc', 'early', 'preview'];
-  let primary = null, primaryPoint = null;
-  for (const p of order){
-    primary = await fetchOddsFile(season, gw, p);
-    if (primary){ primaryPoint = p; break; }
-  }
-  if (!primary) return null;
-  // For the movement note, always compare against 'early' if it exists and
-  // isn't the file we already picked.
-  let early = primaryPoint === 'early' ? primary : await fetchOddsFile(season, gw, 'early');
-  return { primary, primaryPoint, early };
+// Same naming as odds-snapshot.mjs koTag(): kickoff in UTC, minute precision.
+function koTag(iso){
+  return new Date(iso).toISOString().replace(/[-:]/g, '').slice(0, 13) + 'Z';
+}
+async function fetchOdds(season, gw, kickoffHints){
+  const files = {};
+  await Promise.all(PRE_POINTS.map(async p => { files[p] = await fetchOddsFile(season, gw, p); }));
+  if (!PRE_POINTS.some(p => files[p])) return null;
+
+  // Kickoff slots come from FPL's own fixture list when we have it, plus every
+  // kickoff any capture has seen, so a missing bundle still finds the files.
+  const kos = new Set(kickoffHints || []);
+  PRE_POINTS.forEach(p => ((files[p] && files[p].mapping) || []).forEach(m => { if (m.kickoff) kos.add(m.kickoff); }));
+  const koByFixture = {};
+  let koFiles = 0;
+  await Promise.all([...kos].map(async iso => {
+    const f = await fetchOddsFile(season, gw, 'ko-' + koTag(iso));
+    if (!f) return;
+    koFiles++;
+    (f.mapping || []).forEach(m => { koByFixture[m.fplFixture] = f; });
+  }));
+  const slots = new Set(kickoffHints && kickoffHints.length ? kickoffHints
+    : [...kos]).size;
+  return { files, koByFixture, koFiles, koSlots: slots };
 }
 
 function bestBook(ev){
@@ -552,7 +645,8 @@ function rowFor(mapping, oddsFile, scoreMap){
   const cs = marketByName(book, 'Correct Score');
   const row = {
     home: mapping.oddsHome, away: mapping.oddsAway, kickoff: mapping.kickoff,
-    fixtureId: mapping.fplFixture,
+    fixtureId: mapping.fplFixture, fplHome: mapping.fplHome, fplAway: mapping.fplAway,
+    ev,
   };
   if (ml) row.probs = implied(ml.odds[0]);
 
@@ -606,17 +700,230 @@ function moveNote(nowRow, earlyRow){
     ? (dh > 0 ? nowRow.home : nowRow.away)
     : (da > 0 ? nowRow.away : nowRow.home);
   const val = Math.abs(dh) >= Math.abs(da) ? dh : da;
-  return t('movedToward')(Number(val.toFixed(0)), side);
+  return Number(val.toFixed(0));
+}
+function moveSide(nowRow, thenRow){
+  const dh = nowRow.probs.h - thenRow.probs.h, da = nowRow.probs.a - thenRow.probs.a;
+  return Math.abs(dh) >= Math.abs(da) ? (dh > 0 ? nowRow.home : nowRow.away) : (da > 0 ? nowRow.away : nowRow.home);
 }
 
-function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
+function fmtTime(iso){
+  const locale = LANG === 'es' ? 'es-ES' : 'en-GB';
+  return new Date(iso).toLocaleString(locale, { weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+const minsFromNow = iso => (new Date(iso).getTime() - Date.now()) / 60000;
+
+/* ── PLAYERS (for team news labels) ───────────────────── */
+// Bookmakers list scorers by full name only. FPL's player list gives each one
+// a club and a short web_name. Matching is best-effort: full name first, then
+// surname within the two clubs in the fixture. A miss just shows the
+// bookmaker's name with no club tag.
+let PLAYERS = null;   // { byFull: Map, list: [], teamShort: {id: 'ARS'} }
+function nameKey(s){
+  return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function indexPlayers(bootstrap){
+  if (!bootstrap || !bootstrap.elements) return null;
+  const teamShort = {};
+  (bootstrap.teams || []).forEach(tm => { teamShort[tm.id] = tm.short_name; });
+  const list = bootstrap.elements.map(e => ({
+    web: e.web_name, team: e.team,
+    full: nameKey(`${e.first_name} ${e.second_name}`),
+    last: nameKey(e.second_name).split(' ').pop(),
+    webKey: nameKey(e.web_name),
+  }));
+  const byFull = new Map();
+  list.forEach(p => { if (!byFull.has(p.full)) byFull.set(p.full, p); });
+  return { byFull, list, teamShort };
+}
+function findPlayer(label, teamIds){
+  if (!PLAYERS) return null;
+  const k = nameKey(label);
+  const hit = PLAYERS.byFull.get(k);
+  if (hit && (!teamIds.length || teamIds.includes(hit.team))) return hit;
+  const pool = PLAYERS.list.filter(p => teamIds.includes(p.team));
+  const parts = k.split(' ');
+  const last = parts[parts.length - 1];
+  const byWeb = pool.filter(p => p.webKey === k || p.webKey === last);
+  if (byWeb.length === 1) return byWeb[0];
+  const byLast = pool.filter(p => p.last === last);
+  return byLast.length === 1 ? byLast[0] : null;
+}
+
+/* ── TEAM NEWS ────────────────────────────────────────── */
+// Compares the Anytime Goalscorer market at the deadline with ~70m before
+// kickoff, same bookmaker on both sides. Lineups are public at 75m, so:
+//   pulled from the market   -> not in the matchday squad
+//   price x1.8 or more       -> likely benched
+//   price x0.85 or less      -> confirmed starter
+// Only players priced 10.0 or shorter at the deadline count — that is where
+// FPL-relevant attackers live, and it keeps long-shot defenders' noise out.
+// If a big share of those players vanish at once the market is incomplete
+// rather than half the squad dropped, so nothing is shown.
+const NEWS_KEY_MAX = 10, NEWS_BENCH = 1.8, NEWS_START = 0.85, NEWS_MAX_ROWS = 5;
+function scorerPrices(ev, book){
+  const mk = ((ev && ev.bookmakers && ev.bookmakers[book]) || []).find(m => m.name === 'Anytime Goalscorer');
+  if (!mk || !mk.odds) return null;
+  const out = new Map();
+  mk.odds.forEach(o => { const v = parseFloat(o.over); if (Number.isFinite(v)) out.set(o.label, v); });
+  return out.size ? out : null;
+}
+function teamNews(evBefore, evAfter, teamIds){
+  let a = null, b = null;
+  for (const book of ['Bet365', 'Unibet']){
+    a = scorerPrices(evBefore, book); b = scorerPrices(evAfter, book);
+    if (a && b) break;
+  }
+  if (!a || !b) return null;
+  const items = [];
+  let key = 0, gone = 0;
+  for (const [name, pa] of a){
+    if (pa > NEWS_KEY_MAX) continue;
+    key++;
+    const pb = b.get(name);
+    if (pb == null){ gone++; items.push({ kind: 'out', name, pa, pb: null, w: 0 }); continue; }
+    const r = pb / pa;
+    if (r >= NEWS_BENCH) items.push({ kind: 'bench', name, pa, pb, w: 1 + (1 / r) });
+    else if (r <= NEWS_START) items.push({ kind: 'start', name, pa, pb, w: 3 + r });
+  }
+  if (key && gone / key > 0.4) return null;
+  items.sort((x, y) => x.w - y.w || x.pa - y.pa);
+  return items.map(it => {
+    const pl = findPlayer(it.name, teamIds);
+    return Object.assign(it, {
+      label: pl ? pl.web : it.name,
+      club: pl && PLAYERS.teamShort[pl.team] ? PLAYERS.teamShort[pl.team] : '',
+    });
+  });
+}
+function fmtPrice(v){ return v.toFixed(2); }
+
+/* ── CARD PIECES ──────────────────────────────────────── */
+function timelineHtml(rows, hShort, aShort){
+  // rows: [{label, row?, pending?}] in time order
+  const real = rows.filter(r => r.row && r.row.probs);
+  if (rows.length < 2 || !real.length) return '';
+  const lastReal = real[real.length - 1];
+  let prev = null;
+  const body = rows.map(r => {
+    if (!r.row){
+      return `<tr class="pending"><td>${r.label}</td><td colspan="3">${r.pending}</td></tr>`;
+    }
+    if (!r.row.probs) return '';
+    const p = r.row.probs;
+    const cell = (k) => {
+      let d = '';
+      if (prev){
+        const v = Math.round(p[k] - prev[k]);
+        if (Math.abs(v) >= 1) d = `<span class="delta ${v > 0 ? 'up' : 'down'}">${v > 0 ? '+' : '−'}${Math.abs(v)}</span>`;
+      }
+      return `<td>${p[k].toFixed(0)}%${d}</td>`;
+    };
+    const html = `<tr class="${r === lastReal ? 'now' : ''}"><td>${r.label}</td>${cell('h')}${cell('d')}${cell('a')}</tr>`;
+    prev = p;
+    return html;
+  }).join('');
+  return `
+    <div class="sec-label"><span>${t('tlTitle')}</span><span>${t('tlCols')}</span></div>
+    <table class="tl">
+      <tr><th></th><th>${hShort || 'H'}</th><th>${t('tlDraw')}</th><th>${aShort || 'A'}</th></tr>
+      ${body}
+    </table>`;
+}
+
+function newsHtml(news){
+  if (!news) return '';
+  const head = `<div class="sec-label"><span>${t('newsTitle')}</span><span>${news.wait ? '' : t('newsSource')}</span></div>`;
+  if (news.wait) return head + `<div class="waitnote">${news.wait}</div>`;
+  if (news.noMarket) return head + `<div class="news"><div class="news-row"><span class="ic">·</span><span class="who">${t('newsNoMarket')}</span><span class="px"></span></div></div>`;
+  if (!news.items.length) return head + `<div class="news"><div class="news-row"><span class="ic">·</span><span class="who">${t('newsNone')}</span><span class="px"></span></div></div>`;
+  const shown = news.items.slice(0, NEWS_MAX_ROWS);
+  const more = news.items.length - shown.length;
+  const rows = shown.map(it => {
+    const ic = it.kind === 'out' ? '✕' : (it.kind === 'bench' ? '▼' : '▲');
+    const what = it.kind === 'out' ? t('newsOut') : (it.kind === 'bench' ? t('newsBench') : t('newsStart'));
+    const px = it.pb == null ? `${fmtPrice(it.pa)} → ${t('newsPulled')}` : `${fmtPrice(it.pa)} → ${fmtPrice(it.pb)}`;
+    return `<div class="news-row ${it.kind}"><span class="ic">${ic}</span><span class="who"><b>${it.label}</b><span>${it.club ? it.club + ' · ' : ''}${what}</span></span><span class="px">${px}</span></div>`;
+  }).join('');
+  return head + `<div class="news">${rows}${more > 0 ? `<div class="news-row"><span class="ic"></span><span class="who">${t('newsMore')(more)}</span><span class="px"></span></div>` : ''}</div>`;
+}
+
+/* Everything one card needs, from whichever captures hold this fixture. */
+function buildCard(fixtureId, data, scoreMap, deadlineIso){
+  const rows = {};
+  PRE_POINTS.forEach(p => {
+    const f = data.files[p];
+    const m = f && (f.mapping || []).find(x => x.fplFixture === fixtureId);
+    if (m) rows[p] = rowFor(m, f, scoreMap);
+  });
+  const kf = data.koByFixture[fixtureId];
+  const km = kf && (kf.mapping || []).find(x => x.fplFixture === fixtureId);
+  if (km) rows.kickoff = rowFor(km, kf, scoreMap);
+
+  const point = PRIMARY_ORDER.find(p => rows[p]);
+  if (!point) return null;
+  const row = rows[point];
+  const kickoffIso = row.kickoff;
+
+  // Timeline: first look, then the deadline price (late stands in when there
+  // is no deadline capture yet), then the kickoff price.
+  const tl = [];
+  const first = rows.early ? ['early', rows.early] : (rows.preview ? ['preview', rows.preview] : null);
+  if (first) tl.push({ label: t('pointShort')[first[0]].replace(/^./, c => c.toUpperCase()), row: first[1] });
+  const lbl = p => { const s = t('pointShort')[p]; return s.charAt(0).toUpperCase() + s.slice(1); };
+  let mid = null;
+  if (rows.deadline) mid = rows.deadline;
+  if (rows.deadline) tl.push({ label: lbl('deadline'), row: rows.deadline });
+  else {
+    const fallback = rows.late ? 'late' : (rows.adhoc ? 'adhoc' : null);
+    if (fallback){ mid = rows[fallback]; tl.push({ label: lbl(fallback), row: rows[fallback] }); }
+    if (deadlineIso && minsFromNow(deadlineIso) > 0) tl.push({ label: lbl('deadline'), pending: t('dueAt')(fmtTime(new Date(new Date(deadlineIso).getTime() - 15 * 60000).toISOString())) });
+  }
+  const koDue = kickoffIso ? new Date(new Date(kickoffIso).getTime() - 70 * 60000).toISOString() : null;
+  if (rows.kickoff) tl.push({ label: lbl('kickoff'), row: rows.kickoff });
+  else if (kickoffIso && minsFromNow(kickoffIso) > 45) tl.push({ label: lbl('kickoff'), pending: t('dueAt')(fmtTime(koDue)) });
+  else if (data.koFiles > 0) tl.push({ label: lbl('kickoff'), pending: t('notCaptured') });
+
+  // Move cue: team-news move if we have it, otherwise the early-line move.
+  let note = null;
+  if (!row.actual){
+    if (rows.kickoff && mid && mid.probs && rows.kickoff.probs){
+      const v = moveNote(rows.kickoff, mid);
+      if (v != null) note = t('movedTeamNews')(v, moveSide(rows.kickoff, mid));
+    } else if (point !== 'early' && rows.early){
+      const v = moveNote(row, rows.early);
+      if (v != null) note = t('movedToward')(v, moveSide(row, rows.early));
+    }
+  }
+
+  // Team news
+  let news = null;
+  const teamIds = [row.fplHome, row.fplAway].filter(x => x != null);
+  if (rows.kickoff && mid){
+    const items = teamNews(mid.ev, rows.kickoff.ev, teamIds);
+    news = items ? { items } : { noMarket: true };
+  } else if (kickoffIso && minsFromNow(kickoffIso) > 45){
+    const lineups = new Date(new Date(kickoffIso).getTime() - 75 * 60000).toISOString();
+    const by = new Date(new Date(kickoffIso).getTime() - 45 * 60000).toISOString();
+    const hm = iso => new Date(iso).toLocaleTimeString(LANG === 'es' ? 'es-ES' : 'en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    news = { wait: t('newsWait')(hm(lineups), hm(by)) };
+  }
+
+  return { row, point, note, tl, news };
+}
+
+function render(gw, season, header, rowsByDay, resultsError, fellBackFrom){
   document.getElementById('gwNum').textContent = gw;
 
   const sub = document.getElementById('subline');
-  const pointLabel = t('pointLabel')[capture.point] || capture.point;
-  const age = capture.capturedAt ? timeAgo(capture.capturedAt) : null;
-  sub.innerHTML =
-    `<span class="pill ${capture.point === 'late' ? 'live' : ''}">${pointLabel}</span>` +
+  const pills = [];
+  ['preview', 'early', 'late', 'deadline'].forEach(p => {
+    if (header.have[p]) pills.push(`<span class="pill ${p === 'deadline' ? 'live' : ''}">${t('pointShort')[p]} ✓</span>`);
+  });
+  if (header.koFiles) pills.push(`<span class="pill live">${t('kickoffCount')(header.koFiles, header.koSlots)}</span>`);
+  const age = header.capturedAt ? timeAgo(header.capturedAt) : null;
+  sub.innerHTML = pills.join('') +
     (age ? `<span>${t('capturedPrefix')} <b>${age}</b></span>` : '') +
     `<span>${t('season')} ${season}</span>` +
     (resultsError ? `<span class="pill stale" title="${resultsError}">${t('resultsUnavailable')}</span>` : '') +
@@ -633,7 +940,7 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
     dayEl.textContent = day;
     content.appendChild(dayEl);
 
-    rowsByDay[day].forEach(({row, note}) => {
+    rowsByDay[day].forEach(({row, note, point, tl, news}) => {
       const hShort = shortOf(row.home), aShort = shortOf(row.away);
       const card = document.createElement('div');
       card.className = 'card';
@@ -654,6 +961,7 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
       card.innerHTML = `
         <div class="card-top">
           <span class="kickoff">${fmtKickoff(row.kickoff)}</span>
+          <span class="pill card-pill ${point === 'kickoff' || point === 'deadline' ? 'live' : ''}">${t('pointShort')[point] || point}</span>
         </div>
         <div class="teams">
           <div class="team"><span class="dot" style="background:${clubColor(hShort)}"></span><span class="team-name">${row.home}</span></div>
@@ -667,7 +975,7 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
           ${row.actual ? `
             <span class="actual-score ${row.exact ? 'hit' : 'miss'}">${row.actual}</span>
             <span class="result-tag ${row.exact ? 'exact' : (row.outcomeHit ? 'outcome' : 'wrong')}">${row.exact ? t('resultExact') : (row.outcomeHit ? t('resultRight') : t('resultWrong'))}</span>
-          ` : `<span class="score-alt">${row.scoreP != null ? row.scoreP.toFixed(0) + '%' : ''}${row.alts && row.alts.length ? ` · then ${row.alts.join(', ')}` : ''}</span>`}
+          ` : `<span class="score-alt">${row.scoreP != null ? row.scoreP.toFixed(0) + '%' : ''}${row.alts && row.alts.length ? ` · ${t('thenWord')} ${row.alts.join(', ')}` : ''}</span>`}
         </div>
         ${!row.actual && row.conditioned ? `<div class="modal-note">${t('modalNote')(row.modal, row.modalP != null ? row.modalP.toFixed(0) : null)}</div>` : ''}` : ''}
         ${probHtml}
@@ -689,6 +997,8 @@ function render(gw, season, capture, rowsByDay, resultsError, fellBackFrom){
             <div class="d-val d-name">${aShort || row.away}</div>
           </div>
         </div>` : ''}
+        ${timelineHtml(tl, hShort, aShort)}
+        ${newsHtml(news)}
       `;
       content.appendChild(card);
     });
@@ -732,12 +1042,13 @@ function showState(msg, mono){
 }
 
 async function load(){
-  let gw, season, scoreMap = {}, resultsError = null;
+  let gw, season, scoreMap = {}, resultsError = null, bundle = null;
   try{
-    const bundle = await loadBundle();
+    bundle = await loadBundle();
     gw = resolveGw(bundle);
     season = qs.get('season') || currentSeason();
     scoreMap = scoresById(bundle);
+    PLAYERS = indexPlayers(bundle.bootstrap);
   } catch(e){
     // The site's own proxy is down or unreachable. Without ?gw= there is
     // nothing to render at all, so that is a hard stop. With ?gw= the odds
@@ -753,7 +1064,12 @@ async function load(){
 
   try{
     const explicit = qs.get('gw') != null;
-    let oddsData = await fetchOdds(season, gw);
+    const hints = g => ((bundle && bundle.fixtures) || []).filter(f => f.event === g && f.kickoff_time).map(f => f.kickoff_time);
+    const deadlineOf = g => {
+      const ev = ((bundle && bundle.bootstrap && bundle.bootstrap.events) || []).find(e => e.id === g);
+      return ev ? ev.deadline_time : null;
+    };
+    let oddsData = await fetchOdds(season, gw, hints(gw));
     let fellBackFrom = null;
 
     /* Default view: if the upcoming gameweek has no capture yet, show the most
@@ -767,7 +1083,7 @@ async function load(){
      * keeps the nav arrows able to reach a not-yet-captured gameweek. */
     if (!oddsData && !explicit){
       for (let back = gw - 1; back >= Math.max(1, gw - 6); back--){
-        const prev = await fetchOdds(season, back);
+        const prev = await fetchOdds(season, back, hints(back));
         if (prev){ oddsData = prev; fellBackFrom = gw; gw = back; break; }
       }
     }
@@ -775,23 +1091,39 @@ async function load(){
     if (!oddsData){
       document.getElementById('gwNum').textContent = gw;
       renderNav(gw, season);
-      showState(t('noOddsCaptured')(gw), `Checked: gw-${gw}-late.json, gw-${gw}-adhoc.json, gw-${gw}-early.json, gw-${gw}-preview.json`);
+      showState(t('noOddsCaptured')(gw), `Checked: ${PRE_POINTS.map(p => `gw-${gw}-${p}.json`).join(', ')}`);
       return;
     }
-    const { primary, primaryPoint, early } = oddsData;
+    const { files } = oddsData;
+    // Union of fixtures across every capture, so a fixture only some files
+    // carry (a late addition, a rescheduled match) still gets a card.
+    const fixtureIds = [];
+    const seen = new Set();
+    [...Object.values(oddsData.koByFixture), ...PRE_POINTS.slice().reverse().map(p => files[p])].forEach(f => {
+      ((f && f.mapping) || []).forEach(m => { if (!seen.has(m.fplFixture)){ seen.add(m.fplFixture); fixtureIds.push(m.fplFixture); } });
+    });
+    const deadlineIso = deadlineOf(gw) || (PRE_POINTS.map(p => files[p]).find(f => f && f.deadline) || {}).deadline || null;
 
     const rowsByDay = {};
     let played = 0;
-    (primary.mapping || []).forEach(m => {
-      const row = rowFor(m, primary, scoreMap);
-      if (!row) return;
-      if (row.actual) played++;
-      const earlyRow = early ? rowFor(m, early, scoreMap) : null;
-      const note = (primaryPoint !== 'early' && !row.actual) ? moveNote(row, earlyRow) : null;
-      const day = dayKey(row.kickoff);
-      (rowsByDay[day] = rowsByDay[day] || []).push({ row, note });
-    });
-    Object.values(rowsByDay).forEach(list => list.sort((a,b) => new Date(a.row.kickoff) - new Date(b.row.kickoff)));
+    // Sort before grouping so the day headings come out in calendar order.
+    fixtureIds.map(id => buildCard(id, oddsData, scoreMap, deadlineIso))
+      .filter(Boolean)
+      .sort((a, b) => new Date(a.row.kickoff) - new Date(b.row.kickoff))
+      .forEach(c => {
+        if (c.row.actual) played++;
+        const day = dayKey(c.row.kickoff);
+        (rowsByDay[day] = rowsByDay[day] || []).push(c);
+      });
+    const primary = { mapping: fixtureIds.map(id => ({ fplFixture: id })) };
+
+    const allFiles = [...PRE_POINTS.map(p => files[p]), ...Object.values(oddsData.koByFixture)].filter(Boolean);
+    const newest = allFiles.map(f => f.capturedAt).filter(Boolean).sort().pop() || null;
+    const header = {
+      have: Object.fromEntries(PRE_POINTS.map(p => [p, !!files[p]])),
+      koFiles: oddsData.koFiles, koSlots: oddsData.koSlots,
+      capturedAt: newest,
+    };
 
     // Diagnostic for the "played gameweek shows no results" case: says whether
     // the results feed was empty (proxy failed / gameweek genuinely unplayed)
@@ -809,7 +1141,7 @@ async function load(){
       }
     } catch(e){}
 
-    render(gw, season, { point: primaryPoint, capturedAt: primary.capturedAt }, rowsByDay, resultsError, fellBackFrom);
+    render(gw, season, header, rowsByDay, resultsError, fellBackFrom);
   } catch(e){
     document.getElementById('gwNum').textContent = gw;
     renderNav(gw, season);
