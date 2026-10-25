@@ -1,4 +1,4 @@
-/* shirts.js · shirts-2026-10-25b
+/* shirts.js · shirts-2026-10-25c
    Club shirt icons for FPL Rock, 2026-27 Premier League.
    Generic shirts in club colours: no crests, sponsors, maker marks or kit graphics.
    Keyed by FPL team short_name (bootstrap-static teams[].short_name).
@@ -12,7 +12,7 @@
    summer when new kits launch. Update AWAY_SEASON when you do. */
 (function (g) {
   'use strict';
-  const SHIRTS_BUILD = 'shirts-2026-10-25b';
+  const SHIRTS_BUILD = 'shirts-2026-10-25c';
   const AWAY_SEASON = '2026-27';
 
   // kit: { body, pattern?, sleeve, collar, cuff }
@@ -138,9 +138,63 @@
     return shirtSVG(code, Object.assign({}, opts, { kit: isHomeSide ? 'home' : 'away' }));
   }
 
+  /* ── Colour clash ────────────────────────────────────────
+     Real football: the home side always wears home; the away side changes
+     only when its home shirt would be confused with the home side's. So the
+     question is whether two shirts read as the same colour on a pitch.
+
+     A shirt's identity is its body colour(s): the plain body, or both colours
+     of a pattern (Newcastle's stripes are black AND white). Sleeves are left
+     out on purpose: Arsenal's white sleeves do not stop red-on-red clashing.
+     Two shirts clash when any body colour of one sits close to any body
+     colour of the other, measured as CIE76 distance in Lab, which tracks how
+     different colours look rather than how different their hex codes are. */
+  function hexLab(h) {
+    const n = parseInt(String(h).replace('#', ''), 16);
+    const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    const r = lin((n >> 16) & 255), gr = lin((n >> 8) & 255), b = lin(n & 255);
+    const x = (r * 0.4124 + gr * 0.3576 + b * 0.1805) / 0.95047;
+    const y = (r * 0.2126 + gr * 0.7152 + b * 0.0722);
+    const z = (r * 0.0193 + gr * 0.1192 + b * 0.9505) / 1.08883;
+    const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+    return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+  }
+  // Bold stripes and chequers are two colours in equal measure; pinstripes are
+  // a base colour with a thin line, and read as the base from the stands.
+  function bodyColours(k) {
+    const p = k.pattern;
+    if (!p) return [k.body];
+    return p.type === 'stripes' || p.type === 'check' ? [p.a, p.b] : [p.a];
+  }
+  // Smallest visual distance between two shirts' body colours.
+  function kitGap(a, b) {
+    let best = Infinity;
+    bodyColours(a).forEach(x => bodyColours(b).forEach(y => {
+      const p = hexLab(x), q = hexLab(y);
+      best = Math.min(best, Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]));
+    }));
+    return best;
+  }
+  const CLASH_GAP = 35;   // below this two body colours read as the same on a pitch
+
+  /* Which kit a club wears for one fixture: 'home' or 'away'.
+     Home side: always home. Away side: home unless it clashes with the home
+     side's home shirt; then away — unless the away shirt clashes worse, in
+     which case the less-bad of the two (there is no third kit on file). */
+  function matchKit(code, oppCode, isHomeSide) {
+    if (isHomeSide) return 'home';
+    const me = SHIRTS[String(code || '').toUpperCase()], opp = SHIRTS[String(oppCode || '').toUpperCase()];
+    if (!me || !opp) return 'home';
+    const gHome = kitGap(me.home, opp.home);
+    if (gHome >= CLASH_GAP) return 'home';
+    return kitGap(me.away, opp.home) > gHome ? 'away' : 'home';
+  }
+
   g.SHIRTS = SHIRTS;
   g.SHIRTS_BUILD = SHIRTS_BUILD;
   g.SHIRTS_AWAY_SEASON = AWAY_SEASON;
   g.shirtSVG = shirtSVG;
   g.fixtureShirt = fixtureShirt;
+  g.matchKit = matchKit;
+  g.kitGap = kitGap;
 })(typeof window !== 'undefined' ? window : globalThis);

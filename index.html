@@ -1623,7 +1623,7 @@ tbody tr.dead td:first-child{padding-left:26px}
   <nav class="tabs" role="tablist" id="tabs" data-page="index" hidden></nav>
   <script src="nav.js"></script>
   <!-- Club shirt icons (shirtSVG). Optional: if it fails to load, shirts are simply left out. -->
-  <script src="shirts.js"></script>
+  <script src="shirts.js?b=shirts-2026-10-25c"></script>
   <!-- Transfer planner rules (FPLPlanner). Optional: if it fails to load, future gameweeks fall back to the current squad. -->
   <script src="model/planner.js?b=planner-2026-10-25a"></script>
 
@@ -1799,7 +1799,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25d';
+const APP_BUILD = 'app-2026-10-25e';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2464,6 +2464,18 @@ document.addEventListener('click',e=>{
 function clubShirt(short,size,pos,kit){
   if(typeof window.shirtSVG!=='function'||!short)return '';
   return window.shirtSVG(short,{size:size||20,kit:pos==='GKP'?'gk':(kit||'home')});
+}
+/* The kit a club wears in a given gameweek: home unless it is the away side
+   and its home shirt clashes with the hosts' (matchKit in shirts.js). A
+   double uses the first match by kickoff; a blank, or an older shirts.js
+   without matchKit, stays on home. Pitch cards only; lists keep home. */
+function kitForGw(teamId,gw){
+  if(typeof window.matchKit!=='function'||!fixtures||!fixtures.length||!bootstrap||!bootstrap.teams)return 'home';
+  const f=fixtures.filter(x=>x.event===gw&&(x.team_h===teamId||x.team_a===teamId))
+    .sort((a,b)=>String(a.kickoff_time||'').localeCompare(String(b.kickoff_time||'')))[0];
+  if(!f||f.team_h===teamId)return 'home';
+  const sh=id=>{const tm=bootstrap.teams.find(x=>x.id===id);return tm?tm.short_name:''};
+  return window.matchKit(sh(teamId),sh(f.team_h),false);
 }
 const RAMP_GWS=8;          // gameweeks until live data carries full weight
 const PAGE=30;
@@ -4408,7 +4420,7 @@ function renderUserTeam(){
 
     return '<div class="pcard '+(plnWeek?'pplan'+plnCardClass(p.element):'phist')+'" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(player.name)+'">'
       +'<div class="pdisc pkit '+player.pos+'">'
-        +clubShirt(short,64,player.pos)+capMark+injBadge+(plnWeek?plnInBadge(p.element):'')+'</div>'
+        +clubShirt(short,64,player.pos,kitForGw(player.teamId,userTeam.gw))+capMark+injBadge+(plnWeek?plnInBadge(p.element):'')+'</div>'
       +'<div class="pcinfo">'
         +'<div class="pcname'+nameClass+'">'+player.name+'</div>'
         +'<div class="pcsub">'+(CARD_VAL==='price'
@@ -5556,7 +5568,7 @@ function renderXI(){
     fixBoxes+='</div>';
 
     return '<div class="pcard phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'">'
-      +'<div class="pdisc pkit '+p.pos+'">'+clubShirt(short,64,p.pos)
+      +'<div class="pdisc pkit '+p.pos+'">'+clubShirt(short,64,p.pos,kitForGw(p.teamId,xpNextGW()))
       +(p.id===cap.id?'<span class="capmark">'+t('sqCap')+'</span>':'')
       +(p.status!=='a'?'<span class="pbadge '+badgeClass+'">!</span>':'')+'</div>'
       +'<div class="pcinfo">'
