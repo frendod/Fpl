@@ -1198,9 +1198,22 @@ select.pln-btn{padding:5px 8px}
 .bd-row2{grid-template-columns:1fr 56px}
 
 /* ─── SEASON PLAN ──────────────────────────────────────── */
-.fxgrid{border-collapse:separate;border-spacing:2px;padding:4px}
+/* Gaps are shared 2px borders in the panel colour, not border-spacing.
+   Spacing is laid out in fractional pixels and rounds differently row to
+   row, which is what made some gaps look thicker than others; collapsed
+   borders snap to whole device pixels, so every gap comes out the same. */
+.fxgrid{border-collapse:collapse;margin:4px;width:auto;table-layout:fixed}
+/* Whole-pixel columns and rows. Stretched to the panel width the cells came
+   out at 66.28 / 66.42px and rows at 38.5 / 39px, which reads as uneven. */
+.fxgrid th:not(.club),.fxgrid td.cell{width:64px;min-width:64px;max-width:64px}
+.fxgrid th.club,.fxgrid td.club{width:72px;min-width:72px}
+.fxgrid td.cell{border:2px solid var(--panel);height:38px;box-sizing:border-box;vertical-align:middle;
+  padding:0 3px;line-height:1.25}
+/* Header cells carry the same 2px border as the body, so column edges line
+   up exactly from the header down. */
+.fxgrid th{border:2px solid var(--panel)}
 .fxgrid th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
-  color:var(--dim);padding:5px 4px;text-align:center;border:none;white-space:nowrap}
+  color:var(--dim);padding:5px 4px;text-align:center;white-space:nowrap}
 .fxgrid th.club{text-align:left;padding-left:14px;position:sticky;left:0;background:var(--panel);z-index:2}
 .fxgrid td.club{font-family:'IBM Plex Mono',monospace;font-size:12px;padding-left:14px;
   position:sticky;left:0;background:var(--panel);z-index:2;white-space:nowrap}
@@ -1220,16 +1233,18 @@ select.pln-btn{padding:5px 8px}
 .d4.light-theme{background:rgba(229,101,122,.19);color:#f2b5c0}
 .d5.light-theme{background:#f87171;color:#ffc9d2}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
-  color:var(--bad);border:1px dashed rgba(229,101,122,.4)}
+  color:var(--bad);box-shadow:inset 0 0 0 1px rgba(229,101,122,.4)}
 .cell .dbl{display:block;font-size:9px;letter-spacing:.08em;color:var(--live);margin-top:1px}
-.cell.good5run{border-top:3px solid var(--accent)!important;border-bottom:3px solid var(--accent)!important}
-/* Chip deadline (between GW19 and GW20). Drawn as one bar in the 2px gap
-   before the column rather than a border on each cell: per-cell borders broke
-   into segments at every row gap and sat on the cell edge, not between
-   columns. top/bottom reach across the row spacing so the bar is unbroken. */
-.fxgrid .halfmark{position:relative}
-.fxgrid .halfmark::before{content:'';position:absolute;left:-3px;top:-2px;bottom:-2px;width:4px;
-  background:#e8202a;pointer-events:none;z-index:1}
+.cell.good5run{box-shadow:inset 0 3px 0 var(--accent),inset 0 -3px 0 var(--accent)}
+/* Chip deadline (between GW19 and GW20): the column divider itself, 8px
+   and blue. In a collapsed table the wider border wins and joins row to row,
+   so it is one unbroken line with nothing overlaid to drift out of place.
+   Blue because nothing in the difficulty scale is blue. */
+.fxgrid th.halfmark,.fxgrid td.halfmark{border-left:8px solid #2f80ff}
+/* Half of a collapsed border sits inside each cell either side of it, so
+   the 8px divider takes 3px more out of GW19 and GW20 than a normal 2px one.
+   Widen both columns by those 3px so their coloured cells match the rest. */
+.fxgrid th.halfmark,.fxgrid td.halfmark,.fxgrid th.prehalf,.fxgrid td.prehalf{width:67px;min-width:67px;max-width:67px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);align-items:center}
 .legend i{display:inline-block;width:16px;height:9px;border-radius:0;margin-right:5px;vertical-align:middle}
@@ -1810,7 +1825,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25h';
+const APP_BUILD = 'app-2026-10-25j';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -6988,7 +7003,7 @@ function renderPlan(){
   /* ── fixture grid ── */
   const show=plan.gws.slice(0,16);
   const head=show.map(function(g){
-    return '<th class="'+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+g+'</th>';
+    return '<th class="'+(g===HALF_DEADLINE+1?'halfmark':g===HALF_DEADLINE?'prehalf':'')+'">'+g+'</th>';
   }).join('');
 
   const ranked=bootstrap.teams.slice().map(function(t){
@@ -7010,7 +7025,7 @@ function renderPlan(){
       }
       // add light-theme class if selected
       if(fdrTheme==='light')extraCls+=' light-theme';
-      return '<td class="cell '+cls+extraCls+' '+(g===HALF_DEADLINE+1?'halfmark':'')+'">'+txt
+      return '<td class="cell '+cls+extraCls+' '+(g===HALF_DEADLINE+1?'halfmark':g===HALF_DEADLINE?'prehalf':'')+'">'+txt
         +(c.n>1?'<span class="dbl">DGW</span>':'')+'</td>';
     }).join('');
     return '<tr><td class="club">'+r.t.short_name+'</td>'+cells+'</tr>';
@@ -7052,7 +7067,7 @@ function renderPlan(){
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
       +'<span style="color:var(--dimmer)">H '+t('legHome')+' \u00b7 A '+t('legAway')+'</span>'
-      +'<span style="color:#e8202a;font-weight:700">| '+t('legDeadline')+'</span></div>'
+      +'<span style="color:#2f80ff;font-weight:700">| '+t('legDeadline')+'</span></div>'
     +'<div class="gridscroll"><table class="fxgrid"><thead><tr><th class="club">'+t('club')+'</th>'
     +head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 
