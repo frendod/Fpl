@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-build="targets-2026-10-02d">
+<html lang="en" data-build="targets-2026-10-25a">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#10151c">
-<meta name="build" content="targets-2026-10-02d">
+<meta name="build" content="targets-2026-10-25a">
 <title>Fixture Targets — FPL Model</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* targets-2026-10-02d — companion to index.html, same token system as gw-odds.html */
+/* targets-2026-10-25a — companion to index.html, same token system as gw-odds.html */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -21,7 +21,7 @@
 }
 .light-theme{
   --ink:#ffffff; --panel:#f5f5f5; --panel2:#eaeaea;
-  --line:rgba(0,0,0,.12); --line2:rgba(0,0,0,.22);
+  --line:rgba(0,0,0,.12); --line2:#000;   /* outlines black in light mode, as on index.html */
   --paper:#000000; --dim:#000000; --dimmer:#000000;
   --good:#1d7c5c; --bad:#c92f2f; --accent:#9a6a12; --accent-soft:rgba(217,164,65,.18);
 }
@@ -35,7 +35,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .masthead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .langtoggle,.themtoggle{display:flex;gap:2px;flex-shrink:0;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .langbtn,.themebtn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:4px 9px;cursor:pointer;border:none;background:transparent;color:var(--dim)}
-.langbtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.langbtn[aria-pressed="true"]{background:var(--accent);color:#000;font-weight:700}
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--dim)}
 h1{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(34px,7vw,54px);font-weight:400;line-height:1;margin-top:6px}
 h1 em{font-style:italic;color:var(--accent)}
@@ -44,7 +44,7 @@ img.ball{display:inline-block}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
 .tab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:2px;border:1px solid var(--line2);background:transparent;color:var(--dim);text-decoration:none;display:inline-block;line-height:normal}
 .tab:hover{color:var(--accent)}
-.tab[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.tab[aria-selected="true"]{background:#d9a441;border-color:#d9a441;color:#000;font-weight:700}
 @media (hover:none) and (pointer:coarse){ .tab{padding:14px 18px} }
 
 .controls{margin-top:18px;display:flex;gap:16px 26px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
@@ -53,7 +53,7 @@ img.ball{display:inline-block}
 select{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 10px;border:1px solid var(--line2);border-radius:3px;background:var(--panel2);color:var(--paper);cursor:pointer;min-width:150px}
 .seg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
 .seg button{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;padding:8px 14px;border:none;background:transparent;color:var(--paper);cursor:pointer}
-.seg button[aria-pressed=true]{background:#d9a441;color:#000}
+.seg button[aria-pressed=true]{background:#d9a441;color:#000;font-weight:700}
 .hint{font-size:12.5px;flex-basis:100%}
 th .odds{display:block;font-size:9.5px;letter-spacing:.04em;font-weight:400;margin-top:3px}
 .chip.mkt{box-shadow:inset 0 -3px 0 rgba(255,255,255,.85)}
@@ -177,7 +177,7 @@ footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-fa
 </div>
 
 <script>
-const TARGETS_BUILD = 'targets-2026-10-02d';
+const TARGETS_BUILD = 'targets-2026-10-25a';
 
 /* ══ WHAT THIS PAGE DOES ════════════════════════════════
    One row per club, the next N gameweeks (1–10), easiest first.

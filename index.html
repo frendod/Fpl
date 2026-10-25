@@ -107,7 +107,7 @@ body::before{
   padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s;
 }
 .langbtn:hover, .themebtn:hover{color:var(--paper)}
-.langbtn[aria-pressed="true"], .themebtn[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.langbtn[aria-pressed="true"], .themebtn[aria-pressed="true"]{background:var(--accent);color:#000;font-weight:700}
 .langbtn:focus-visible, .themebtn:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
 .masthead h1{
   font-family:'Instrument Serif',Georgia,serif;
@@ -226,7 +226,7 @@ body::before{
   border:1px solid var(--paper);background:transparent;color:var(--paper);transition:all .15s;
 }
 .preset:hover{color:var(--paper);border-color:var(--paper)}
-.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:var(--on-accent)}
+.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:#000;font-weight:700}
 .preset:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 .wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
@@ -286,7 +286,8 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
   border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
 }
 .tab:hover{color:var(--paper);border-color:var(--line2)}
-.tab[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text)}
+/* Selected tab: solid gold, bold black text, both themes (matches the Fixture Targets toggles). */
+.tab[aria-selected="true"]{background:#d9a441;border-color:#d9a441;color:#000;font-weight:700}
 .tab:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* Tabs that are links to other pages rather than in-page views. */
 a.tab{text-decoration:none;display:inline-block;line-height:normal}
@@ -661,7 +662,7 @@ svg.shirt{display:inline-block;vertical-align:middle;flex:0 0 auto}
 /* Selected tab / planner week / plan: a gold outline vanished against the
    black ones, so in light mode the selection is a doubled black outline on
    the gold fill. */
-:root.light-theme .tab[aria-selected="true"],:root.light-theme .pln-lg.on,:root.light-theme .pln-slot.on{
+:root.light-theme .pln-lg.on,:root.light-theme .pln-slot.on{
   border-color:#000;box-shadow:inset 0 0 0 1px #000}
 /* Position and weight tags keep their tinted fill; the label itself goes black. */
 :root.light-theme .pos,:root.light-theme .wtag{color:#000}
@@ -740,7 +741,7 @@ textarea:focus{border-color:var(--accent)}
 /* Fixed gold, not var(--accent). Accent is lerped toward #ffffff as the live
    weight ramps, and --ink is #ffffff in the light theme — together that is
    white on white by about gameweek eight. .preset solves it the same way. */
-.objseg button[aria-pressed="true"]{background:#d9a441;color:var(--on-accent)}
+.objseg button[aria-pressed="true"]{background:#d9a441;color:#000;font-weight:700}
 .objbar-hint{font-size:12px;color:var(--dimmer);flex:1 1 240px;min-width:0}
 .objbar-sub{margin-top:-4px}
 .objseg button:disabled{cursor:default}
@@ -1849,7 +1850,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25l';
+const APP_BUILD = 'app-2026-10-25m';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
