@@ -31,6 +31,12 @@
   --bad:#e5657a;
   --accent:#d9a441;
   --accent-soft:rgba(217,164,65,.14);
+  /* Text drawn in a brand colour. Dark mode keeps the gold; light mode turns
+     it black (rule: black text on light backgrounds). Fills and borders keep
+     using --accent / --prior directly, so the gold stays as a colour. */
+  --accent-text:#d9a441;
+  --prior-text:#d9a441;
+  --on-accent:#10151c;   /* text sitting on a gold fill */
 }
 :root.light-theme{
   /* Light Theme */
@@ -38,16 +44,19 @@
   --panel:#f5f5f5;
   --panel2:#eeeeee;
   --line:rgba(0,0,0,.12);
-  --line2:rgba(0,0,0,.18);
+  --line2:#000000;      /* outlines of tabs, buttons, cards: black in light mode */
   --paper:#000000;
-  --dim:#2d3748;
-  --dimmer:#1a202c;
+  --dim:#000000;
+  --dimmer:#000000;
   --prior:#d9a441;
   --live:#0052a3;
   --good:#1d7c5c;
   --bad:#c92f2f;
   --accent:#d9a441;
   --accent-soft:rgba(217,164,65,.12);
+  --accent-text:#000000;
+  --prior-text:#000000;
+  --on-accent:#000000;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -98,13 +107,13 @@ body::before{
   padding:5px 11px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all .15s;
 }
 .langbtn:hover, .themebtn:hover{color:var(--paper)}
-.langbtn[aria-pressed="true"], .themebtn[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.langbtn[aria-pressed="true"], .themebtn[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
 .langbtn:focus-visible, .themebtn:focus-visible{outline:2px solid var(--live);outline-offset:-2px}
 .masthead h1{
   font-family:'Instrument Serif',Georgia,serif;
   font-size:clamp(34px,7vw,58px);font-weight:400;line-height:.98;letter-spacing:-.01em;
 }
-.masthead h1 em{color:var(--accent);transition:color .6s ease}
+.masthead h1 em{color:var(--accent-text);transition:color .6s ease}
 .masthead p{
   color:var(--dim);font-size:14px;margin-top:0;flex:1;min-width:0;
 }
@@ -124,7 +133,7 @@ body::before{
   text-transform:uppercase;color:var(--dim);line-height:1;white-space:nowrap;
 }
 .evidence-state{
-  font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent);
+  font-family:'Instrument Serif',serif;font-size:13px;color:var(--accent-text);
   transition:color .6s ease;line-height:1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;min-width:0;
 }
@@ -185,14 +194,14 @@ body::before{
 .btn{
   font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
   text-transform:uppercase;padding:12px 22px;border-radius:2px;cursor:pointer;
-  border:1px solid var(--accent);background:var(--accent);color:var(--ink);
+  border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);
   font-weight:600;transition:opacity .15s,transform .1s;
 }
 .btn:hover{opacity:.88}
 .btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--paper);border-color:var(--line2)}
-.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent-text)}
 .btn:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 /* ─── PANELS ───────────────────────────────────────────── */
@@ -217,7 +226,7 @@ body::before{
   border:1px solid var(--paper);background:transparent;color:var(--paper);transition:all .15s;
 }
 .preset:hover{color:var(--paper);border-color:var(--paper)}
-.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:var(--ink)}
+.preset[aria-pressed="true"]{background:#d9a441;border-color:#d9a441;color:var(--on-accent)}
 .preset:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 
 .wgroup{padding:16px 20px;border-bottom:1px solid var(--line)}
@@ -244,7 +253,7 @@ body::before{
 .wrow{display:flex;flex-direction:column;gap:6px}
 .wrow-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .wname{font-size:14px;color:var(--paper)}
-.wval{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);min-width:34px;text-align:right;transition:color .6s ease}
+.wval{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent-text);min-width:34px;text-align:right;transition:color .6s ease}
 input[type=range]{
   -webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:1px;
   background:var(--line2);outline:none;cursor:pointer;
@@ -264,7 +273,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
   text-transform:uppercase;padding:1px 6px;border-radius:2px;
 }
 .wtag.live{background:rgba(255,255,255,.14);color:var(--live)}
-.wtag.cold{background:rgba(217,164,65,.14);color:var(--prior)}
+.wtag.cold{background:rgba(217,164,65,.14);color:var(--prior-text)}
 .wtag.pos{background:rgba(78,201,160,.13);color:var(--good)}
 .wrow.muted{opacity:.85}
 .whint{font-size:10.5px;color:var(--dimmer);line-height:1.4}
@@ -277,7 +286,7 @@ input[type=range]:focus-visible{outline:2px solid var(--live);outline-offset:4px
   border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
 }
 .tab:hover{color:var(--paper);border-color:var(--line2)}
-.tab[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.tab[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text)}
 .tab:focus-visible{outline:2px solid var(--live);outline-offset:2px}
 /* Tabs that are links to other pages rather than in-page views. */
 a.tab{text-decoration:none;display:inline-block;line-height:normal}
@@ -305,7 +314,7 @@ a.tab{text-decoration:none;display:inline-block;line-height:normal}
 .team-card-pos{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
 .team-card-name{font-size:13px;color:var(--paper);font-weight:500;margin:6px 0 4px}
 .team-card-club{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim)}
-.team-card-price{font-size:11px;color:var(--accent);margin-top:4px;font-weight:500}
+.team-card-price{font-size:11px;color:var(--accent-text);margin-top:4px;font-weight:500}
 .team-section-head{padding:14px 20px 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);border-top:1px solid var(--line);margin-top:14px}
 .team-section-head:first-of-type{border-top:none;margin-top:0}
 
@@ -320,12 +329,12 @@ a.tab{text-decoration:none;display:inline-block;line-height:normal}
   font-family:'Instrument Serif',serif;font-size:18px;color:var(--dimmer);
   width:20px;flex-shrink:0;text-align:right;
 }
-.pidx.lead{color:var(--accent)}
+.pidx.lead{color:var(--accent-text)}
 .pinfo{flex:1;min-width:0}
 .pname{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pmeta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.04em}
 .pscore{text-align:right;flex-shrink:0}
-.pscore b{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.pscore b{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--accent-text);transition:color .6s ease}
 .conf{
   display:flex;gap:2px;margin-top:5px;justify-content:flex-end;
 }
@@ -351,11 +360,11 @@ thead th{
 }
 thead th.sortable,thead th.sq-sort{cursor:pointer}
 thead th.sq-sort:hover{color:var(--paper)}
-thead th.sq-sort[aria-sort]{color:var(--accent)}
+thead th.sq-sort[aria-sort]{color:var(--accent-text)}
 thead th.sq-sort[aria-sort="descending"]::after{content:' \2193'}
 thead th.sq-sort[aria-sort="ascending"]::after{content:' \2191'}
 thead th.sortable:hover{color:var(--paper)}
-thead th[aria-sort]{color:var(--accent)}
+thead th[aria-sort]{color:var(--accent-text)}
 thead th[aria-sort="descending"]::after{content:' ↓'}
 thead th[aria-sort="ascending"]::after{content:' ↑'}
 tbody tr{border-bottom:1px solid var(--line)}
@@ -367,18 +376,18 @@ tbody td{padding:10px 14px;font-size:12.5px;white-space:nowrap}
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   padding:2px 6px;border-radius:2px;
 }
-.pos-GKP{background:rgba(217,164,65,.15);color:var(--prior)}
+.pos-GKP{background:rgba(217,164,65,.15);color:var(--prior-text)}
 .pos-DEF{background:rgba(255,255,255,.15);color:var(--live)}
 .pos-MID{background:rgba(78,201,160,.15);color:var(--good)}
 .pos-FWD{background:rgba(229,101,122,.15);color:var(--bad)}
-.sc{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);transition:color .6s ease}
+.sc{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent-text);transition:color .6s ease}
 .sc.mid{color:var(--paper);opacity:.75}
 .sc.lo{color:var(--dimmer)}
 .pager{display:flex;gap:9px;align-items:center;padding:13px 20px;border-top:1px solid var(--line);
   font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim)}
 .pg{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 11px;border-radius:2px;cursor:pointer}
-.pg:hover{border-color:var(--accent);color:var(--accent)}
+.pg:hover{border-color:var(--accent);color:var(--accent-text)}
 .pg:disabled{opacity:.28;cursor:not-allowed}
 
 /* ─── XI ───────────────────────────────────────────────── */
@@ -575,7 +584,7 @@ svg.shirt{display:inline-block;vertical-align:middle;flex:0 0 auto}
 .pdisc.GKP,.pdisc.DEF,.pdisc.MID,.pdisc.FWD{
   background:#ffffff;border-color:rgba(0,0,0,.22);color:#000000;font-weight:700}
 .capmark{position:absolute;top:-4px;right:-4px;width:19px;height:19px;border-radius:50%;
-  background:var(--accent);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;
+  background:var(--accent);color:var(--on-accent);font-family:'IBM Plex Mono',monospace;font-size:9px;
   font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--ink)}
 .pcname{font-size:9.5px;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;max-width:100%;color:var(--paper);display:flex;align-items:center;justify-content:center;gap:3px}
@@ -645,6 +654,17 @@ svg.shirt{display:inline-block;vertical-align:middle;flex:0 0 auto}
   flex-shrink:0;position:relative;margin-left:2px;line-height:1;
 }
 .pbadge.avail{background:rgba(78,201,160,.9)}
+:root.light-theme .pbadge{color:#000}
+/* Panels draw their outline from --line, which also draws the thin dividers
+   inside them. Black only the outline; inner dividers stay light. */
+:root.light-theme .panel{border-color:#000}
+/* Selected tab / planner week / plan: a gold outline vanished against the
+   black ones, so in light mode the selection is a doubled black outline on
+   the gold fill. */
+:root.light-theme .tab[aria-selected="true"],:root.light-theme .pln-lg.on,:root.light-theme .pln-slot.on{
+  border-color:#000;box-shadow:inset 0 0 0 1px #000}
+/* Position and weight tags keep their tinted fill; the label itself goes black. */
+:root.light-theme .pos,:root.light-theme .wtag{color:#000}
 .pbadge.doubt{background:rgba(217,164,65,.9)}
 .pbadge.inj{background:rgba(229,101,122,.9)}
 .pbadge.sus{background:rgba(229,101,122,.9)}
@@ -659,13 +679,14 @@ svg.shirt{display:inline-block;vertical-align:middle;flex:0 0 auto}
 .dk{color:var(--dim)}
 .dv{font-family:'IBM Plex Mono',monospace;text-align:right}
 .dv.ok{color:var(--good)}
-.dv.warn{color:var(--prior)}
+.dv.warn{color:var(--prior-text)}
 .dv.off{color:var(--bad)}
 
 /* ─── STATES ───────────────────────────────────────────── */
 .note{padding:6px 10px;border-radius:2px;font-size:11px;line-height:1.4;margin-bottom:8px}
 .note.err{background:rgba(229,101,122,.09);border:1px solid rgba(229,101,122,.3);color:#f0a3b0}
 .note.warn{background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);color:#e8c584}
+:root.light-theme .note.warn{color:#000}
 .loading{display:flex;flex-direction:column;align-items:center;gap:13px;padding:54px 20px;color:var(--dim)}
 .spin{width:22px;height:22px;border:1.5px solid var(--line2);border-top-color:var(--accent);
   border-radius:50%;animation:sp .7s linear infinite}
@@ -694,7 +715,7 @@ textarea:focus{border-color:var(--accent)}
   padding:14px;margin:14px 0 22px}
 .lockbar{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:14px;margin-bottom:18px}
 .lockbar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.lockbar-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.lockbar-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-text)}
 .lockbar-clear{background:none;border:1px solid var(--line2);color:var(--dim);font-size:11px;
   padding:3px 10px;border-radius:5px;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
 .lockbar-clear:hover{color:var(--paper);border-color:var(--dim)}
@@ -719,7 +740,7 @@ textarea:focus{border-color:var(--accent)}
 /* Fixed gold, not var(--accent). Accent is lerped toward #ffffff as the live
    weight ramps, and --ink is #ffffff in the light theme — together that is
    white on white by about gameweek eight. .preset solves it the same way. */
-.objseg button[aria-pressed="true"]{background:#d9a441;color:var(--ink)}
+.objseg button[aria-pressed="true"]{background:#d9a441;color:var(--on-accent)}
 .objbar-hint{font-size:12px;color:var(--dimmer);flex:1 1 240px;min-width:0}
 .objbar-sub{margin-top:-4px}
 .objseg button:disabled{cursor:default}
@@ -727,8 +748,8 @@ textarea:focus{border-color:var(--accent)}
    permanently disabled because it is a readout, not a control. */
 .objseg button[data-gwstep]:disabled,.objseg button[data-span]:disabled{opacity:.3}
 .objseg button.objseg-label{color:var(--paper);letter-spacing:.06em;opacity:1;min-width:72px}
-.lockstar.on{color:var(--accent)}
-.lockstar:hover{color:var(--accent)}
+.lockstar.on{color:var(--accent-text)}
+.lockstar:hover{color:var(--accent-text)}
 .bench-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--dim);display:block}
 .benchstrip .pcard{opacity:.82}
@@ -788,7 +809,7 @@ textarea:focus{border-color:var(--accent)}
 .hist-section.collapsed .hist-section-toggle{transform:rotate(-90deg)}
 .hist-section-title{
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);margin:0;flex:1;
+  text-transform:uppercase;color:var(--accent-text);margin:0;flex:1;
 }
 .hist-section-body{padding:0 20px 16px 20px;display:none}
 .hist-section.expanded .hist-section-body{display:block}
@@ -797,7 +818,7 @@ textarea:focus{border-color:var(--accent)}
 .vs-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .vs-lab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .vs-filter-sm{max-width:70px}
-.hist-total-row td{border-top:1px solid var(--line2);font-weight:600;color:var(--accent)}
+.hist-total-row td{border-top:1px solid var(--line2);font-weight:600;color:var(--accent-text)}
 .hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .fix-strip{display:flex;flex-direction:column;gap:2px}
 .fix-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
@@ -829,7 +850,7 @@ textarea:focus{border-color:var(--accent)}
 .pln-nav[disabled]{opacity:.3;cursor:default}
 .pln-win{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:8px 16px;
   font:12px 'IBM Plex Mono',monospace;color:var(--paper);border-bottom:1px solid var(--line)}
-.pln-win b{color:var(--accent)}
+.pln-win b{color:var(--accent-text)}
 .pln-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 12px 4px}
 .pln-slot{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);color:var(--paper);
   padding:7px 8px;text-align:left;cursor:pointer;font:inherit;min-width:0}
@@ -846,7 +867,7 @@ textarea:focus{border-color:var(--accent)}
 .pln-sum>div:last-child{border-right:0}
 .pln-k{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper)}
 .pln-v{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:700;margin-top:3px;color:var(--paper)}
-.pln-v.bad{color:var(--bad)} .pln-v.acc{color:var(--accent)}
+.pln-v.bad{color:var(--bad)} .pln-v.acc{color:var(--accent-text)}
 @media(max-width:520px){.pln-v{font-size:14px}.pln-k{font-size:8px;letter-spacing:.05em}}
 .pln-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
 .pln-sp{flex:1}
@@ -893,7 +914,7 @@ select.pln-btn{padding:5px 8px}
 .pln-ic{flex:0 0 32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);
   display:flex;align-items:center;justify-content:center;gap:1px}
 .pln-ic svg{display:block}
-.pln-ic-t{font:700 12px 'IBM Plex Mono',monospace;color:var(--accent)}
+.pln-ic-t{font:700 12px 'IBM Plex Mono',monospace;color:var(--accent-text)}
 .pln-filt{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line)}
 .pln-filt input,.pln-filt select{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);
   border-radius:6px;padding:7px 9px;font:13px Inter,system-ui,sans-serif}
@@ -912,7 +933,7 @@ select.pln-btn{padding:5px 8px}
 .pln-why{font-size:10.5px;color:var(--bad);display:block;font-family:'IBM Plex Mono',monospace}
 .pln-why.pln-good{color:var(--good)}
 .pln-cl{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-left:5px}
-.pln-warnc{color:var(--accent);font-weight:700}
+.pln-warnc{color:var(--accent-text);font-weight:700}
 /* Gold is unreadable on white: light theme draws the accent figures in black. */
 :root.light-theme .pln-v.acc,:root.light-theme .pln-win b,:root.light-theme .pln-ic-t,:root.light-theme .pln-warnc{color:var(--paper)}
 
@@ -922,7 +943,7 @@ select.pln-btn{padding:5px 8px}
   border-radius:6px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10.5px;
   letter-spacing:.04em;cursor:pointer;text-align:center;transition:border-color .15s,color .15s}
 .mt-nt-btn:hover{border-color:var(--accent);color:var(--paper)}
-.mt-nt-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.mt-nt-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent-text)}
 .mt-nt-body{margin-top:10px;font-size:12.5px}
 .mt-nt-loading,.mt-nt-err{color:var(--dim);font-style:italic;font-size:11.5px}
 .mt-nt-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0}
@@ -938,7 +959,7 @@ select.pln-btn{padding:5px 8px}
   border-radius:6px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10.5px;
   letter-spacing:.03em;cursor:pointer;text-align:center;transition:border-color .15s,color .15s}
 .mt-roll-btn:hover{border-color:var(--accent);color:var(--paper)}
-.mt-roll-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.mt-roll-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent-text)}
 .mt-roll.active .mt-roll-btn{background:var(--accent-soft)}
 .mt-roll-body{margin-top:10px;font-size:11.5px}
 .mt-roll-loading,.mt-roll-err{color:var(--dim);font-style:italic}
@@ -1046,14 +1067,14 @@ select.pln-btn{padding:5px 8px}
 .xp-strip{display:flex;align-items:center;gap:18px;margin:0 0 8px;padding:10px 14px;
   background:var(--panel2);border:1px solid var(--line2);border-radius:10px;flex-wrap:wrap}
 .xp-strip-k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);flex:0 0 auto}
+  text-transform:uppercase;color:var(--accent-text);flex:0 0 auto}
 .xp-strip-cell{display:flex;flex-direction:column;gap:1px}
 .xp-strip-cell .k{font-family:'IBM Plex Mono',monospace;font-size:10px;
   letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .xp-strip-cell .v{font-size:17px;color:var(--paper);font-variant-numeric:tabular-nums}
 .sum-block{margin:0 0 4px;padding:12px 14px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px}
 .sum-season{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  text-transform:uppercase;color:var(--accent-text);margin-bottom:8px}
 .sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px}
 .sum-cell{display:flex;flex-direction:column;gap:1px}
 .sum-k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
@@ -1069,7 +1090,7 @@ select.pln-btn{padding:5px 8px}
   border:1px solid var(--line2);background:transparent;color:var(--dim);transition:all .15s;
 }
 .sum-option-btn:hover{color:var(--paper);border-color:var(--paper)}
-.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.sum-option-btn.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .hist-tab-content{display:none;padding:8px 18px;border-bottom:none}
 .hist-tab-content.shown{display:block}
 .vs-filter{
@@ -1113,7 +1134,7 @@ select.pln-btn{padding:5px 8px}
   text-transform:uppercase;color:var(--dim);white-space:nowrap}
 .hero-cell .v{font-size:22px;font-weight:600;line-height:1;color:var(--paper);
   font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.hero-cell.hero-xp .v{color:var(--accent)}
+.hero-cell.hero-xp .v{color:var(--accent-text)}
 .sum-block{margin:0 16px 14px;padding:14px 14px 4px;background:transparent;border:1px solid var(--line);border-radius:12px}
 .sum-season{font-size:9.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:12px}
 .sum-grid{grid-template-columns:repeat(4,1fr);gap:0 14px}
@@ -1149,7 +1170,7 @@ select.pln-btn{padding:5px 8px}
 .hist-table td:first-child{font-size:14px;font-weight:500}
 .hist-table th:first-child,.hist-table td:first-child{padding-left:2px}
 .hist-table tbody tr:hover{background:rgba(255,255,255,.035)}
-.hist-total-row td{border-top:1px solid var(--line2);border-bottom:none;color:var(--accent);font-weight:600}
+.hist-total-row td{border-top:1px solid var(--line2);border-bottom:none;color:var(--accent-text);font-weight:600}
 .hist-total-row td:first-child{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em}
 .vs-table tbody tr[data-opp]{cursor:pointer}
 .vs-table tr.vs-none td{color:var(--dimmer)}
@@ -1165,12 +1186,12 @@ select.pln-btn{padding:5px 8px}
    numbers that sums to the figure in the group header. */
 .bd-eq{padding:4px 0 10px}
 .bd-eq-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.bd-big{font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--accent);font-variant-numeric:tabular-nums}
+.bd-big{font-family:'IBM Plex Mono',monospace;font-size:26px;color:var(--accent-text);font-variant-numeric:tabular-nums}
 .bd-eq-txt{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--paper)}
 .bd-eq-sub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:2px}
 .bd-group{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:8px 12px;margin:0 0 8px}
 .bd-ghead{display:flex;justify-content:space-between;align-items:baseline;font-family:'IBM Plex Mono',monospace;
-  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:2px 0 6px}
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);padding:2px 0 6px}
 .bd-row{display:grid;grid-template-columns:1fr 56px 50px;gap:10px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .bd-l{display:flex;flex-direction:column;gap:1px;min-width:0}
 .bd-name{font-size:13px;color:var(--paper)}
@@ -1192,8 +1213,8 @@ select.pln-btn{padding:5px 8px}
 .bd-m{color:var(--dim)}
 .bd-xt th:nth-child(2){text-align:left}
 .bd-dim{color:var(--dim);font-weight:400}
-.bd-tot td{border-top:1px solid var(--line2);color:var(--accent);font-weight:600}
-.bd-tot td:first-child{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-align:left}
+.bd-tot td{border-top:1px solid var(--line2);color:var(--accent-text);font-weight:600}
+.bd-tot td:first-child{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-text);text-align:left}
 .bd-blank td{color:var(--dimmer)}
 .bd-row2{grid-template-columns:1fr 56px}
 
@@ -1227,11 +1248,14 @@ select.pln-btn{padding:5px 8px}
 .d4{background:rgba(229,85,85,.5);color:#f2b5c0}
 .d5{background:#e55555;color:#ffc9d2}
 /* Light theme versions */
-.d1.light-theme{background:#4ade80;color:#bff0dd}
-.d2.light-theme{background:rgba(78,201,160,.19);color:#a9e2cc}
-.d3.light-theme{background:#ffffff;color:#2d3748}
-.d4.light-theme{background:rgba(229,101,122,.19);color:#f2b5c0}
-.d5.light-theme{background:#f87171;color:#ffc9d2}
+.d1.light-theme{background:#4ade80;color:#000000}
+.d2.light-theme{background:rgba(78,201,160,.19);color:#000000}
+.d3.light-theme{background:#ffffff;color:#000000}
+/* Page light mode: the grid's own FDR theme switch can still be on dark, so
+   make its text black whichever FDR palette is showing. */
+:root.light-theme .fxgrid td.cell{color:#000}
+.d4.light-theme{background:rgba(229,101,122,.19);color:#000000}
+.d5.light-theme{background:#f87171;color:#000000}
 .d0{background:repeating-linear-gradient(45deg,rgba(229,101,122,.10) 0 4px,transparent 4px 8px);
   color:var(--bad);box-shadow:inset 0 0 0 1px rgba(229,101,122,.4)}
 .cell .dbl{display:block;font-size:9px;letter-spacing:.08em;color:var(--live);margin-top:1px}
@@ -1253,13 +1277,13 @@ select.pln-btn{padding:5px 8px}
 .chipcard:last-child{border-bottom:none}
 .chipname{font-family:'Instrument Serif',serif;font-size:20px;width:130px;flex-shrink:0}
 .chipbody{flex:1;min-width:200px}
-.chipwin{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:3px}
+.chipwin{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--accent-text);margin-bottom:3px}
 .chipwhy{font-size:13px;color:var(--dim);line-height:1.55}
 .chiphalf{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dimmer);margin-bottom:4px}
 .halfsplit{padding:11px 20px;background:var(--panel2);border-bottom:1px solid var(--line);
   font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--accent)}
+  text-transform:uppercase;color:var(--accent-text)}
 .swingrow{display:flex;justify-content:space-between;gap:14px;padding:9px 20px;
   border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
 .swingrow:last-child{border-bottom:none}
@@ -1311,7 +1335,7 @@ select.pln-btn{padding:5px 8px}
 .lg-row:hover{background:rgba(232,228,220,.03)}
 .lg-row[aria-expanded="true"]{background:var(--accent-soft);border-bottom-color:var(--accent)}
 .lg-caret{font-size:11px;color:var(--dim);transition:transform .18s;flex:none;width:10px}
-.lg-row[aria-expanded="true"] .lg-caret{transform:rotate(90deg);color:var(--accent)}
+.lg-row[aria-expanded="true"] .lg-caret{transform:rotate(90deg);color:var(--accent-text)}
 .lg-name{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lg-grouphead{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--ink)}
 .lg-grouphead+.lg-grouphead,.lg-row+.lg-grouphead{border-top:1px solid var(--line2)}
@@ -1331,9 +1355,9 @@ select.pln-btn{padding:5px 8px}
 .lg-err{padding:14px 16px;font-size:12.5px;color:var(--bad)}
 
 .lg-me{background:var(--accent-soft)!important}
-.lg-me td{color:var(--accent)}
+.lg-me td{color:var(--accent-text)}
 .lg-tag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.14em;
-  border:1px solid var(--accent);color:var(--accent);padding:1px 5px;border-radius:2px;margin-left:6px}
+  border:1px solid var(--accent);color:var(--accent-text);padding:1px 5px;border-radius:2px;margin-left:6px}
 
 .lg-obar{position:relative;display:block;height:4px;width:64px;background:rgba(232,228,220,.14);
   border-radius:2px;margin-top:4px;overflow:hidden}
@@ -1342,8 +1366,8 @@ select.pln-btn{padding:5px 8px}
 .lg-cross{color:var(--dim)}
 
 th.lg-sort{cursor:pointer}
-th.lg-sort:hover{color:var(--accent)}
-th.lg-sort[aria-sort]{color:var(--accent)}
+th.lg-sort:hover{color:var(--accent-text)}
+th.lg-sort[aria-sort]{color:var(--accent-text)}
 th.lg-sort[aria-sort="descending"]::after{content:' ↓'}
 th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
 
@@ -1356,13 +1380,13 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
   border-bottom:1px solid var(--line);transition:background .12s}
 .lg-hit:last-child{border-bottom:none}
 .lg-hit:hover{background:rgba(232,228,220,.04)}
-.lg-hit[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+.lg-hit[aria-selected="true"]{background:var(--accent-soft);color:var(--accent-text)}
 .lg-hit-n{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
 .lg-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line)}
 .lg-col{background:var(--panel2);padding:14px 16px;min-height:110px}
 .lg-colh{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between;gap:8px}
-.lg-colh b{color:var(--accent);font-weight:600;font-size:13px}
+.lg-colh b{color:var(--accent-text);font-weight:600;font-size:13px}
 .lg-list{list-style:none;font-size:12.5px}
 .lg-list li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
 .lg-list li:last-child{border-bottom:none}
@@ -1374,7 +1398,7 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
 .lg-caprow:hover{background:rgba(232,228,220,.03)}
 .lg-captop{display:flex;align-items:baseline;gap:10px}
 .lg-capnm{flex:1;font-size:13.5px}
-.lg-capn{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent)}
+.lg-capn{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent-text)}
 .lg-cappc{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);width:42px;text-align:right}
 .lg-capbar{height:5px;background:rgba(232,228,220,.14);border-radius:2px;margin-top:7px;overflow:hidden}
 .lg-capbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
@@ -1383,7 +1407,7 @@ th.lg-sort[aria-sort="ascending"]::after{content:' ↑'}
 .lg-caprow.open .lg-capwho{display:block}
 .lg-hint{font-size:11.5px;color:var(--dim);padding:12px 16px;line-height:1.6;font-style:italic}
 .lg-chip{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;
-  border:1px solid var(--accent);color:var(--accent);padding:1px 4px;border-radius:2px;margin-left:5px}
+  border:1px solid var(--accent);color:var(--accent-text);padding:1px 4px;border-radius:2px;margin-left:5px}
 @media(max-width:560px){
   .lg-name{font-size:13.5px}
 }
@@ -1422,7 +1446,7 @@ table.lg-stand th:nth-child(8),table.lg-stand td:nth-child(8){width:60px}
   table.lg-stand th:nth-child(8),table.lg-stand td:nth-child(8){width:50px}
   .lg-mgrteam{display:block;font-size:10.5px;color:var(--dim);margin-top:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lg-me .lg-mgrteam{color:var(--accent)}
+  .lg-me .lg-mgrteam{color:var(--accent-text)}
 }
 @media(max-width:400px){
   table.lg-stand th:nth-child(2),table.lg-stand td:nth-child(2){display:none}
@@ -1490,7 +1514,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 .lg-traygrid{display:grid;gap:1px;background:var(--line)}
 .lg-traygrid.two{grid-template-columns:1fr 1fr}
 .lg-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
-  border:1px solid var(--accent);color:var(--accent);padding:3px 8px;border-radius:2px}
+  border:1px solid var(--accent);color:var(--accent-text);padding:3px 8px;border-radius:2px}
 .lg-legend{padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;
   color:var(--dim);display:flex;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
 .lg-legend i{display:inline-block;width:2px;height:10px;background:var(--accent);
@@ -1503,7 +1527,7 @@ tbody tr.dead td:first-child{padding-left:26px}
   letter-spacing:.06em;display:block;margin-top:3px}
 .lg-sqnums{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);
   letter-spacing:.08em;margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
-.lg-sqnums b{color:var(--accent);font-weight:600}
+.lg-sqnums b{color:var(--accent-text);font-weight:600}
 .lg-sqgrp{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim);padding:9px 14px 4px}
 .lg-sqbench{border-top:1px solid var(--line2);margin-top:4px}
@@ -1511,15 +1535,15 @@ tbody tr.dead td:first-child{padding-left:26px}
   border-bottom:1px solid var(--line);position:relative}
 .lg-sqp:last-child{border-bottom:none}
 .lg-sqnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.lg-sqnm:hover{color:var(--accent);text-decoration:underline}
+.lg-sqnm:hover{color:var(--accent-text);text-decoration:underline}
 .lg-sqclub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);flex:none}
 .lg-sqpts{font-family:'IBM Plex Mono',monospace;font-size:12px;flex:none;width:28px;text-align:right}
 .lg-arm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;flex:none;
-  border:1px solid var(--accent);color:var(--accent);padding:0 4px;border-radius:2px}
+  border:1px solid var(--accent);color:var(--accent-text);padding:0 4px;border-radius:2px}
 .lg-arm.v{border-color:var(--line2);color:var(--dim)}
 .lg-sub-in{color:var(--good);font-size:9px;flex:none}
 .lg-sub-out{color:var(--bad);font-size:9px;flex:none}
-.lg-sqp.diff .lg-sqnm{color:var(--accent)}
+.lg-sqp.diff .lg-sqnm{color:var(--accent-text)}
 .lg-sqp.diff::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
 @media(max-width:700px){ .lg-traygrid.two{grid-template-columns:1fr} }
 
@@ -1540,12 +1564,12 @@ tbody tr.dead td:first-child{padding-left:26px}
 .mt-fxt.own{color:var(--paper);font-weight:600}
 .mt-fxscore{font-family:'IBM Plex Mono',monospace;font-size:13.5px;font-weight:600;
   text-align:center;flex:0 0 56px;white-space:nowrap}
-.mt-fxscore.live{color:var(--accent)}
+.mt-fxscore.live{color:var(--accent-text)}
 .mt-fxdash{color:var(--dim);font-weight:400;padding:0 5px}
 .mt-fxtime{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);
   text-align:center;flex:0 0 56px;white-space:nowrap}
 .mt-fxlive{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
-  color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:0 4px;
+  color:var(--accent-text);border:1px solid var(--accent);border-radius:2px;padding:0 4px;
   flex:0 0 34px;text-align:center}
 .mt-fxft{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;
   color:var(--dim);flex:0 0 34px;text-align:center}
@@ -1568,7 +1592,7 @@ tbody tr.dead td:first-child{padding-left:26px}
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;
   color:var(--dim);letter-spacing:.04em}
 .lg-chipcell.used .lg-chipdot{background:var(--accent);border-color:var(--accent);
-  color:var(--ink)}
+  color:var(--on-accent)}
 .lg-chipname{display:block;font-size:9.5px;margin-top:4px;color:var(--dim);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lg-chipcell.used .lg-chipname{color:var(--paper)}
@@ -1577,7 +1601,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 .lg-chipstate{display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;
   letter-spacing:.04em;color:var(--dim);margin-top:2px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lg-chipcell.used .lg-chipstate{color:var(--accent)}
+.lg-chipcell.used .lg-chipstate{color:var(--accent-text)}
 @media(max-width:700px){
   .lg-chipstrip{gap:4px;padding:9px 8px}
   .lg-chipname{font-size:8.5px}
@@ -1677,7 +1701,7 @@ tbody tr.dead td:first-child{padding-left:26px}
           <span id="gwStatus" style="font-size:12px;color:var(--dim);margin-left:auto"></span>
           <button class="btn-small" id="refreshTeamBtn" data-i18n="mtRefresh">↻ Refresh</button>
           <span id="mtFetched" class="mt-fetched"></span>
-          <button class="btn-small" id="changeIdBtn" style="border-color:var(--accent);color:var(--accent)" data-i18n="mtChangeId">Change ID</button>
+          <button class="btn-small" id="changeIdBtn" style="border-color:var(--accent);color:var(--accent-text)" data-i18n="mtChangeId">Change ID</button>
           <!-- gwStatus now carries only transient loading/error text, not a GW counter -->
         </div>
         <div id="teamBody"></div>
@@ -1825,7 +1849,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25j';
+const APP_BUILD = 'app-2026-10-25l';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -4477,7 +4501,7 @@ function renderUserTeam(){
     +'justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'
     +'<span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:var(--dim);'
     +'text-transform:uppercase;letter-spacing:.1em;">'+t('sqStarting')+'</span>'
-    +'<div style="font-size:14px;font-weight:bold;color:var(--accent);" data-team-total>'
+    +'<div style="font-size:14px;font-weight:bold;color:var(--accent-text);" data-team-total>'
     +totalLabel+'</div>'
     +'</div>';
   html+=rolledHTML(rolledActive?rolled.data:null);
@@ -5560,7 +5584,7 @@ function renderXI(){
   const lockBar='<div class="lockbar">'
     +'<div class="lockbar-head"><span class="lockbar-title">'+t('sqLocked')+'</span>'
     +(lockedPlayers.length?'<button class="lockbar-clear" id="clearLocks">'+t('sqClearLocks')+'</button>':''
-      +'<a href="#" id="selectPlayerLink" style="color:var(--accent);cursor:pointer;text-decoration:none;font-size:11px">'+t('selectPlayer')+' ▹</a>')
+      +'<a href="#" id="selectPlayerLink" style="color:var(--accent-text);cursor:pointer;text-decoration:none;font-size:11px">'+t('selectPlayer')+' ▹</a>')
     +'</div>'
     +(lockedPlayers.length
       ? '<div class="lockchips">'+lockedPlayers.map(p=>'<span class="lockchip" data-lock="'+p.id+'">★ '
@@ -5627,7 +5651,7 @@ function renderXI(){
       +'<td>'+(inXI(p.id)?'●':'○')+'</td>'
       +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock">'
         +(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
-      +'<td style="display:flex;align-items:center;gap:6px">'+clubShirt((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name,18,p.pos)+'<span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
+      +'<td style="display:flex;align-items:center;gap:6px">'+clubShirt((bootstrap.teams.find(t=>t.id===p.teamId)||{}).short_name,18,p.pos)+'<span>'+p.name+(p.id===cap.id?' <span style="color:var(--accent-text)">'+t('sqCap')+'</span>':'')+(p.status!=='a'?'<span class="pbadge '+badgeClass+'" style="margin-left:4px" title="'+statusText+'">!</span>':'')+'</span>'
       +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:16px;height:16px;font-size:10px">'+pctNum+'</span>')+'</td>'
       +'<td><span class="pos pos-'+p.pos+'">'+p.pos+'</span></td>'
       +'<td class="mono">'+p.price.toFixed(1)+'</td>'
@@ -7067,7 +7091,7 @@ function renderPlan(){
       +'<span><i class="d5"></i>'+t('legHard')+'</span><span><i class="d0"></i>'+t('legBlank')+'</span>'
       +'<span style="color:var(--live)">DGW '+t('legDouble')+'</span>'
       +'<span style="color:var(--dimmer)">H '+t('legHome')+' \u00b7 A '+t('legAway')+'</span>'
-      +'<span style="color:#2f80ff;font-weight:700">| '+t('legDeadline')+'</span></div>'
+      +'<span style="font-weight:700"><b style="color:#2f80ff">|</b> '+t('legDeadline')+'</span></div>'
     +'<div class="gridscroll"><table class="fxgrid"><thead><tr><th class="club">'+t('club')+'</th>'
     +head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 
@@ -7904,7 +7928,7 @@ function lgPaneOwn(lid){
         +'<td><span class="pos">'+esc(b.pos)+'</span></td>'
         +'<td class="mono"><span class="lg-ownfrac">'+b.owners.length+'/'+ix.n+' </span>'+pc+'%'
         +  '<span class="lg-obar"><i style="width:'+pc+'%"></i></span></td>'
-        +'<td class="mono" style="color:var(--accent)">'+b.eo.toFixed(2)+'</td>'
+        +'<td class="mono" style="color:var(--accent-text)">'+b.eo.toFixed(2)+'</td>'
         +'<td class="mono">'+b.bench.length+'</td>'
         +'<td class="mono">'+b.caps.length+'</td>'
         +'<td>'+(mineState?'<span class="lg-tick">✓'+(mineState==='b'?' '+esc(t('lgOnBench')):'')+'</span>'
@@ -8232,9 +8256,9 @@ function lgPaneCap(lid){
     +(b.vices.length?'<div class="lg-capbar" style="margin-top:3px"><i class="vice" style="width:'
       +Math.round(b.vices.length/max*100)+'%"></i></div>':'')
     +'<div class="lg-capwho">'
-    +  '<b style="font-weight:400;color:var(--accent)">'+esc(t('lgCaptainedBy'))+' — </b>'
+    +  '<b style="font-weight:400;color:var(--accent-text)">'+esc(t('lgCaptainedBy'))+' — </b>'
     +  (b.caps.length?b.caps.map(r=>esc(r.mgr)).join(', '):esc(t('lgNobody')))
-    +  (b.vices.length?'<br><b style="font-weight:400;color:var(--accent)">'+esc(t('lgViceBy'))
+    +  (b.vices.length?'<br><b style="font-weight:400;color:var(--accent-text)">'+esc(t('lgViceBy'))
         +' — </b>'+b.vices.map(r=>esc(r.mgr)).join(', '):'')
     +'</div></div>').join('')
     +'<div class="lg-hint">'+esc(t('lgCapNote'))+'</div>';
