@@ -830,6 +830,14 @@ textarea:focus{border-color:var(--accent)}
 .pln-win{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:8px 16px;
   font:12px 'IBM Plex Mono',monospace;color:var(--paper);border-bottom:1px solid var(--line)}
 .pln-win b{color:var(--accent)}
+.pln-slots{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 12px 4px}
+.pln-slot{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);color:var(--paper);
+  padding:7px 8px;text-align:left;cursor:pointer;font:inherit;min-width:0}
+.pln-slot.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.pln-slot-n{display:block;font:600 12px Inter,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pln-slot-v{display:block;font:11px 'IBM Plex Mono',monospace;margin-top:3px;white-space:nowrap}
+.pln-slotbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:6px 12px 10px;border-bottom:1px solid var(--line)}
+@media(max-width:520px){.pln-slots{gap:4px;padding:8px 8px 4px}.pln-slot{padding:6px 5px}.pln-slot-n{font-size:10.5px}.pln-slot-v{font-size:9.5px}}
 .pln-bad{color:var(--bad);font-weight:700}
 .pln-good{color:var(--good)}
 .pln-mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper)}
@@ -1791,7 +1799,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25c';
+const APP_BUILD = 'app-2026-10-25d';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -2019,7 +2027,10 @@ const I18N={
     plnNoChip:'No chip', plnHalf1:'1st-half chips · expire GW19', plnHalf2:'2nd-half chips',
     plnPlayedGw:g=>'played GW'+g, plnPlannedGw:g=>'planned GW'+g,
     plnNextFt:n=>'next GW: '+n+' FT', plnResetGw:g=>'Reset '+g, plnResetAll:'Reset plan',
-    plnConfirmReset:'Clear every planned week?',
+    plnConfirmReset:n=>'Clear every planned week in '+n+'?',
+    plnPlans:'Saved plans', plnSlot:n=>'Plan '+n, plnEmptySlot:'empty', plnRename:'Rename plan', plnSaveName:'Save',
+    plnCopyTo:'Copy this plan to\u2026', plnOverwrite:n=>n+' already has moves. Replace it with this plan?',
+    plnSavedHere:'Saved on this device',
     plnOver:a=>'Over budget by '+a+'. FPL would not accept this squad.',
     plnClub:c=>'More than 3 players from '+c+'.',
     plnClash:c=>c+' is already played or planned elsewhere in this half.',
@@ -2302,7 +2313,10 @@ const I18N={
     plnNoChip:'Sin comodín', plnHalf1:'Comodines 1ª vuelta · caducan en J19', plnHalf2:'Comodines 2ª vuelta',
     plnPlayedGw:g=>'jugado J'+g, plnPlannedGw:g=>'previsto J'+g,
     plnNextFt:n=>'próx. J: '+n+' gratis', plnResetGw:g=>'Borrar '+g, plnResetAll:'Borrar plan',
-    plnConfirmReset:'¿Borrar todas las jornadas planificadas?',
+    plnConfirmReset:n=>'\u00bfBorrar todas las jornadas planificadas de '+n+'?',
+    plnPlans:'Planes guardados', plnSlot:n=>'Plan '+n, plnEmptySlot:'vac\u00edo', plnRename:'Renombrar plan', plnSaveName:'Guardar',
+    plnCopyTo:'Copiar este plan a\u2026', plnOverwrite:n=>n+' ya tiene fichajes. \u00bfSustituirlo por este plan?',
+    plnSavedHere:'Guardado en este dispositivo',
     plnOver:a=>'Te pasas del presupuesto en '+a+'. La FPL no aceptaría esta plantilla.',
     plnClub:c=>'Más de 3 jugadores de '+c+'.',
     plnClash:c=>c+' ya está jugado o previsto en otra jornada de esta vuelta.',
@@ -3492,7 +3506,8 @@ async function loadUserTeam(fplId, bust){
       rolled:{open:false,status:'idle',data:null,error:null}
     };
     userTeam.plan=plnBuild({currentGW,basePicks:basePicksForFuture,bank:baseBank,hist,transfers:transferList});
-    userTeam.planIntent=userTeam.plan.ok?plnLoadIntent(userTeam.plan.fromGw):{};
+    userTeam.planSlots=userTeam.plan.ok?plnLoadSlots(userTeam.plan.fromGw):{active:0,slots:[]};
+    userTeam.planIntent=userTeam.plan.ok?userTeam.planSlots.slots[userTeam.planSlots.active].plan:{};
     PLN.winStart=null; PLN.ui={mode:null,src:null,targets:[]};
     
     $('gwSelect').max=38;
@@ -3909,16 +3924,37 @@ const PLN={ui:{mode:null,src:null,targets:[]},winStart:null,WIN:6};
 const plnTeamShort=id=>{const tm=bootstrap&&bootstrap.teams&&bootstrap.teams.find(x=>x.id===id);return tm?tm.short_name:String(id)};
 const plnMoney=v=>(v<0?'−':'')+'£'+(Math.abs(v)/10).toFixed(1)+'m';
 const plnP=id=>players.find(x=>x.id===id);
-function plnKey(){return 'fplRockPlan_'+userTeam.entryId}
+/* Five saved plans per FPL ID, stored together under one key:
+   {active, slots:[{name, plan}] x5}. userTeam.planIntent is always the same
+   object as the active slot's plan, so the rest of the planner edits it in
+   place without knowing slots exist. Names are kept only when the user sets
+   one; an unnamed slot shows "Plan n" in whichever language is on. */
+const PLN_SLOTS=5;
+function plnKey(){return 'fplRockPlans_'+userTeam.entryId}
+function plnOldKey(){return 'fplRockPlan_'+userTeam.entryId}   // single-plan store, app-2026-10-25c
 function plnReady(){return !!(window.FPLPlanner&&userTeam&&userTeam.plan&&userTeam.plan.ok)}
-function plnSave(){try{localStorage.setItem(plnKey(),JSON.stringify(userTeam.planIntent||{}))}catch(e){}}
-function plnLoadIntent(fromGw){
-  let o={};
-  try{o=JSON.parse(localStorage.getItem(plnKey())||'{}')||{}}catch(e){o={}}
+function plnSave(){try{localStorage.setItem(plnKey(),JSON.stringify(userTeam.planSlots||{}))}catch(e){}}
+function plnEmpty(plan){return !plan||!Object.keys(plan).some(k=>{const g=plan[k];
+  return g&&((g.tr&&g.tr.length)||g.order||g.cap||g.vc||g.chip)})}
+function plnLoadSlots(fromGw){
+  let st=null;
+  try{st=JSON.parse(localStorage.getItem(plnKey())||'null')}catch(e){st=null}
+  if(!st||!Array.isArray(st.slots)){
+    // first run on this build: the one plan saved before becomes Plan 1
+    let old={};try{old=JSON.parse(localStorage.getItem(plnOldKey())||'{}')||{}}catch(e){old={}}
+    st={active:0,slots:[{name:'',plan:old}]};
+  }
+  while(st.slots.length<PLN_SLOTS)st.slots.push({name:'',plan:{}});
+  st.slots=st.slots.slice(0,PLN_SLOTS).map(x=>({name:String((x&&x.name)||'').slice(0,24),plan:(x&&x.plan)||{}}));
   // weeks whose deadline has gone are history now, not plans
-  Object.keys(o).forEach(k=>{if(+k<fromGw)delete o[k]});
-  return o;
+  st.slots.forEach(x=>Object.keys(x.plan).forEach(k=>{if(+k<fromGw)delete x.plan[k]}));
+  st.active=Math.max(0,Math.min(PLN_SLOTS-1,+st.active||0));
+  return st;
 }
+function plnSlotName(i){const x=userTeam.planSlots&&userTeam.planSlots.slots[i];return (x&&x.name)||t('plnSlot')(i+1)}
+/* Replace the active plan wholesale (reset, copy). Keeps planIntent and the
+   slot pointing at the same object. */
+function plnSetIntent(o){userTeam.planIntent=o;userTeam.planSlots.slots[userTeam.planSlots.active].plan=o}
 
 /* Built once per team load from data loadUserTeam already has, plus the
    transfers list. Never throws: a failure leaves the planner off with a note. */
@@ -3957,15 +3993,16 @@ function plnBuild(o){
 
 /* xP is the one expensive call; resolve() asks for the same player-week many
    times while sorting captains, so memoise it for the duration of one render. */
-function plnResolve(){
-  const pl=userTeam.plan, memo=new Map();
+function plnResolve(intent,memo){
+  const pl=userTeam.plan;
+  memo=memo||new Map();
   const deps={
     pos:id=>{const p=plnP(id);return p?p.pos:''},
     club:id=>{const p=plnP(id);return p?p.teamId:0},
     now:id=>{const p=plnP(id);return p&&p.el?p.el.now_cost:0},
     xp:(id,gw)=>{const k=id+':'+gw;if(!memo.has(k)){const p=plnP(id);memo.set(k,p?projectedPoints(p,gw):0)}return memo.get(k)}
   };
-  return FPLPlanner.resolve({base:pl.base,plan:userTeam.planIntent||{},fromGw:pl.fromGw,toGw:38,
+  return FPLPlanner.resolve({base:pl.base,plan:intent||userTeam.planIntent||{},fromGw:pl.fromGw,toGw:38,
     locked:pl.locked,played:pl.played,deps});
 }
 function plnPicksFor(r){
@@ -3974,7 +4011,7 @@ function plnPicksFor(r){
     is_captain:id===r.cap,is_vice_captain:id===r.vc}));
 }
 function plnXp3(p,gw){let s=0;for(let i=0;i<3&&gw+i<=38;i++)s+=projectedPoints(p,gw+i);return s}
-function plnGp(gw){const I=userTeam.planIntent=userTeam.planIntent||{};return (I[gw]=I[gw]||{tr:[]})}
+function plnGp(gw){if(!userTeam.planIntent)plnSetIntent({});const I=userTeam.planIntent;return (I[gw]=I[gw]||{tr:[]})}
 function plnChanged(){plnSave();renderUserTeam()}
 
 /* Card hooks used by renderUserTeam's card(). */
@@ -4029,6 +4066,28 @@ function plnHTML(R){
   h+='<div class="pln-win"><span>'+G(ws)+'–'+G(we).replace(/^\D+/,'')+' · <b>'+(wx-wh).toFixed(1)+' xP</b> '+t('plnNet')
     +(wh?' <span class="pln-bad">('+wx.toFixed(1)+' − '+t('plnHits')(wh)+')</span>':'')+'</span>'
     +'<span>'+t('plnChips')+': '+(chipsUsed.length?chipsUsed.join(' · '):t('plnNone'))+'</span></div>';
+
+  // Saved plans. Each tab carries its net xP over the same six weeks as the
+  // ledger, so switching is a comparison, not a guess.
+  const S=userTeam.planSlots, memo=new Map();
+  h+='<div class="pln-slots" role="tablist" aria-label="'+esc(t('plnPlans'))+'">';
+  S.slots.forEach((x,i)=>{
+    const on=i===S.active, empty=plnEmpty(x.plan);
+    let val=t('plnEmptySlot'), bad=false;
+    const RR=on?R:(empty?null:plnResolve(x.plan,memo));
+    if(RR){let sx=0,sh=0;for(let k=ws;k<=we;k++){sx+=RR[k].xp;sh+=RR[k].hits}
+      val=(sx-sh).toFixed(1)+' xP'+(sh?' <span class="pln-bad">\u2212'+sh+'</span>':'');
+      for(let k=pl.fromGw;k<=38;k++)if(!RR[k].valid){bad=true;break}}
+    if(on&&empty)val=t('plnEmptySlot');
+    h+='<button class="pln-slot'+(on?' on':'')+'" role="tab" aria-selected="'+on+'" data-pln-slot="'+i+'">'
+      +'<span class="pln-slot-n">'+esc(plnSlotName(i))+(bad?' <span class="pln-bad" title="'+esc(t('plnInvalid'))+'">!</span>':'')+'</span>'
+      +'<span class="pln-slot-v">'+val+'</span></button>';
+  });
+  h+='</div>';
+  h+='<div class="pln-slotbar"><button class="pln-btn" data-pln-rename>'+t('plnRename')+'</button>'
+    +'<select class="pln-btn" id="plnCopy" aria-label="'+esc(t('plnCopyTo'))+'"><option value="">'+esc(t('plnCopyTo'))+'</option>'
+    +S.slots.map((x,i)=>i===S.active?'':'<option value="'+i+'">'+esc(plnSlotName(i))+(plnEmpty(x.plan)?'':' \u2022')+'</option>').join('')
+    +'</select><span class="pln-sp"></span><span class="pln-mono">'+t('plnSavedHere')+'</span></div>';
 
   if(live){h+='</div>';return h}
 
@@ -4185,11 +4244,29 @@ document.addEventListener('click',e=>{
     return;
   }
   if(e.target.closest('[data-pln-close]')){plnClose();return}
+  const sl=e.target.closest('[data-pln-slot]');
+  if(sl){
+    const i=+sl.dataset.plnSlot,S=userTeam.planSlots;
+    if(i!==S.active){S.active=i;userTeam.planIntent=S.slots[i].plan;PLN.ui={mode:null,src:null,targets:[]};plnChanged()}
+    return;
+  }
+  if(e.target.closest('[data-pln-rename]')){
+    const i=userTeam.planSlots.active;
+    plnOpen('<div class="pln-sh-h"><div class="pln-sh-t">'+t('plnRename')+'</div><button class="pln-btn" data-pln-close>'+t('plnClose')+'</button></div>'
+      +'<div class="pln-filt"><input id="plnName" maxlength="24" value="'+esc(userTeam.planSlots.slots[i].name)+'" placeholder="'+esc(t('plnSlot')(i+1))+'" aria-label="'+esc(t('plnRename'))+'">'
+      +'<button class="pln-btn" data-pln-name-save>'+t('plnSaveName')+'</button></div>');
+    const inp=$('plnName');if(inp){inp.focus();inp.select();inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();document.querySelector('[data-pln-name-save]').click()}}}
+    return;
+  }
+  if(e.target.closest('[data-pln-name-save]')){
+    const v=(($('plnName')||{}).value||'').trim().slice(0,24);
+    userTeam.planSlots.slots[userTeam.planSlots.active].name=v;plnClose();plnChanged();return;
+  }
   if(e.target.closest('[data-pln-cancel]')){PLN.ui={mode:null,src:null,targets:[]};renderUserTeam();return}
   const rs=e.target.closest('[data-pln-reset]');
   if(rs){
     if(rs.dataset.plnReset==='gw'){delete userTeam.planIntent[userTeam.gw];plnChanged()}
-    else if(confirm(t('plnConfirmReset'))){userTeam.planIntent={};plnChanged()}
+    else if(confirm(t('plnConfirmReset')(plnSlotName(userTeam.planSlots.active)))){plnSetIntent({});plnChanged()}
     return;
   }
   const un=e.target.closest('[data-pln-undo]');
@@ -4215,6 +4292,15 @@ document.addEventListener('click',e=>{
   }
 });
 document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='plnCopy'&&plnReady()&&e.target.value!==''){
+    const S=userTeam.planSlots,to=+e.target.value;
+    // a filled slot is someone's plan: ask before overwriting it
+    if(plnEmpty(S.slots[to].plan)||confirm(t('plnOverwrite')(plnSlotName(to)))){
+      S.slots[to].plan=JSON.parse(JSON.stringify(userTeam.planIntent||{}));
+      plnChanged();
+    }else e.target.value='';
+    return;
+  }
   if(e.target&&e.target.id==='plnChip'&&plnReady()){
     plnGp(userTeam.gw).chip=e.target.value||null;plnChanged();
   }
