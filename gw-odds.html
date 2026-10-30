@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-10-25b — companion to index.html, same token system */
+/* odds-page-2026-10-30a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -248,7 +248,7 @@ footer a{color:var(--dim)}
     agrees with the bar above it. xG and clean-sheet figures are derived from the
     whole correct-score distribution and are the numbers worth acting on — a single
     scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
-    one book (Bet365, or Unibet as fallback). Each card uses its latest capture: 70
+    one book (Unibet). Each card uses its latest capture: 70
     minutes before kickoff once lineups are out, otherwise the deadline price. Team news
     is inferred from how goalscorer odds moved between those two captures, not from an
     official lineup feed. Not betting advice.
@@ -257,7 +257,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-10-25b';
+const ODDS_PAGE_BUILD = 'odds-page-2026-10-30a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
@@ -313,7 +313,7 @@ const I18N = {
     agrees with the bar above it. xG and clean-sheet figures are derived from the
     whole correct-score distribution and are the numbers worth acting on — a single
     scoreline rarely clears 11%, so treat it as a flavour, not a forecast. All from
-    one book (Bet365, or Unibet as fallback). Each card uses its latest capture: 70
+    one book (Unibet). Each card uses its latest capture: 70
     minutes before kickoff once lineups are out, otherwise the deadline price. Team news
     is inferred from how goalscorer odds moved between those two captures, not from an
     official lineup feed. Not betting advice.`,
@@ -369,7 +369,7 @@ const I18N = {
     que siempre coincide con la barra de arriba. Las cifras de xG y portería a cero se derivan de
     toda la distribución de resultados exactos y son las cifras que realmente importan — un
     marcador exacto rara vez supera el 11%, así que trátalo como una pista, no como una predicción.
-    Todo proviene de una casa de apuestas (Bet365, o Unibet como respaldo). Cada tarjeta usa su
+    Todo proviene de una casa de apuestas (Unibet). Cada tarjeta usa su
     captura más reciente: 70 minutos antes del inicio cuando ya hay alineaciones, si no la del
     cierre. Las noticias de equipo se deducen de cómo cambiaron las cuotas de goleador entre esas
     dos capturas, no de un feed oficial de alineaciones. No es un consejo de apuestas.`,
@@ -548,7 +548,10 @@ async function fetchOdds(season, gw, kickoffHints){
 
 function bestBook(ev){
   const b = (ev && ev.bookmakers) || {};
-  return b['Bet365'] || b['Unibet'] || b['Bet365 (no latency)'] || Object.values(b)[0] || [];
+  // Unibet first: since 30 Oct 2026 it is the only book captured (Bet365 went
+  // paid-only), and older files carry it too, so every capture point and
+  // every gameweek is priced by the same book.
+  return b['Unibet'] || b['Bet365'] || b['Bet365 (no latency)'] || Object.values(b)[0] || [];
 }
 function marketByName(book, name){ return book.find(m => m.name === name) || null; }
 
@@ -771,7 +774,7 @@ function scorerPrices(ev, book){
 }
 function teamNews(evBefore, evAfter, teamIds){
   let a = null, b = null;
-  for (const book of ['Bet365', 'Unibet']){
+  for (const book of ['Unibet', 'Bet365']){
     a = scorerPrices(evBefore, book); b = scorerPrices(evAfter, book);
     if (a && b) break;
   }

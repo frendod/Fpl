@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-10-30a
+/* odds-snapshot.mjs — odds-2026-10-30b
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -63,7 +63,7 @@
  * early or late; those still run on schedule regardless of whether preview
  * caught anything.
  *
- * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-10-30a)
+ * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-10-30b)
  *
  *   deadline   3–25 min before the deadline — the last price before squads
  *              lock, i.e. exactly what an FPL manager could have known.
@@ -113,7 +113,13 @@ const SPORT_SLUG = 'football';
  * are. The response may also contain keys that were not requested — the sample
  * returned a "Bet365 (no latency)" feed carrying three markets. Those are kept
  * as captured and dealt with at parse time. */
-const DEFAULT_BOOKMAKERS = 'Bet365,Unibet';
+/* 30 Oct 2026: Odds API moved Bet365 to paid plans only ("Bet365 is only
+ * available on our paid plans"), and a request naming it is refused outright
+ * — every market, every book. Unibet carries ML, Correct Score and Anytime
+ * Goalscorer for every PL fixture, which is everything gw-odds.html reads.
+ * Captures before this date hold both books; gw-odds.html reads Unibet first
+ * so every capture point is priced by the same book. */
+const DEFAULT_BOOKMAKERS = 'Unibet';
 
 /* Capture points, as bands of minutes before the deadline.
  *
@@ -708,7 +714,7 @@ async function captureFixtures({ season, boot, gw, fixtures, path, meta }) {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-10-30a',
+    stamp: 'odds-2026-10-30b',
     season, gw,
     ...meta,
     capturedAt: now.toISOString(),
