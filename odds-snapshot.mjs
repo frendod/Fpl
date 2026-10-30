@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-10-25a
+/* odds-snapshot.mjs — odds-2026-10-30a
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -63,7 +63,7 @@
  * early or late; those still run on schedule regardless of whether preview
  * caught anything.
  *
- * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-10-25a)
+ * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-10-30a)
  *
  *   deadline   3–25 min before the deadline — the last price before squads
  *              lock, i.e. exactly what an FPL manager could have known.
@@ -250,7 +250,16 @@ async function oddsGet(path, params = {}, needsKey = true) {
   const url = `${ODDS_API}/${path}?${qs}`;
   const safe = url.replace(/apiKey=[^&]*/, 'apiKey=REDACTED');
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${safe}`);
+  if (!res.ok) {
+    /* Keep the API's own reason. A bare "403 Forbidden" cost GW9's early
+     * capture: the body says whether it is quota, plan or bookmaker access. */
+    let detail = '';
+    try { detail = (await res.text()).slice(0, 400); } catch {}
+    if (KEY) detail = detail.split(KEY).join('REDACTED');
+    const err = new Error(`${res.status} ${res.statusText} for ${safe}${detail ? ` — ${detail.replace(/\s+/g, ' ')}` : ''}`);
+    err.status = res.status;
+    throw err;
+  }
   const body = await res.json();
   if (body && body.error) throw new Error(`API error for ${safe}: ${body.error}`);
   return body;
@@ -649,10 +658,26 @@ async function captureFixtures({ season, boot, gw, fixtures, path, meta }) {
 
   const raw = {};
   for (const chunk of chunks) {
-    const body = await oddsGet('odds/multi', {
-      eventIds: chunk.join(','),
-      bookmakers: BOOKMAKERS,
-    });
+    let body;
+    try {
+      body = await oddsGet('odds/multi', {
+        eventIds: chunk.join(','),
+        bookmakers: BOOKMAKERS,
+      });
+    } catch (err) {
+      /* odds/multi started returning 403 on 30 Oct 2026 with the key still
+       * valid for /events. Fall back to one call per event so a refused bulk
+       * endpoint does not cost the capture. If single calls are refused too,
+       * the error below carries the API's reason. */
+      if (err.status !== 403 && err.status !== 429) throw err;
+      console.warn(`  ! odds/multi refused: ${err.message}`);
+      console.warn(`  ! falling back to one request per event`);
+      body = [];
+      for (const id of chunk) {
+        const one = await oddsGet('odds', { eventId: id, bookmakers: BOOKMAKERS });
+        body.push(Object.assign({ id }, one));
+      }
+    }
     /* Response shape for multi is not assumed: keyed object or array, both
      * are folded into a map on event id. */
     if (Array.isArray(body)) {
@@ -683,7 +708,7 @@ async function captureFixtures({ season, boot, gw, fixtures, path, meta }) {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-10-25a',
+    stamp: 'odds-2026-10-30a',
     season, gw,
     ...meta,
     capturedAt: now.toISOString(),
