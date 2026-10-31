@@ -1608,6 +1608,74 @@ tbody tr.dead td:first-child{padding-left:26px}
   .lg-chipname{font-size:8.5px}
 }
 
+
+/* ══ COMPARE PLAYERS (All players → Compare) ══ */
+.cmp-head-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cmp-seg{display:inline-flex;border:1px solid var(--line2);border-radius:2px;overflow:hidden}
+.cmp-seg button{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 14px;border:0;background:transparent;color:var(--paper);cursor:pointer}
+.cmp-seg button+button{border-left:1px solid var(--line2)}
+.cmp-seg button.on{background:#d9a441;color:#000;font-weight:700}
+.cmpadd{background:transparent;border:1px solid var(--line2);color:var(--paper);border-radius:2px;
+  width:24px;height:22px;font-size:12px;line-height:1;cursor:pointer;padding:0}
+.cmpadd.on{background:#d9a441;border-color:#d9a441;color:#000;font-weight:700}
+.cmp-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin:0 0 12px;padding:9px 12px;border:1px dashed var(--line2);border-radius:6px;font-size:14px;color:var(--paper)}
+.cmp-strip button{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 12px;border-radius:2px;border:1px solid var(--line2);background:transparent;color:var(--paper);cursor:pointer}
+#tblCompare{padding:16px 20px 20px}
+#cmpStrip:not(:empty){padding:14px 20px 0}
+#cmpStrip .cmp-strip{margin:0}
+.cmp-row.fxrow{grid-template-columns:1fr 1fr;row-gap:8px}
+.cmp-row.fxrow .cmp-lab{grid-column:1 / -1}
+.cmp-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 14px}
+.cmp-card{position:relative;background:var(--panel2);border:1px solid var(--line2);border-radius:14px;
+  padding:14px 10px 12px;text-align:center;min-height:178px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;color:var(--paper)}
+.cmp-card .cmp-x,.cmp-card .cmp-sw{position:absolute;top:8px;width:28px;height:28px;border-radius:50%;
+  border:1px solid var(--line2);background:transparent;color:var(--paper);font-size:14px;line-height:1;cursor:pointer;padding:0}
+.cmp-card .cmp-x{right:8px}.cmp-card .cmp-sw{left:8px}
+.cmp-name{font-weight:700;font-size:17px;margin-top:6px;line-height:1.2}
+.cmp-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;margin-top:3px}
+.cmp-chip{display:inline-block;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;
+  border-radius:2px;background:#d9a441;color:#000;font-weight:600}
+.cmp-card.empty{border-style:dashed;cursor:pointer}
+.cmp-card.empty .cmp-plus{font-size:30px;line-height:1}
+.cmp-card.empty .cmp-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+.cmp-picker{margin:-4px 0 14px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:10px}
+.cmp-picker input{width:100%;font:inherit;font-size:16px;padding:9px 10px;border-radius:6px;border:1px solid var(--line2);
+  background:var(--ink);color:var(--paper)}
+.cmp-plist{margin-top:8px;max-height:260px;overflow:auto;-webkit-overflow-scrolling:touch}
+.cmp-prow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;
+  border-bottom:1px solid var(--line);cursor:pointer;font-size:15px;color:var(--paper)}
+.cmp-prow:hover{background:var(--line)}
+.cmp-prow .mono{font-size:12px;white-space:nowrap}
+.cmp-controls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cmp-secs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;max-width:100%}
+.cmp-sec{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;font-weight:600;padding:7px 14px;
+  border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--paper);white-space:nowrap;cursor:pointer}
+.cmp-sec.on{background:#d9a441;border-color:#d9a441;color:#000;font-weight:700}
+.cmp-stats{background:var(--panel2);border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+.cmp-row{display:grid;grid-template-columns:1fr 1.6fr 1fr;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.cmp-row:last-child{border-bottom:0}
+.cmp-v{font-family:'IBM Plex Mono',monospace;font-size:18px;font-variant-numeric:tabular-nums;color:var(--paper)}
+.cmp-v.r{text-align:right}
+.cmp-v.win{color:var(--good);font-weight:600}
+.cmp-lab{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;line-height:1.3;color:var(--paper)}
+.cmp-bar{display:flex;height:4px;margin:6px auto 0;max-width:150px;gap:2px}
+.cmp-bar i{display:block;height:100%;background:var(--line2);border-radius:2px}
+.cmp-bar i.w{background:var(--good)}
+.cmp-fx{display:flex;gap:3px;flex-wrap:nowrap}
+.cmp-fx.r{justify-content:flex-end}
+.cmp-fx b{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:3px 4px;border-radius:2px;
+  min-width:36px;text-align:center;color:#0d1117;border:1px solid rgba(0,0,0,.62)}
+.cmp-foot{font-size:13px;margin-top:12px;line-height:1.5;color:var(--paper)}
+.hist-cmp{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:0 12px;height:32px;border-radius:16px;border:1px solid var(--line2);background:var(--panel2);
+  color:var(--paper);cursor:pointer;flex-shrink:0}
+.hist-head-btns{display:flex;gap:8px;align-items:center}
+@media(max-width:420px){#tblCompare{padding:12px 12px 16px}#cmpStrip:not(:empty){padding:12px 12px 0}.cmp-row{padding:11px 12px}.cmp-v{font-size:16px}}
 </style>
 </head>
 <body>
@@ -1736,9 +1804,15 @@ tbody tr.dead td:first-child{padding-left:26px}
   <div class="view" id="view-table">
     <div class="panel">
       <div class="panel-head">
-        <div class="panel-title" data-i18n="allPlayers">All players</div>
-        <div class="panel-meta" id="tableCount"></div>
+        <div class="panel-title" id="tblTitle" data-i18n="allPlayers">All players</div>
+        <div class="cmp-head-right">
+          <div class="panel-meta" id="tableCount"></div>
+          <div class="cmp-seg" id="tblMode"><button data-tblmode="list" class="on" data-i18n="cmpList">List</button><button data-tblmode="cmp" data-i18n="cmpCompare">Compare</button></div>
+        </div>
       </div>
+      <div id="tblCompare" hidden></div>
+      <div id="tblList">
+      <div id="cmpStrip"></div>
       <div class="filters">
         <input type="text" id="fSearch" placeholder="Player or club" aria-label="Search players">
         <select id="fPos" aria-label="Filter by position">
@@ -1781,6 +1855,7 @@ tbody tr.dead td:first-child{padding-left:26px}
         </table>
       </div>
       <div class="pager" id="pager"></div>
+      </div>
     </div>
   </div>
 
@@ -1838,7 +1913,8 @@ tbody tr.dead td:first-child{padding-left:26px}
         <div class="hist-eyebrow" id="histEyebrow">Player history</div>
         <div class="hist-name" id="histName">—</div>
       </div>
-      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="var o=document.getElementById('histOverlay');o.hidden=true;o.style.display='none';document.body.style.overflow='';">✕</button>
+      <div class="hist-head-btns"><button class="hist-cmp" id="histCmpBtn" data-i18n="cmpCompare">Compare</button>
+      <button class="hist-close" id="histCloseBtn" aria-label="Close" onclick="var o=document.getElementById('histOverlay');o.hidden=true;o.style.display='none';document.body.style.overflow='';">✕</button></div>
     </div>
     <div class="hist-body" id="histBody"></div>
     <div class="hist-foot" id="histFoot"></div>
@@ -1850,7 +1926,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-25m';
+const APP_BUILD = 'app-2026-10-31a';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1942,6 +2018,19 @@ const I18N={
     lgBenchNote:'Benched means picked at position 12 to 15 at the deadline. It is read from position rather than multiplier, so Bench Boost does not distort it, and it is unaffected by auto-subs. The number beside each manager is their league rank.',
     lgCapNote:'Solid bar is captain, faded bar is vice. Tap a row for the names. A captain nobody else has is the differential worth knowing about before the deadline.',
     /* Menu labels live in nav.js. */
+    cmpList:'List', cmpCompare:'Compare', cmpTitle:'Compare players', cmpAdd:'Add player',
+    cmpSearch:'Search player or club', cmpTotal:'Total', cmpP90:'Per 90', cmpNoMatch:'No match',
+    cmpSecs:{season:y=>y+' Stats',x:'X Stats',att:'Attack',play:'Playmaking',def:'Defence',xp:'xP model'},
+    cmpRows:{pts:'Points',price:'Price',own:'Ownership %',min:'Minutes',starts:'Starts',g:'Goals',a:'Assists',cs:'Clean sheets',
+      bon:'Bonus',dc:'DefCon',xg:'xG',xa:'xA',xgi:'xGI',gmx:'Goals − xG',gaxgi:'G+A − xGI',thr:'Threat (ICT)',ict:'ICT index',
+      pen:'Penalty order',dfk:'Direct free kick order',cre:'Creativity (ICT)',set:'Corners / indirect FK order',
+      gc:'Goals conceded',xgc:'xGC',gcx:'GC − xGC',tk:'Tackles',cbi:'Clearances, blocks, ints',rec:'Recoveries',sv:'Saves',
+      xp1:'xP next GW',xp3:n=>'xP next '+n,xm:'xMins next',xppm:n=>'xP'+n+' per £m',fx:'Next 3'},
+    cmpFootTot:(a,am,b,bm)=>a+' '+am+'\u2032 played \u00b7 '+b+' '+bm+'\u2032 played. Green = better. Price and ownership aren\u2019t scored.',
+    cmpFootP90:'Per 90 divides counting stats by minutes played. Price, ownership, ratios, set-piece order and xP stay as they are.',
+    cmpNeedTwo:'Add a second player to compare.',
+    cmpStripOne:n=>n+' picked \u2014 tap \u21c4 on a second player.',
+    cmpOpen:'Open compare', cmpClear:'Clear', cmpRowTip:'Add to compare',
     allPlayers:'All players', searchPh:'Player or club', searchAria:'Search players',
     allPos:'All positions', posGK:'Goalkeeper', posDF:'Defender', posMD:'Midfielder', posFW:'Forward',
     anyPrice:'Any price', upTo:'Up to ', allAvail:'All players', fitOnly:'Fully available only',
@@ -2231,6 +2320,19 @@ const I18N={
     lgBenchNote:'Banquillo significa elegido en la posición 12 a 15 al cierre. Se lee de la posición y no del multiplicador, así que el Bench Boost no lo distorsiona, y no le afectan los cambios automáticos. El número junto a cada mánager es su posición en la liga.',
     lgCapNote:'La barra sólida son capitanes, la tenue subcapitanes. Toca una fila para ver los nombres. Un capitán que no tiene nadie más es el diferencial que conviene conocer antes del cierre.',
     /* Menu labels live in nav.js. */
+    cmpList:'Lista', cmpCompare:'Comparar', cmpTitle:'Comparar jugadores', cmpAdd:'A\u00f1adir jugador',
+    cmpSearch:'Buscar jugador o club', cmpTotal:'Total', cmpP90:'Por 90', cmpNoMatch:'Sin resultados',
+    cmpSecs:{season:y=>'Datos '+y,x:'Datos X',att:'Ataque',play:'Creaci\u00f3n',def:'Defensa',xp:'Modelo xP'},
+    cmpRows:{pts:'Puntos',price:'Precio',own:'Propiedad %',min:'Minutos',starts:'Titularidades',g:'Goles',a:'Asistencias',cs:'Porter\u00edas a cero',
+      bon:'Bonus',dc:'DefCon',xg:'xG',xa:'xA',xgi:'xGI',gmx:'Goles \u2212 xG',gaxgi:'G+A \u2212 xGI',thr:'Amenaza (ICT)',ict:'\u00cdndice ICT',
+      pen:'Orden de penaltis',dfk:'Orden de faltas directas',cre:'Creatividad (ICT)',set:'Orden de c\u00f3rners / faltas indirectas',
+      gc:'Goles encajados',xgc:'xGC',gcx:'GC \u2212 xGC',tk:'Entradas',cbi:'Despejes, bloqueos, intercepciones',rec:'Recuperaciones',sv:'Paradas',
+      xp1:'xP pr\u00f3xima jornada',xp3:n=>'xP pr\u00f3ximas '+n,xm:'xMin pr\u00f3xima',xppm:n=>'xP'+n+' por \u00a3m',fx:'Pr\u00f3ximos 3'},
+    cmpFootTot:(a,am,b,bm)=>a+' '+am+'\u2032 jugados \u00b7 '+b+' '+bm+'\u2032 jugados. Verde = mejor. Precio y propiedad no puntúan.',
+    cmpFootP90:'Por 90 divide las estad\u00edsticas acumuladas entre los minutos jugados. Precio, propiedad, ratios, orden de lanzadores y xP no cambian.',
+    cmpNeedTwo:'A\u00f1ade un segundo jugador para comparar.',
+    cmpStripOne:n=>n+' elegido \u2014 pulsa \u21c4 en un segundo jugador.',
+    cmpOpen:'Abrir comparaci\u00f3n', cmpClear:'Borrar', cmpRowTip:'A\u00f1adir a la comparaci\u00f3n',
     allPlayers:'Todos los jugadores', searchPh:'Jugador o club', searchAria:'Buscar jugadores',
     allPos:'Todas las posiciones', posGK:'Portero', posDF:'Defensa', posMD:'Centrocampista', posFW:'Delantero',
     anyPrice:'Cualquier precio', upTo:'Hasta ', allAvail:'Todos', fitOnly:'Solo plenamente disponibles',
@@ -5892,6 +5994,198 @@ function xpCell(v){
   return n.toFixed(1);
 }
 
+/* ══ COMPARE PLAYERS ═══════════════════════════════════
+   All players has a List / Compare switch. Two slots, filled from the ⇄
+   button on table rows, the Compare button in the player modal, or the
+   search on an empty card. Every number is FPL's own season data off the
+   bootstrap element (p.el) plus our xP model; Understat's shots and key
+   passes stop at 2025/26, so they are not used here.
+════════════════════════════════════════════════════════ */
+const CMP={slots:[null,null],mode:'list',sec:'season',p90:false,picking:null,q:''};
+try{
+  const sv=JSON.parse(localStorage.getItem('fplRockCompare')||'null');
+  if(sv&&Array.isArray(sv.slots))CMP.slots=[sv.slots[0]||null,sv.slots[1]||null];
+}catch(e){}
+function cmpSave(){try{localStorage.setItem('fplRockCompare',JSON.stringify({slots:CMP.slots}))}catch(e){}}
+function cmpP(id){return id==null?null:(players.find(p=>p.id===id)||null)}
+function cmpSeasonLabel(){
+  const ev=(bootstrap&&bootstrap.events&&bootstrap.events[0]);
+  const y=ev&&ev.deadline_time?new Date(ev.deadline_time).getUTCFullYear():new Date().getUTCFullYear();
+  return String(y%100).padStart(2,'0')+'/'+String((y+1)%100).padStart(2,'0');
+}
+/* Values for one player. FPL sends the expected_* fields as strings. */
+function cmpVals(p){
+  const e=p.el||{}, n=v=>{const x=parseFloat(v);return isFinite(x)?x:0}, ord=v=>(v==null||v===0)?null:+v;
+  const min=n(e.minutes), g=n(e.goals_scored), a=n(e.assists), xg=n(e.expected_goals), xa=n(e.expected_assists);
+  const xgi=e.expected_goal_involvements!=null?n(e.expected_goal_involvements):xg+xa;
+  const gc=e.goals_conceded!=null?n(e.goals_conceded):n(e.goals_conceded_per_90)*min/90;
+  const xgc=n(e.expected_goals_conceded);
+  return {
+    pts:n(e.total_points), price:p.price, own:p.sel, min, starts:n(e.starts), g, a, cs:n(e.clean_sheets), bon:n(e.bonus),
+    dc:n(e.defensive_contribution), xg, xa, xgi, gmx:g-xg, gaxgi:g+a-xgi,
+    thr:n(e.threat), ict:n(e.ict_index), cre:n(e.creativity),
+    pen:ord(e.penalties_order), dfk:ord(e.direct_freekicks_order), set:ord(e.corners_and_indirect_freekicks_order),
+    gc, xgc, gcx:gc-xgc, tk:n(e.tackles), cbi:n(e.clearances_blocks_interceptions), rec:n(e.recoveries), sv:n(e.saves),
+    xp1:p.xp1||0, xp3:p.xp3||0, xm:p.xMinsNext||0, xppm:p.price?(p.xp3||0)/p.price:0,
+  };
+}
+/* [key, kind, scales-per-90]. kind: hi = higher wins, lo = lower wins, n = not scored. */
+const CMP_SECS={
+  season:[['pts','hi',1],['price','n'],['own','n'],['min','hi'],['starts','hi'],['g','hi',1],['a','hi',1],['cs','hi',1],['bon','hi',1],['dc','hi',1]],
+  x:[['xg','hi',1],['xa','hi',1],['xgi','hi',1],['gmx','n'],['gaxgi','n']],
+  att:[['g','hi',1],['xg','hi',1],['thr','hi',1],['ict','hi',1],['pen','lo'],['dfk','lo']],
+  play:[['a','hi',1],['xa','hi',1],['cre','hi',1],['set','lo']],
+  def:[['cs','hi',1],['gc','lo',1],['xgc','lo',1],['gcx','n'],['tk','hi',1],['cbi','hi',1],['rec','hi',1],['dc','hi',1],['sv','hi',1]],
+  xp:[['xp1','hi'],['xp3','hi'],['xm','hi'],['xppm','hi'],['fx','n']],
+};
+function cmpFmt(k,v,per90){
+  if(v==null)return '—';
+  if(per90)return v.toFixed(2);
+  if(k==='price')return v.toFixed(1);
+  if(k==='own'||k==='xp1'||k==='xp3')return v.toFixed(1);
+  if(k==='gmx'||k==='gaxgi'||k==='gcx')return (v>0?'+':'')+v.toFixed(2);
+  if(['xg','xa','xgi','xgc','xppm'].includes(k))return v.toFixed(2);
+  if(k==='ict'||k==='thr'||k==='cre')return v.toFixed(1);
+  if(k==='pen'||k==='dfk'||k==='set')return LANG==='es'?v+'º':(v===1?'1st':v===2?'2nd':v===3?'3rd':v+'th');
+  if(k==='xm')return Math.round(v)+'′';
+  return String(Math.round(v));
+}
+function cmpRowLabel(k){
+  const R=t('cmpRows'), v=R[k];
+  return typeof v==='function'?v(XP_RUN_GWS):v;
+}
+function cmpCard(p,i){
+  if(!p)return '<div class="cmp-card empty" data-cmppick="'+i+'"><div class="cmp-plus">+</div><div class="cmp-lbl">'+t('cmpAdd')+'</div></div>';
+  return '<div class="cmp-card"><button class="cmp-sw" data-cmppick="'+i+'" aria-label="'+t('cmpAdd')+'">⇄</button>'
+    +'<button class="cmp-x" data-cmpx="'+i+'" aria-label="✕">✕</button>'
+    +clubShirt(p.club,56,p.pos)
+    +'<div class="cmp-name">'+p.name+'</div><div class="cmp-meta">'+p.club+' · '+p.pos+'</div>'
+    +'<div class="cmp-chip">£'+p.price.toFixed(1)+'m · '+p.sel.toFixed(1)+'%</div></div>';
+}
+function cmpFxChips(p,right){
+  if(!p)return '<div class="cmp-v'+(right?' r':'')+'">—</div>';
+  return '<div class="cmp-fx'+(right?' r':'')+'">'+getNext3Fixtures(p.teamId).map(f=>f.opp==='—'
+    ?'<b class="fdr-mid">—</b>':'<b class="'+getFDRClass(f.difficulty)+'">'+f.opp+fxHA(f.home)+'</b>').join('')+'</div>';
+}
+function renderCompare(){
+  const box=$('tblCompare'); if(!box||!players||!players.length)return;
+  const A=cmpP(CMP.slots[0]), B=cmpP(CMP.slots[1]);
+  const va=A?cmpVals(A):null, vb=B?cmpVals(B):null;
+  const S=t('cmpSecs');
+  const secName=k=>k==='season'?S.season(cmpSeasonLabel()):S[k];
+  let h='<div class="cmp-cards">'+cmpCard(A,0)+cmpCard(B,1)+'</div>';
+  if(CMP.picking!=null){
+    h+='<div class="cmp-picker"><input id="cmpQ" placeholder="'+t('cmpSearch')+'" aria-label="'+t('cmpSearch')+'" autocomplete="off" value="'+CMP.q.replace(/"/g,'&quot;')+'">'
+      +'<div class="cmp-plist" id="cmpPList">'+cmpPickList()+'</div></div>';
+  }
+  h+='<div class="cmp-controls"><div class="cmp-secs">'
+    +Object.keys(CMP_SECS).map(k=>'<button class="cmp-sec'+(k===CMP.sec?' on':'')+'" data-cmpsec="'+k+'">'+secName(k)+'</button>').join('')
+    +'</div><div class="cmp-seg"><button data-cmp90="0" class="'+(CMP.p90?'':'on')+'">'+t('cmpTotal')+'</button>'
+    +'<button data-cmp90="1" class="'+(CMP.p90?'on':'')+'">'+t('cmpP90')+'</button></div></div>';
+  const keeper=[A,B].some(p=>p&&p.pos==='GKP');
+  h+='<div class="cmp-stats">'+CMP_SECS[CMP.sec].filter(r=>r[0]!=='sv'||keeper).map(([k,kind,scal])=>{
+    const lab=cmpRowLabel(k);
+    if(k==='fx')return '<div class="cmp-row fxrow"><div class="cmp-lab">'+lab+'</div>'+cmpFxChips(A,false)+cmpFxChips(B,true)+'</div>';
+    const per90=CMP.p90&&scal;
+    const get=v=>{ if(!v)return null; let x=v[k]; if(x==null)return null; if(per90){ if(!v.min)return null; x=x/v.min*90; } return x; };
+    const a=get(va), b=get(vb);
+    let wa=false,wb=false;
+    if(va&&vb&&kind!=='n'){
+      // On set-piece order an empty slot means "not on duty", so whoever is listed wins.
+      const ca=a==null?(kind==='lo'?Infinity:-Infinity):a, cb=b==null?(kind==='lo'?Infinity:-Infinity):b;
+      if(ca!==cb&&isFinite(Math.min(ca,cb))||(ca!==cb&&kind==='hi'&&isFinite(Math.max(ca,cb)))){
+        const aBetter=kind==='hi'?ca>cb:ca<cb; wa=aBetter; wb=!aBetter;
+      }
+    }
+    let bar='';
+    if(kind==='hi'&&a!=null&&b!=null&&a>=0&&b>=0&&(a+b)>0){
+      const sh=a/(a+b)*100;
+      bar='<div class="cmp-bar"><i class="'+(wa?'w':'')+'" style="width:'+sh.toFixed(1)+'%"></i><i class="'+(wb?'w':'')+'" style="width:'+(100-sh).toFixed(1)+'%"></i></div>';
+    }
+    return '<div class="cmp-row"><div class="cmp-v'+(wa?' win':'')+'">'+cmpFmt(k,a,per90)+'</div>'
+      +'<div class="cmp-lab">'+lab+(per90?' /90':'')+bar+'</div>'
+      +'<div class="cmp-v r'+(wb?' win':'')+'">'+cmpFmt(k,b,per90)+'</div></div>';
+  }).join('')+'</div>';
+  h+='<div class="cmp-foot">'+(CMP.p90?t('cmpFootP90'):(A&&B?t('cmpFootTot')(A.name,va.min,B.name,vb.min):t('cmpNeedTwo')))+'</div>';
+  box.innerHTML=h;
+  const q=$('cmpQ');
+  if(q){
+    q.oninput=()=>{CMP.q=q.value;const l=$('cmpPList');if(l)l.innerHTML=cmpPickList();};
+    q.focus();
+  }
+}
+function cmpPickList(){
+  const q=normName(CMP.q);
+  const other=CMP.slots[CMP.picking===0?1:0];
+  const list=players.filter(p=>p.id!==other&&(!q||normName(p.name+' '+(p.fullName||'')+' '+p.club).includes(q)))
+    .sort((a,b)=>((b.el&&b.el.total_points)||0)-((a.el&&a.el.total_points)||0)).slice(0,40);
+  if(!list.length)return '<div class="cmp-prow">'+t('cmpNoMatch')+'</div>';
+  return list.map(p=>'<div class="cmp-prow" data-cmpset="'+p.id+'"><span>'+p.name+' <small class="mono">'+p.club+' · '+p.pos+'</small></span>'
+    +'<span class="mono">£'+p.price.toFixed(1)+'m</span></div>').join('');
+}
+function setTblMode(m){
+  CMP.mode=m;
+  const list=$('tblList'), cmp=$('tblCompare');
+  if(list)list.hidden=(m==='cmp');
+  if(cmp)cmp.hidden=(m!=='cmp');
+  document.querySelectorAll('#tblMode [data-tblmode]').forEach(b=>b.classList.toggle('on',b.dataset.tblmode===m));
+  const tt=$('tblTitle'); if(tt){tt.dataset.i18n=m==='cmp'?'cmpTitle':'allPlayers';tt.textContent=t(tt.dataset.i18n);}
+  const tc=$('tableCount'); if(tc)tc.hidden=(m==='cmp');
+  if(m==='cmp')renderCompare();
+}
+function renderCompareStrip(){
+  const el=$('cmpStrip'); if(!el)return;
+  const ids=CMP.slots.filter(x=>x!=null);
+  if(ids.length!==1){el.innerHTML='';return;}
+  const p=cmpP(ids[0]); if(!p){el.innerHTML='';return;}
+  el.innerHTML='<div class="cmp-strip"><span>'+t('cmpStripOne')(p.name)+'</span><span style="display:flex;gap:6px">'
+    +'<button data-cmpclear="1">'+t('cmpClear')+'</button><button data-tblmode="cmp">'+t('cmpOpen')+'</button></span></div>';
+}
+/* ⇄ on a row: first tap fills slot one, second fills slot two and opens
+   Compare. With both slots already full, a tap starts a fresh pair. */
+function cmpAddFromRow(id){
+  const s=CMP.slots;
+  if(s.includes(id)){ s[s.indexOf(id)]=null; }
+  else if(s[0]==null)s[0]=id;
+  else if(s[1]==null)s[1]=id;
+  else { s[0]=id; s[1]=null; }
+  cmpSave();
+  if(s[0]!=null&&s[1]!=null){ CMP.picking=null; setTblMode('cmp'); }
+  renderTable();
+}
+function wireCompareControls(){
+  document.querySelectorAll('[data-cmpadd]').forEach(btn=>{
+    btn.onclick=e=>{e.stopPropagation();cmpAddFromRow(+btn.dataset.cmpadd);};
+  });
+}
+/* One delegated listener for the switch, the strip, the compare pane and the
+   modal button. Bound once; nothing inside carries .phist, so it never opens
+   the history modal. */
+document.addEventListener('click',e=>{
+  const m=e.target.closest('[data-tblmode]');
+  if(m){ setTblMode(m.dataset.tblmode); return; }
+  if(e.target.closest('[data-cmpclear]')){ CMP.slots=[null,null]; cmpSave(); renderTable(); return; }
+  const hb=e.target.closest('#histCmpBtn');
+  if(hb&&hb.dataset.pid){
+    const id=+hb.dataset.pid;
+    if(CMP.slots[1]===id)CMP.slots[1]=null;
+    CMP.slots[0]=id; CMP.picking=CMP.slots[1]==null?1:null; CMP.q=''; cmpSave();
+    closeHistory(); activateTab('table'); setTblMode('cmp'); renderTable();
+    return;
+  }
+  if(!e.target.closest('#tblCompare'))return;
+  const x=e.target.closest('[data-cmpx]');
+  if(x){ const i=+x.dataset.cmpx; CMP.slots[i]=null; CMP.picking=i; CMP.q=''; cmpSave(); renderCompare(); renderTable(); return; }
+  const pk=e.target.closest('[data-cmppick]');
+  if(pk){ const i=+pk.dataset.cmppick; CMP.picking=(CMP.picking===i)?null:i; CMP.q=''; renderCompare(); return; }
+  const st=e.target.closest('[data-cmpset]');
+  if(st&&CMP.picking!=null){ CMP.slots[CMP.picking]=+st.dataset.cmpset; CMP.picking=null; cmpSave(); renderCompare(); renderTable(); return; }
+  const sc=e.target.closest('[data-cmpsec]');
+  if(sc){ CMP.sec=sc.dataset.cmpsec; renderCompare(); return; }
+  const n9=e.target.closest('[data-cmp90]');
+  if(n9){ CMP.p90=n9.dataset.cmp90==='1'; renderCompare(); return; }
+});
+
 function renderTable(){
   const hx=$('thXP'), hx3=$('thXP3');
   if(hx)hx.title=t('xpTip');
@@ -5907,7 +6201,8 @@ function renderTable(){
     const pctNum=playedPct(p);
     const badgeClass=p.status==='a'?'avail':p.status==='d'?'doubt':p.status==='i'||p.status==='s'?'inj':p.status==='u'?'unav':'new';
     return '<tr class="prow-click phist" data-pid="'+p.id+'" data-pname="'+encodeURIComponent(p.name)+'"><td class="mono" style="color:var(--dimmer)">'+(start+i+1)+'</td>'
-    +'<td><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:8px">'+(lockedIds.has(p.id)?'★':'☆')+'</button></td>'
+    +'<td style="white-space:nowrap"><button class="lockstar'+(lockedIds.has(p.id)?' on':'')+'" data-locktoggle="'+p.id+'" title="lock" style="margin-right:6px">'+(lockedIds.has(p.id)?'★':'☆')+'</button>'
+    +'<button class="cmpadd'+(CMP.slots.includes(p.id)?' on':'')+'" data-cmpadd="'+p.id+'" title="'+t('cmpRowTip')+'" aria-label="'+t('cmpRowTip')+'">\u21c4</button></td>'
     +'<td><div style="display:flex;align-items:center;gap:6px">'+p.name
     +(p.status!=='a'?'<span class="pbadge '+badgeClass+'" title="'+(p.status==='d'?'Doubt':p.status==='i'?'Injured':p.status==='s'?'Suspended':p.status==='u'?'Unavailable':'Unknown')+'">!</span>':'')
     +(pctNum==null?'':'<span class="pbadge '+badgeClass+'" style="width:14px;height:14px;font-size:9px">'+pctNum+'</span>')+'</div><div class="mono" style="font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px">'+clubShirt(p.club,16,p.pos)+p.club+'</div></td>'
@@ -5929,6 +6224,9 @@ function renderTable(){
 
   // taps handled globally by the delegated .phist listener (covers every view)
   wireLockControls();
+  wireCompareControls();
+  renderCompareStrip();
+  if(CMP.mode==='cmp')renderCompare();
 
   $('pager').innerHTML='<button class="pg" id="pgPrev"'+(page<=1?' disabled':'')+'>'+t('prev')+'</button>'
     +'<span>'+t('pageOf')(page,pages)+'</span>'
@@ -6145,6 +6443,7 @@ async function understatHistoryFor(pid, displayName){
 }
 
 async function openHistory(pid,pname){
+  { const cb=$('histCmpBtn'); if(cb)cb.dataset.pid=pid; }
   histOppFilter='';                // reset the opponent filter for each new player
   histSeasonN=0;                   // reset the season-range filter
   const ov=$('histOverlay');
