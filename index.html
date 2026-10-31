@@ -1676,6 +1676,77 @@ tbody tr.dead td:first-child{padding-left:26px}
   color:var(--paper);cursor:pointer;flex-shrink:0}
 .hist-head-btns{display:flex;gap:8px;align-items:center}
 @media(max-width:420px){#tblCompare{padding:12px 12px 16px}#cmpStrip:not(:empty){padding:12px 12px 0}.cmp-row{padding:11px 12px}.cmp-v{font-size:16px}}
+
+/* ─── MY TEAM · LIVE STATS (live-2026-10-31a) ─────────────
+   Pitch / List switch, the List view, expandable results and the gameweek
+   block in the player modal. Text uses --paper / --dim (white in dark, black
+   in light); gold fills carry black text in both themes. */
+.cvbar{gap:8px;flex-wrap:wrap}
+.mt-list{overflow-x:auto;margin:0 0 18px;-webkit-overflow-scrolling:touch}
+.mt-ltable td,.mt-ltable th{white-space:nowrap}
+.mt-ltable tbody tr{cursor:pointer}
+.mt-ltable tbody tr.mt-lsep{cursor:default}
+.mt-ltable tbody tr:hover td{background:var(--accent-soft)}
+.mt-ltable tbody tr.mt-lsep:hover td{background:transparent}
+.mt-lname{display:inline-flex;align-items:center;gap:7px}
+.mt-lname svg.shirt{flex:0 0 auto}
+.mt-lpos{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.06em}
+.capmark.mt-cap{position:static;display:inline-flex;width:17px;height:17px;font-size:9px}
+.mt-lpts{font-weight:700}
+.mt-ltable tr.bench-row td{color:var(--dim)}
+.mt-ltable tr.autosub-out td{opacity:.5}
+.mt-ltable tr.autosub-in td:first-child{box-shadow:inset 3px 0 0 var(--good)}
+.mt-lsep td{font-family:'IBM Plex Mono',monospace!important;font-size:9.5px!important;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim)!important;padding-top:16px!important;font-weight:400!important}
+.mt-lnote{font-size:11px;line-height:1.45;color:var(--dim);padding:8px 2px 0;white-space:normal}
+.mt-dim{color:var(--dim)}
+.mt-dc{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12px}
+.mt-dcbar{display:inline-block;width:46px;height:7px;border:1px solid var(--line2);border-radius:2px;
+  overflow:hidden;background:var(--panel2)}
+.mt-dcbar i{display:block;height:100%;background:var(--accent)}
+.mt-dcbar.hit i{background:var(--good)}
+.mt-bon{display:inline-block;min-width:19px;text-align:center;border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;color:#000;line-height:1.5}
+.mt-bon3{background:#d9a441}.mt-bon2{background:#c9ced8}.mt-bon1{background:#d59a6a}
+.mt-prov{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper);margin-left:1px}
+.mt-tick{color:var(--good);font-weight:700}
+.mt-neg{color:var(--bad)!important}
+/* expandable results */
+.mt-fxclick{cursor:pointer}
+.mt-fxclick:hover{background:var(--accent-soft)}
+.mt-fxclick:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mt-fxcaret{flex:0 0 12px;text-align:center;font-size:10px;color:var(--dim);transition:transform .15s}
+.mt-fxrow.open .mt-fxcaret{transform:rotate(180deg)}
+.mt-fxdetail{display:flex;flex-direction:column;gap:8px;padding:8px 4px 16px;border-bottom:1px solid var(--line)}
+.mt-dsub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent-text);padding-top:6px}
+.mt-xg{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--paper)}
+.mt-xgbar{display:flex;height:8px;border:1px solid var(--line2);border-radius:2px;overflow:hidden}
+.mt-xgbar i{display:block;background:var(--accent)}
+.mt-xgbar u{display:block;background:var(--panel2)}
+.mt-two{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:13.5px;line-height:1.6;color:var(--paper)}
+.mt-two .r{text-align:right}
+.mt-nm{cursor:pointer;border-bottom:1px dotted var(--line2)}
+.mt-nm.own{font-weight:700;background:var(--accent-soft);border-radius:2px;padding:0 3px;border-bottom:0}
+.mt-dtable td{padding:7px 6px}
+.mt-more{align-self:flex-start;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+  padding:5px 12px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--paper);cursor:pointer}
+.mt-more:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* player modal */
+.mt-gwblock{margin-top:12px}
+.mt-gwblock .sum-grid{margin-bottom:6px}
+.mt-brk{margin:2px 0 10px}
+.mt-provrow td{color:var(--dim)!important;font-style:italic}
+.mt-livetag{color:var(--accent-text)}
+.mt-season{margin-top:4px}
+@media(max-width:520px){
+  .mt-two{grid-template-columns:1fr}
+  .mt-two .r{text-align:left}
+  .mt-gwblock .sum-grid{grid-template-columns:repeat(3,1fr)}
+  .mt-dcbar{width:30px}
+  .mt-ltable td,.mt-ltable th{padding-left:4px;padding-right:4px}
+}
 </style>
 </head>
 <body>
@@ -1926,7 +1997,7 @@ tbody tr.dead td:first-child{padding-left:26px}
 
 /* App build stamp — bump this whenever index.html changes, so you can confirm
    which version is live. Shows in the header and logs to the console. */
-const APP_BUILD = 'app-2026-10-31a';
+const APP_BUILD = 'app-2026-10-31b';
 
 /* ══ I18N ══════════════════════════════════════════════
    Every user-facing string keyed here. t(key) returns it in
@@ -1988,6 +2059,17 @@ const I18N={
     mtRefresh:'\u21bb Refresh', mtFetchedAt:'FETCHED',
     mtFxTitle:'Fixtures', mtFxNone:'No fixtures scheduled for this gameweek.',
     mtFxTbc:'TBC', mtFxTbcDate:'Date to be confirmed', mtFxFt:'FT', mtFxLive:'LIVE', mtFxKey:'BOLD = YOU HAVE A PLAYER IN THAT SIDE',
+    mtFxTap:'TAP A RESULT FOR XG, GOALS, BONUS AND DEFCON',
+    mtViewPitch:'Pitch', mtViewList:'List', mtLPlayer:'Player', mtPos:'Pos',
+    mtLiveLoading:'Loading live stats\u2026',
+    mtDcKey:'DefCon: 10 clearances, blocks, interceptions and tackles for a defender, 12 (plus recoveries) for a midfielder or forward earns 2 points. * = provisional bonus from live BPS.',
+    mtTeamXG:'Team xG', mtGoals:'Goals', mtOwnGoals:'Own goals', mtAssists:'Assists',
+    mtBonusPts:'Bonus points', mtProv:'provisional', mtProvShort:'prov.', mtDefCons:'Defensive contributions',
+    mtShowAll:n=>'Show all '+n, mtTop:n=>'Show top '+n, mtNoStats:'No match stats yet.',
+    mtSaves:'Saves', mtConc:'conceded', mtCapX:'with armband', mtStatCol:'Stat', mtValCol:'Value', mtTotal:'Total',
+    mtPer90:'Per 90', mtStarts:'starts', mtCreativity:'Creativity', mtThreat:'Threat', tabStats:'Season stats',
+    mtSeasonNote:'FPL figures. Creativity and threat are FPL\u2019s own chance-creation and shot-threat scores.',
+    lvStat:{minutes:'Minutes played',goals_scored:'Goals',assists:'Assists',clean_sheets:'Clean sheet',goals_conceded:'Goals conceded',own_goals:'Own goal',penalties_saved:'Penalty saved',penalties_missed:'Penalty missed',yellow_cards:'Yellow card',red_cards:'Red card',saves:'Saves',bonus:'Bonus',defensive_contribution:'Defensive contribution'},
     lgErrShort:'could not load', lgRetry:'Try again',
     lgDiagNote:'Every header profile was refused. The console has the full list of what was tried and what FPL sent back.',
     lgTrayEmpty:'Tap a manager above to see their squad. Tap a second to compare — a third replaces the first.',
@@ -2290,6 +2372,17 @@ const I18N={
     mtRefresh:'\u21bb Actualizar', mtFetchedAt:'ACTUALIZADO',
     mtFxTitle:'Partidos', mtFxNone:'No hay partidos en esta jornada.',
     mtFxTbc:'POR CONF.', mtFxTbcDate:'Fecha por confirmar', mtFxFt:'FIN', mtFxLive:'EN JUEGO', mtFxKey:'EN NEGRITA = TIENES UN JUGADOR EN ESE EQUIPO',
+    mtFxTap:'TOCA UN RESULTADO PARA VER XG, GOLES, BONUS Y DEFCON',
+    mtViewPitch:'Campo', mtViewList:'Lista', mtLPlayer:'Jugador', mtPos:'Pos',
+    mtLiveLoading:'Cargando estad\u00edsticas en vivo\u2026',
+    mtDcKey:'DefCon: 10 despejes, bloqueos, intercepciones y entradas para un defensa, 12 (m\u00e1s recuperaciones) para un centrocampista o delantero dan 2 puntos. * = bonus provisional seg\u00fan el BPS en vivo.',
+    mtTeamXG:'xG del equipo', mtGoals:'Goles', mtOwnGoals:'Goles en propia', mtAssists:'Asistencias',
+    mtBonusPts:'Puntos de bonus', mtProv:'provisional', mtProvShort:'prov.', mtDefCons:'Contribuciones defensivas',
+    mtShowAll:n=>'Ver los '+n, mtTop:n=>'Ver top '+n, mtNoStats:'A\u00fan no hay estad\u00edsticas del partido.',
+    mtSaves:'Paradas', mtConc:'encajados', mtCapX:'con brazalete', mtStatCol:'Dato', mtValCol:'Valor', mtTotal:'Total',
+    mtPer90:'Por 90', mtStarts:'titularidades', mtCreativity:'Creatividad', mtThreat:'Amenaza', tabStats:'Temporada',
+    mtSeasonNote:'Cifras de FPL. Creatividad y amenaza son las puntuaciones propias de FPL de creaci\u00f3n de ocasiones y peligro de tiro.',
+    lvStat:{minutes:'Minutos jugados',goals_scored:'Goles',assists:'Asistencias',clean_sheets:'Porter\u00eda a cero',goals_conceded:'Goles encajados',own_goals:'Gol en propia',penalties_saved:'Penalti parado',penalties_missed:'Penalti fallado',yellow_cards:'Amarilla',red_cards:'Roja',saves:'Paradas',bonus:'Bonus',defensive_contribution:'Contribuci\u00f3n defensiva'},
     lgErrShort:'no se pudo cargar', lgRetry:'Reintentar',
     lgDiagNote:'Se rechazaron todos los perfiles de cabeceras. La consola tiene la lista completa de lo que se intentó y lo que respondió FPL.',
     lgTrayEmpty:'Toca un mánager arriba para ver su plantilla. Toca un segundo para comparar — el tercero sustituye al primero.',
@@ -2598,8 +2691,8 @@ const CLUB_COLORS={
 const clubColor=short=>CLUB_COLORS[short]||'#9ca3af';
 // What the pitch plate shows under the name: 'pts' (default) or 'price'.
 let CARD_VAL=(function(){try{return localStorage.getItem('fplCardVal')==='price'?'price':'pts'}catch(e){return 'pts'}})();
-function cardValBar(){
-  return '<div class="cvbar"><span class="objseg">'
+function cardValBar(extra){
+  return '<div class="cvbar">'+(extra||'')+'<span class="objseg">'
     +'<button data-cardval="pts" aria-pressed="'+(CARD_VAL==='pts')+'">'+t('cvPoints')+'</button>'
     +'<button data-cardval="price" aria-pressed="'+(CARD_VAL==='price')+'">'+t('cvPrice')+'</button>'
     +'</span></div>';
@@ -4056,12 +4149,17 @@ function mtFixtures(gw, teamsMap){
       ? '<span class="mt-fxlive">'+(f.minutes?f.minutes+"'":esc(t('mtFxLive')))+'</span>'
       : (done?'<span class="mt-fxft">'+esc(t('mtFxFt'))+'</span>':'<span class="mt-fxpad"></span>');
 
-    return '<div class="mt-fxrow">'
+    // Started matches open to show xG, goals, assists, bonus and DefCon.
+    const exp=done||live, open=exp&&!!MTL.open[f.id];
+    return '<div class="mt-fxrow'+(exp?' mt-fxclick':'')+(open?' open':'')+'"'
+      +(exp?' data-mtfx="'+f.id+'" tabindex="0" role="button" aria-expanded="'+open+'"':'')+'>'
       +'<span class="mt-fxt h'+(owned[f.team_h]?' own':'')+'">'+esc(teamsMap[f.team_h]||'?')+'</span>'
       +'<span class="'+cls+'">'+mid+'</span>'
       +'<span class="mt-fxt a'+(owned[f.team_a]?' own':'')+'">'+esc(teamsMap[f.team_a]||'?')+'</span>'
       +badge
-      +'</div>';
+      +'<span class="mt-fxcaret">'+(exp?'\u25be':'')+'</span>'
+      +'</div>'
+      +(open?mtFxDetail(f):'');
   };
 
   const body=groups.map(g=>{
@@ -4073,8 +4171,362 @@ function mtFixtures(gw, teamsMap){
   }).join('');
 
   return '<div class="mt-fx">'+head+body
-    +'<div class="mt-fxkey">'+esc(t('mtFxKey'))+'</div></div>';
+    +'<div class="mt-fxkey">'+esc(t('mtFxKey'))+'<br>'+esc(t('mtFxTap'))+'</div></div>';
 }
+
+/* ══ MY TEAM · LIVE GAMEWEEK STATS ═══════════════════════
+   live-2026-10-31a
+
+   One request to event/{gw}/live/ covers every player in the game, and a
+   refetch of fixtures/ brings the scores and per-match stats up to date.
+   Together they drive three things on My Team:
+     - the List view (minutes, BPS, bonus, defensive contributions, points)
+     - the expandable rows in the gameweek fixtures list (team xG, goals,
+       assists, top BPS, top DefCon)
+     - the gameweek block at the top of the player modal
+
+   Nothing here touches the pitch cards: the pitch keeps its look, and the
+   numbers live in the list, the results and the player card.
+
+   Bonus: FPL only writes the bonus stat once a match is settled. Until then
+   the provisional 3/2/1 is worked out from BPS with FPL's tie rule (tied
+   players share the higher award and the next award is skipped) and shown
+   with an asterisk.
+
+   Team xG per match is the sum of the players' expected_goals. A player in a
+   double gameweek has his xG split across his matches by minutes. */
+const MTL={byGw:{},pending:{},timer:null,open:{},all:{},teamsMap:{}};
+let MT_VIEW=(function(){try{return localStorage.getItem('fplTeamView')==='list'?'list':'pitch'}catch(e){return 'pitch'}})();
+const MT_POLL_MS=120000;           // the proxy's edge cache is 10 min; 2 min is plenty
+const MT_DC_THR={DEF:10,MID:12,FWD:12};
+
+function mtPlayer(id){return players.find(x=>x.id===id)}
+function mtLiveFor(gw){return MTL.byGw[gw]||null}
+
+function mtLiveLoad(gw,force){
+  if(!gw)return Promise.resolve(null);
+  if(!force&&MTL.byGw[gw])return Promise.resolve(MTL.byGw[gw]);
+  if(MTL.pending[gw])return MTL.pending[gw];
+  const get=p=>fetch('/api/fpl?path='+encodeURIComponent(p)).then(r=>{if(!r.ok)throw new Error(p+' '+r.status);return r.json()});
+  MTL.pending[gw]=Promise.all([get('event/'+gw+'/live/'),get('fixtures/').catch(()=>null)])
+    .then(([live,fx])=>{
+      // Fresh scores and stats for this gameweek's matches, written into the
+      // shared fixtures array so every view that reads it agrees.
+      if(Array.isArray(fx)&&Array.isArray(fixtures)){
+        const fresh={};fx.filter(f=>f.event===gw).forEach(f=>fresh[f.id]=f);
+        fixtures.forEach((f,i)=>{if(fresh[f.id])fixtures[i]=fresh[f.id]});
+      }
+      const el={};
+      (live.elements||[]).forEach(e=>{el[e.id]={stats:e.stats||{},explain:e.explain||[]}});
+      MTL.byGw[gw]={gw:gw,el:el,at:Date.now()};
+      // keep the three most recent weeks only
+      const keys=Object.keys(MTL.byGw).map(Number).sort((a,b)=>b-a);
+      keys.slice(3).forEach(k=>{if(k!==gw)delete MTL.byGw[k]});
+      delete MTL.pending[gw];
+      mtLiveApply(gw);
+      mtLiveSchedule(gw);
+      return MTL.byGw[gw];
+    })
+    .catch(e=>{console.warn('Live stats failed:',e.message);delete MTL.pending[gw];return null});
+  return MTL.pending[gw];
+}
+
+function mtGwFixtures(gw){return (fixtures||[]).filter(f=>f.event===gw)}
+function mtFxLive(f){return !!f.started&&!(f.finished||f.finished_provisional)}
+function mtFxSettled(f){return !!f.finished}
+
+// Called after live data lands: refresh scores, the list and the results in place.
+function mtLiveApply(gw){
+  if(!userTeam||!userTeam.picks||userTeam.isFuture||userTeam.gw!==gw)return;
+  const L=mtLiveFor(gw); if(!L)return;
+  const rolled=userTeam.rolled;
+  const rolledActive=!!(rolled&&rolled.open&&rolled.status==='ready'&&rolled.data&&rolled.data.gw===gw);
+  if(!rolledActive){
+    // Live points are fresher than the per-player history cache during a match.
+    if(!userTeam.gwScores)userTeam.gwScores={};
+    if(!userTeam.gwMinutes)userTeam.gwMinutes={};
+    // Only players whose match has kicked off, so a starter yet to play is
+    // never read as a zero-minute blank.
+    userTeam.picks.forEach(p=>{const s=L.el[p.element], pl=mtPlayer(p.element);
+      if(!s||!pl||!mtTeamFx(pl.teamId,gw).some(f=>f.started))return;
+      userTeam.gwScores[p.element]=s.stats.total_points||0;
+      userTeam.gwMinutes[p.element]=s.stats.minutes||0;});
+    userTeam.autosubs=applyAutosubs(userTeam.picks);
+    repaintCardScores();
+    updateGWTotal();
+    const lw=$('mtList'); if(lw)lw.innerHTML=mtListHTML(userTeam.picks);
+  }
+  mtFxRepaint();
+}
+
+function mtLiveSchedule(gw){
+  clearTimeout(MTL.timer);
+  if(!mtGwFixtures(gw).some(mtFxLive))return;
+  MTL.timer=setTimeout(()=>{
+    if(document.visibilityState==='visible'&&userTeam&&userTeam.gw===gw&&!userTeam.isFuture&&$('mtFxWrap'))mtLiveLoad(gw,true);
+    else mtLiveSchedule(gw);
+  },MT_POLL_MS);
+}
+
+/* Provisional bonus from a match's BPS list: [{element,value}] -> {id:pts}.
+   FPL's tie rule: tied players share the higher award and the next award is
+   skipped, e.g. two tied top scorers both get 3 and the next gets 1. */
+function mtBonusFromBps(list){
+  const s=(list||[]).slice().sort((a,b)=>b.value-a.value), out={};
+  const award=[3,2,1]; let i=0, k=0;
+  while(k<s.length&&i<3){
+    const v=s[k].value; let j=k; while(j<s.length&&s[j].value===v)j++;
+    for(let q=k;q<j;q++)out[s[q].element]=award[i];
+    i+=j-k; k=j;
+  }
+  return out;
+}
+function mtStat(f,id){const s=(f.stats||[]).find(x=>x.identifier===id);return s||{h:[],a:[]}}
+// Bonus for every player in one match, confirmed or provisional.
+function mtFxBonus(f){
+  const b=mtStat(f,'bonus'), conf=b.h.concat(b.a);
+  if(conf.length){const o={};conf.forEach(x=>o[x.element]=x.value);return {map:o,prov:false}}
+  const bps=mtStat(f,'bps');
+  return {map:mtBonusFromBps(bps.h.concat(bps.a)),prov:true};
+}
+// The match (or first match) a team plays in a gameweek.
+function mtTeamFx(teamId,gw){
+  return mtGwFixtures(gw).filter(f=>f.team_h===teamId||f.team_a===teamId)
+    .sort((a,b)=>String(a.kickoff_time||'').localeCompare(String(b.kickoff_time||'')));
+}
+// A player's bonus this gameweek: confirmed from live, else provisional from his matches.
+function mtPlayerBonus(id,gw){
+  const L=mtLiveFor(gw),pl=mtPlayer(id);
+  if(!L||!L.el[id]||!pl)return {v:0,prov:false};
+  let v=0,prov=false;
+  mtTeamFx(pl.teamId,gw).forEach(f=>{const b=mtFxBonus(f);if(b.map[id]){v+=b.map[id];prov=prov||b.prov}});
+  if(!prov)v=L.el[id].stats.bonus||v;
+  return {v:v,prov:prov};
+}
+
+function mtDcCell(pos,v){
+  const t=MT_DC_THR[pos]; if(!t)return '<span class="mt-dim">—</span>';
+  const hit=v>=t;
+  return '<span class="mt-dc">'+v+'/'+t+'<span class="mt-dcbar'+(hit?' hit':'')+'"><i style="width:'
+    +Math.min(100,Math.round(v/t*100))+'%"></i></span></span>';
+}
+function mtBonusCell(v,prov){
+  return v?'<span class="mt-bon mt-bon'+v+'">'+v+'</span>'+(prov?'<span class="mt-prov">*</span>':'')
+    :'<span class="mt-dim">—</span>';
+}
+
+/* ── List view ─────────────────────────────────────── */
+function mtViewSeg(){
+  if(userTeam.isFuture)return '';
+  return '<span class="objseg">'
+    +'<button data-mtview="pitch" aria-pressed="'+(MT_VIEW==='pitch')+'">'+esc(t('mtViewPitch'))+'</button>'
+    +'<button data-mtview="list" aria-pressed="'+(MT_VIEW==='list')+'">'+esc(t('mtViewList'))+'</button>'
+    +'</span>';
+}
+function mtListHTML(picks){
+  const gw=userTeam.gw, L=mtLiveFor(gw);
+  const row=(p,bench)=>{
+    const pl=mtPlayer(p.element); if(!pl)return '';
+    const s=L&&L.el[p.element]?L.el[p.element].stats:null;
+    const fx=getNext3Fixtures(pl.teamId,gw)[0];
+    const opp=fx&&fx.gw===gw?esc(fx.opp)+fxHA(fx.home):'<span class="mt-dim">—</span>';
+    const raw=userTeam.gwScores&&userTeam.gwScores[p.element]!==undefined?userTeam.gwScores[p.element]:(s?s.total_points:null);
+    const pts=CARD_VAL==='price'?'£'+pl.price.toFixed(1):(raw==null?'–':displayPoints(p.element,raw));
+    const cap=p.is_captain?' <span class="capmark mt-cap">'+esc(t('sqCap'))+'</span>'
+      :p.is_vice_captain?' <span class="capmark capmark-vc mt-cap">V</span>':'';
+    const b=s?mtPlayerBonus(p.element,gw):{v:0,prov:false};
+    // autosubs maps starter -> the sub who replaced him
+    const sub=userTeam.autosubs||{};
+    const subCls=sub[p.element]?' autosub-out':Object.values(sub).includes(p.element)?' autosub-in':'';
+    return '<tr class="phist '+(bench?'bench-row':'xi-row')+subCls+'" data-pid="'+p.element+'" data-pname="'+encodeURIComponent(pl.name)+'">'
+      +'<td><span class="mt-lname">'+clubShirt(pl.club,20,pl.pos)+'<span>'+esc(pl.name)+'</span>'+cap
+      +' <span class="mt-lpos">'+esc(pl.pos)+'</span></span></td>'
+      +'<td>'+opp+'</td>'
+      +'<td>'+(s?s.minutes:'–')+'</td>'
+      +'<td>'+(s&&s.minutes?s.bps:'<span class="mt-dim">—</span>')+'</td>'
+      +'<td>'+(s?mtBonusCell(b.v,b.prov):'–')+'</td>'
+      +'<td>'+(s?mtDcCell(pl.pos,s.defensive_contribution||0):'–')+'</td>'
+      +'<td class="mt-lpts">'+pts+'</td></tr>';
+  };
+  const xi=picks.filter(p=>p.position<12), bench=picks.filter(p=>p.position>=12).sort((a,b)=>a.position-b.position);
+  return '<table class="hist-table mt-ltable"><thead><tr>'
+    +'<th>'+esc(t('mtLPlayer'))+'</th><th>'+esc(t('hOpp'))+'</th><th>'+esc(t('hMin'))+'</th><th>BPS</th>'
+    +'<th>'+esc(t('hBonus'))+'</th><th>'+esc(t('sumDefCon'))+'</th><th>'+esc(CARD_VAL==='price'?t('cvPrice'):t('hPts'))+'</th></tr></thead><tbody>'
+    +xi.map(p=>row(p,false)).join('')
+    +'<tr class="mt-lsep"><td colspan="7">'+esc(t('sqBench'))+'</td></tr>'
+    +bench.map(p=>row(p,true)).join('')
+    +'</tbody></table>'
+    +(L?'':'<div class="mt-lnote">'+esc(t('mtLiveLoading'))+'</div>')
+    +'<div class="mt-lnote">'+esc(t('mtDcKey'))+'</div>';
+}
+
+/* ── Expandable result detail ─────────────────────── */
+function mtFxDetail(f){
+  const gw=f.event, L=mtLiveFor(gw);
+  const owned={}; (userTeam.picks||[]).forEach(p=>owned[p.element]=1);
+  const nm=id=>{const pl=mtPlayer(id);if(!pl)return '?';
+    return '<span class="phist mt-nm'+(owned[id]?' own':'')+'" data-pid="'+id+'" data-pname="'+encodeURIComponent(pl.name)+'">'+esc(pl.name)+'</span>'};
+  const times=v=>v>1?' ×'+v:'';
+  let h='';
+
+  // Team xG, from the players' live expected_goals
+  if(L){
+    const xg={h:0,a:0}; let any=false;
+    Object.keys(L.el).forEach(k=>{
+      const e=L.el[k], ex=e.explain.filter(x=>x.fixture===f.id);
+      if(!ex.length)return;
+      const xgv=parseFloat(e.stats.expected_goals)||0; if(!xgv)return;
+      const pl=mtPlayer(+k); if(!pl)return;
+      let share=1;
+      if(e.explain.length>1){
+        const mins=x=>{const m=(x.stats||[]).find(s=>s.identifier==='minutes');return m?m.value:0};
+        const tot=e.explain.reduce((a,x)=>a+mins(x),0);
+        share=tot?mins(ex[0])/tot:1/e.explain.length;
+      }
+      if(pl.teamId===f.team_h){xg.h+=xgv*share;any=true}
+      else if(pl.teamId===f.team_a){xg.a+=xgv*share;any=true}
+    });
+    if(any){
+      const tot=xg.h+xg.a||1;
+      h+='<div class="mt-dsub">'+esc(t('mtTeamXG'))+'</div>'
+        +'<div class="mt-xg"><span>'+xg.h.toFixed(2)+'</span><div class="mt-xgbar"><i style="width:'
+        +(xg.h/tot*100).toFixed(1)+'%"></i><u style="width:'+(xg.a/tot*100).toFixed(1)+'%"></u></div><span>'+xg.a.toFixed(2)+'</span></div>';
+    }
+  }
+
+  // Goals and assists — only when there are any
+  const side=(id,label)=>{
+    const s=mtStat(f,id); if(!s.h.length&&!s.a.length)return '';
+    const col=a=>a.map(x=>nm(x.element)+times(x.value)).join('<br>');
+    return '<div class="mt-dsub">'+esc(label)+'</div><div class="mt-two"><div>'+col(s.h)+'</div><div class="r">'+col(s.a)+'</div></div>';
+  };
+  const og=mtStat(f,'own_goals');
+  h+=side('goals_scored',t('mtGoals'));
+  if(og.h.length||og.a.length)h+=side('own_goals',t('mtOwnGoals'));
+  h+=side('assists',t('mtAssists'));
+
+  // Bonus: top 5 by BPS, then all
+  const bps=mtStat(f,'bps'), bon=mtFxBonus(f);
+  const bList=bps.h.concat(bps.a).sort((a,b)=>b.value-a.value);
+  if(bList.length){
+    const key=f.id+'b', show=MTL.all[key]?bList:bList.slice(0,5);
+    h+='<div class="mt-dsub">'+esc(t('mtBonusPts'))+(bon.prov?' · '+esc(t('mtProv')):'')+'</div>'
+      +'<table class="hist-table mt-dtable"><thead><tr><th>'+esc(t('mtLPlayer'))+'</th><th>BPS</th><th>'+esc(t('hBonus'))+'</th></tr></thead><tbody>'
+      +show.map(x=>'<tr><td>'+nm(x.element)+'</td><td>'+x.value+'</td><td>'+(bon.map[x.element]?mtBonusCell(bon.map[x.element],bon.prov):'')+'</td></tr>').join('')
+      +'</tbody></table>'
+      +(bList.length>5?'<button class="mt-more" data-mtall="'+key+'">'+esc(MTL.all[key]?t('mtTop')(5):t('mtShowAll')(bList.length))+'</button>':'');
+  }
+
+  // Defensive contributions: top 10, then all
+  const dc=mtStat(f,'defensive_contribution');
+  const dList=dc.h.concat(dc.a).sort((a,b)=>b.value-a.value);
+  if(dList.length){
+    const key=f.id+'d', show=MTL.all[key]?dList:dList.slice(0,10);
+    h+='<div class="mt-dsub">'+esc(t('mtDefCons'))+'</div>'
+      +'<table class="hist-table mt-dtable"><thead><tr><th>'+esc(t('mtLPlayer'))+'</th><th>'+esc(t('mtPos'))+'</th><th>'+esc(t('sumDefCon'))+'</th><th>+2</th></tr></thead><tbody>'
+      +show.map(x=>{const pl=mtPlayer(x.element), pos=pl?pl.pos:'', thr=MT_DC_THR[pos];
+        return '<tr><td>'+nm(x.element)+'</td><td>'+esc(pos)+'</td><td>'+mtDcCell(pos,x.value)+'</td><td>'
+          +(thr&&x.value>=thr?'<span class="mt-tick">✓</span>':'')+'</td></tr>'}).join('')
+      +'</tbody></table>'
+      +(dList.length>10?'<button class="mt-more" data-mtall="'+key+'">'+esc(MTL.all[key]?t('mtTop')(10):t('mtShowAll')(dList.length))+'</button>':'');
+  }
+  if(!h)h='<div class="mt-lnote">'+esc(t('mtNoStats'))+'</div>';
+  return '<div class="mt-fxdetail">'+h+'</div>';
+}
+function mtFxRepaint(){
+  const w=$('mtFxWrap'); if(!w||!userTeam)return;
+  w.innerHTML=mtFixtures(userTeam.gw,MTL.teamsMap);
+}
+
+/* ── Player modal: this gameweek and season stats ── */
+function mtGwBlock(pid){
+  if(!userTeam||!userTeam.picks||userTeam.isFuture)return '';
+  const gw=userTeam.gw, L=mtLiveFor(gw), id=Number(pid);
+  if(!L||!L.el[id])return '';
+  const pl=mtPlayer(id); if(!pl)return '';
+  const s=L.el[id].stats;
+  const fxs=mtTeamFx(pl.teamId,gw); if(!fxs.length)return '';
+  const tm=MTL.teamsMap||{};
+  const vs=fxs.map(f=>{const h=f.team_h===pl.teamId;return (tm[h?f.team_a:f.team_h]||'?')+' ('+(h?'H':'A')+')'}).join(', ');
+  const b=mtPlayerBonus(id,gw);
+  const thr=MT_DC_THR[pl.pos];
+  const cell=(k,v,cap)=>'<div class="sum-cell"><span class="sum-k">'+k+'</span><span class="sum-v">'+v+'</span>'
+    +'<span class="sum-cap">'+(cap||'&nbsp;')+'</span></div>';
+  const owned=(userTeam.picks||[]).find(p=>p.element===id);
+  const raw=s.total_points||0, shown=owned?displayPoints(id,raw):raw;
+  let g='';
+  g+=cell(t('sumPts'),shown,owned&&shown!==raw?t('mtCapX'):(b.prov&&b.v?'+'+b.v+' '+t('mtProvShort'):''));
+  g+=cell(t('hMin'),s.minutes);
+  g+=cell(t('sumGoals'),s.goals_scored,(+s.expected_goals||0).toFixed(2)+' xG');
+  g+=cell(t('sumAssists'),s.assists,(+s.expected_assists||0).toFixed(2)+' xA');
+  g+=cell('BPS',s.minutes?s.bps:'—');
+  g+=cell(t('hBonus'),b.v+(b.prov&&b.v?'*':''),b.prov&&b.v?t('mtProv'):'');
+  if(thr)g+=cell(t('sumDefCon'),(s.defensive_contribution||0)+'/'+thr,(s.defensive_contribution||0)>=thr?'✓ +2':'');
+  if(pl.pos==='GKP')g+=cell(t('mtSaves'),s.saves||0);
+  if(pl.pos!=='FWD')g+=cell('CS',s.clean_sheets?'✓':'—',s.minutes?(s.goals_conceded||0)+' '+t('mtConc'):'');
+
+  // Points breakdown straight from FPL's own explain
+  const labels=t('lvStat')||{};
+  const rows=[];
+  L.el[id].explain.forEach(ex=>(ex.stats||[]).forEach(st=>{
+    if(!st.points&&st.identifier!=='minutes')return;
+    rows.push({k:labels[st.identifier]||st.identifier.replace(/_/g,' '),v:st.value,p:st.points});
+  }));
+  if(b.prov&&b.v)rows.push({k:(labels.bonus||'Bonus')+' ('+t('mtProv')+')',v:'',p:b.v,prov:true});
+  const tot=rows.reduce((a,r)=>a+(r.prov?0:r.p),0);
+  const brk=rows.length?'<table class="hist-table mt-brk"><thead><tr><th>'+esc(t('mtStatCol'))+'</th><th>'+esc(t('mtValCol'))+'</th><th>'+esc(t('hPts'))+'</th></tr></thead><tbody>'
+    +rows.map(r=>'<tr'+(r.prov?' class="mt-provrow"':'')+'><td>'+esc(r.k)+'</td><td>'+r.v+'</td><td class="'+(r.p<0?'mt-neg':'')+'">'+(r.p>0?'+':'')+r.p+'</td></tr>').join('')
+    +'<tr class="hist-total-row"><td>'+esc(t('mtTotal'))+'</td><td></td><td>'+tot+'</td></tr></tbody></table>':'';
+
+  return '<div class="sum-block mt-gwblock">'
+    +'<div class="sum-season">GW'+gw+' · '+esc(vs)+(fxs.some(mtFxLive)?' · <span class="mt-livetag">'+esc(t('mtFxLive'))+'</span>':'')+'</div>'
+    +'<div class="sum-grid">'+g+'</div>'+brk+'</div>';
+}
+
+function mtSeasonStats(d){
+  const el=d&&d.el; if(!el||!el.minutes)return '';
+  const pos=d.pos, min=el.minutes, p90=v=>(v/min*90).toFixed(2);
+  const n=v=>parseFloat(v)||0;
+  const rows=[
+    [t('sumGoals'),el.goals_scored],[t('sumAssists'),el.assists],
+    ['xG',n(el.expected_goals)],['xA',n(el.expected_assists)],['xGI',n(el.expected_goal_involvements)]
+  ];
+  if(pos==='GKP'||pos==='DEF')rows.push(['xGC',n(el.expected_goals_conceded)],['CS',el.clean_sheets]);
+  if(pos==='GKP')rows.push([t('mtSaves'),el.saves]);
+  if(pos!=='GKP')rows.push([t('sumDefCon'),el.defensive_contribution||0]);
+  rows.push(['BPS',el.bps],[t('hBonus'),el.bonus],[t('mtCreativity'),n(el.creativity)],[t('mtThreat'),n(el.threat)]);
+  const fmt=v=>Number.isInteger(v)?v:v.toFixed(2);
+  return '<div class="sum-season">'+esc(SEASON_LABEL)+' · '+min+'′ · '+(el.starts||0)+' '+esc(t('mtStarts'))+'</div>'
+    +'<table class="hist-table mt-season"><thead><tr><th>'+esc(t('mtStatCol'))+'</th><th>'+esc(t('mtTotal'))+'</th><th>'+esc(t('mtPer90'))+'</th></tr></thead><tbody>'
+    +rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+fmt(r[1])+'</td><td>'+p90(r[1])+'</td></tr>').join('')
+    +'</tbody></table><div class="fix-legend">'+esc(t('mtSeasonNote'))+'</div>';
+}
+
+// Clicks for the view switch, result rows and show-all buttons.
+document.addEventListener('click',e=>{
+  const v=e.target.closest&&e.target.closest('[data-mtview]');
+  if(v){
+    MT_VIEW=v.dataset.mtview;
+    try{localStorage.setItem('fplTeamView',MT_VIEW)}catch(err){}
+    document.querySelectorAll('[data-mtview]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mtview===MT_VIEW)));
+    const pw=$('mtPitch'), lw=$('mtList');
+    if(pw)pw.hidden=MT_VIEW!=='pitch';
+    if(lw){lw.hidden=MT_VIEW!=='list'; if(MT_VIEW==='list')lw.innerHTML=mtListHTML(userTeam.picks);}
+    return;
+  }
+  const r=e.target.closest&&e.target.closest('[data-mtfx]');
+  if(r&&!e.target.closest('.phist')){
+    const id=r.dataset.mtfx; MTL.open[id]=!MTL.open[id]; mtFxRepaint(); return;
+  }
+  const a=e.target.closest&&e.target.closest('[data-mtall]');
+  if(a){MTL.all[a.dataset.mtall]=!MTL.all[a.dataset.mtall]; mtFxRepaint();}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const r=e.target.closest&&e.target.closest('[data-mtfx]');
+  if(r&&r===e.target){e.preventDefault();r.click()}
+});
+
 
 /* ══ TRANSFER PLANNER ════════════════════════════════════
    Future gameweeks on My Team: transfer, substitute, captain and chip per week,
@@ -4647,8 +5099,13 @@ function renderUserTeam(){
   const benchSlots=benchGK.map(p=>slot(p,posOf(p)))
     .concat(benchOut.map((p,i)=>slot(p,(i+1)+'. '+posOf(p)))).join('');
 
+  // Pitch / List. The list is for played and live weeks only; a future week is
+  // the planner's surface and always shows the pitch.
+  MTL.teamsMap=teamsMap;
+  const listOn=!fut&&MT_VIEW==='list';
   html+='<div style="padding:0 10px 4px">'
-    +cardValBar()
+    +cardValBar(mtViewSeg())
+    +'<div id="mtPitch"'+(listOn?' hidden':'')+'>'
     +'<div class="pitch">'
       +'<div class="prow-xi prow-gkp">'+byPos('GKP').map(card).join('')+'</div>'
       +'<div class="prow-xi">'+byPos('DEF').map(card).join('')+'</div>'
@@ -4660,7 +5117,9 @@ function renderUserTeam(){
       +'</div>'
     +'</div>'
     +'</div>'
-    +mtFixtures(userTeam.gw, teamsMap)
+    +(fut?'':'<div id="mtList" class="mt-list"'+(listOn?'':' hidden')+'>'+(listOn?mtListHTML(picks):'')+'</div>')
+    +'</div>'
+    +'<div id="mtFxWrap">'+mtFixtures(userTeam.gw, teamsMap)+'</div>'
     +noTransfersHTML();
 
   $('teamBody').innerHTML=html;
@@ -4680,6 +5139,12 @@ function renderUserTeam(){
     userTeam.activeChip=realSnap.activeChip;
   }else if(!userTeam.isFuture){
     populateGWScores(picks);
+  }
+  // Live stats for a played or live week: cached weeks repaint at once,
+  // others are fetched (one request covers every player).
+  if(!userTeam.isFuture){
+    const gw=userTeam.gw;
+    if(mtLiveFor(gw))setTimeout(()=>mtLiveApply(gw),0); else mtLiveLoad(gw);
   }
 }
 
@@ -4749,6 +5214,8 @@ async function populateGWScores(picks){
   
   // Update total points in header (applies captain multiplier, chip logic, autosubs)
   updateGWTotal();
+  // Live points are fresher than the cached history; let them have the last word.
+  if(mtLiveFor(userTeam.gw))mtLiveApply(userTeam.gw);
 }
 
 // Rewrite every card's score from the settled gwScores, applying the armband.
@@ -7065,6 +7532,10 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   const past=d.pastSeasons||[], ts=d.thisSeason||[], vs=d.vsClubThis||[];
   let html='';
 
+  // This gameweek's scorecard, when My Team has live stats for it
+  const gwBlock=d.el?mtGwBlock(d.el.id):'';
+  if(gwBlock)html+=gwBlock;
+
   // player stats summary (current or last season) under the name
   const xpStrip=playerProjection(d);
   if(xpStrip)html+=xpStrip;
@@ -7083,6 +7554,9 @@ function renderHistoryInner(d, understat, upcomingFixtures){
   if(understat&&understat.vsClub&&understat.vsClub.length) tabs.push({id:'vsall', label:t('tabVsAll')});
   if(vs.length) tabs.push({id:'vsthis', label:t('tabVsThis')});
   if(ts.length) tabs.push({id:'gbg', label:t('tabGames')});
+  // Season stats with per 90, first so it is what the card opens on
+  const seasonTbl=mtSeasonStats(d);
+  if(seasonTbl) tabs.unshift({id:'mtstats', label:t('tabStats')});
   
   // Tab buttons
   if(tabs.length>0){
@@ -7092,6 +7566,8 @@ function renderHistoryInner(d, understat, upcomingFixtures){
     });
     html+='</div>';
   }
+
+  if(seasonTbl) html+='<div class="hist-tab-content" data-tab="mtstats">'+seasonTbl+'</div>';
 
   // TAB CONTENT: Upcoming Fixtures
   if(d.teamId){
