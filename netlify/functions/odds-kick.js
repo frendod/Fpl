@@ -1,4 +1,4 @@
-// netlify/functions/odds-kick.js — odds-kick-2026-10-25a
+// netlify/functions/odds-kick.js — odds-kick-2026-11-20a
 //
 // Netlify scheduled function. Every 10 minutes it checks whether an odds
 // capture is due and, if so, starts the GitHub "Odds snapshot" workflow
@@ -14,6 +14,8 @@
 //   early      22–26h before the deadline      gw-N-early.json
 //   late       55–175m before the deadline     gw-N-late.json
 //   deadline   3–25m before the deadline       gw-N-deadline.json
+//   evening    21:00–21:25 Nassau, night before a morning deadline
+//                                               gw-N-evening.json
 //   kickoff    45–70m before each kickoff      gw-N-ko-YYYYMMDDTHHMMZ.json
 // Everything else is a no-op, so the Actions tab only gets a run when a capture
 // is actually due, and it stops as soon as the file lands. One dispatch covers
@@ -31,7 +33,7 @@
 //   GH_DISPATCH_TOKEN  fine-grained GitHub token, repository frendod/Fpl only,
 //                      permissions: Actions = Read and write, Contents = Read.
 
-const BUILD = 'odds-kick-2026-10-25a';
+const BUILD = 'odds-kick-2026-11-20a';
 
 const OWNER = 'frendod';
 const REPO = 'Fpl';
@@ -47,6 +49,33 @@ const DEADLINE_BANDS = [
   { point: 'deadline', minMins: 5,           maxMins: 23 },
 ];
 const KICKOFF_BAND = { minMins: 47, maxMins: 68 };
+
+// Same rule as odds-snapshot.mjs EVENING: 9pm Nassau the night before any
+// deadline that falls before noon Nassau. Window trimmed to 25 minutes so the
+// dispatched run still lands inside the script's 30.
+const EVENING = { tz: 'America/Nassau', hour: 21, windowMins: 25, onlyIfDeadlineBeforeHour: 12 };
+function tzParts(date, tz) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit',
+    day: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).formatToParts(date).map(x => [x.type, x.value]));
+  return { y: +p.year, m: +p.month, d: +p.day, h: +p.hour, mi: +p.minute };
+}
+function zonedToUtc(y, m, d, h, mi, tz) {
+  const want = Date.UTC(y, m - 1, d, h, mi);
+  let t = want;
+  for (let i = 0; i < 2; i++) {
+    const p = tzParts(new Date(t), tz);
+    t += want - Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi);
+  }
+  return new Date(t);
+}
+function inEveningWindow(deadlineIso, now = new Date()) {
+  const p = tzParts(new Date(deadlineIso), EVENING.tz);
+  if (p.h >= EVENING.onlyIfDeadlineBeforeHour) return false;
+  const start = zonedToUtc(p.y, p.m, p.d - 1, EVENING.hour, 0, EVENING.tz);
+  return now >= start && now < new Date(start.getTime() + EVENING.windowMins * 60000);
+}
 
 const FPL = 'https://fantasy.premierleague.com/api/';
 const FPL_HEADERS = {
@@ -103,6 +132,9 @@ export default async () => {
   const next = events.find(e => e.is_next) || events.find(e => !e.finished);
   if (next && next.deadline_time) {
     const m = minsUntil(next.deadline_time);
+    if (inEveningWindow(next.deadline_time)) {
+      due.push({ label: `GW${next.id} evening (${m}m to deadline)`, file: `gw-${next.id}-evening.json` });
+    }
     const band = DEADLINE_BANDS.find(b => m >= b.minMins && m <= b.maxMins);
     if (band) due.push({ label: `GW${next.id} ${band.point} (${m}m to deadline)`, file: `gw-${next.id}-${band.point}.json` });
   }
