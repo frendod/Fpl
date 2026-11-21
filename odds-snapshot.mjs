@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* odds-snapshot.mjs — odds-2026-10-30b
+/* odds-snapshot.mjs — odds-2026-11-20a
  *
  * Captures betting odds into history/odds/ as immutable per-gameweek JSON.
  *
@@ -63,7 +63,7 @@
  * early or late; those still run on schedule regardless of whether preview
  * caught anything.
  *
- * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-10-30b)
+ * TWO MORE POINTS: DEADLINE AND KICKOFF (odds-2026-11-20a)
  *
  *   deadline   3–25 min before the deadline — the last price before squads
  *              lock, i.e. exactly what an FPL manager could have known.
@@ -89,7 +89,7 @@
  *   --out <dir>       root output dir (default ./history/odds)
  *   --season <s>      season folder name (default derived from date)
  *   --bookmakers <l>  comma-separated (default Bet365,Unibet)
- *   --point <p>       force a capture point (early|late|deadline|preview), bypassing
+ *   --point <p>       force a capture point (early|late|deadline|evening|preview), bypassing
  *                     the clock; skips the kickoff pass
  *   --any             capture regardless of the clock; claims an open band whose
  *                     capture is still missing, otherwise tagged 'adhoc'
@@ -164,6 +164,54 @@ const CAPTURES = [
    * keeps the two from racing for one tick. */
   { point: 'deadline', minMins: 3,          maxMins: 25 },
 ];
+
+/* EVENING: 9pm Nassau the night before a morning deadline.
+ * Saturday deadlines land around 06:00–06:30 Nassau, while Darren is asleep,
+ * so the deadline and late captures arrive too late to act on. When the
+ * deadline is before noon Nassau time, take one more capture at 21:00 Nassau
+ * the evening before — the last price he can actually use. Afternoon deadlines
+ * (Friday 13:30 and the like) skip it.
+ *
+ * Unlike the other bands this one is wall-clock, not minutes-before-deadline,
+ * so it stays at 9pm through daylight-saving changes. For a 06:00–11:59
+ * deadline it sits 9–15h out, clear of early (22–26h) and late (≤175m).
+ * odds-kick.js carries the same rule; keep the two in step. */
+const EVENING = { tz: 'America/Nassau', hour: 21, windowMins: 30, onlyIfDeadlineBeforeHour: 12 };
+
+function tzParts(date, tz) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit',
+    day: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).formatToParts(date).map(x => [x.type, x.value]));
+  return { y: +p.year, m: +p.month, d: +p.day, h: +p.hour, mi: +p.minute };
+}
+// Wall-clock time in `tz` -> UTC Date. Two correction passes cover DST edges.
+function zonedToUtc(y, m, d, h, mi, tz) {
+  const want = Date.UTC(y, m - 1, d, h, mi);
+  let t = want;
+  for (let i = 0; i < 2; i++) {
+    const p = tzParts(new Date(t), tz);
+    t += want - Date.UTC(p.y, p.m - 1, p.d, p.h, p.mi);
+  }
+  return new Date(t);
+}
+function eveningWindow(deadlineIso) {
+  if (!deadlineIso) return null;
+  const p = tzParts(new Date(deadlineIso), EVENING.tz);
+  if (p.h >= EVENING.onlyIfDeadlineBeforeHour) return null;
+  const start = zonedToUtc(p.y, p.m, p.d - 1, EVENING.hour, 0, EVENING.tz);  // Date.UTC rolls d-1 over month ends
+  return { start, end: new Date(start.getTime() + EVENING.windowMins * 60000) };
+}
+/* The band the clock is in right now, evening first, or null. */
+function openBand(deadlineIso, mins, now = new Date()) {
+  const ev = eveningWindow(deadlineIso);
+  if (ev && now >= ev.start && now < ev.end) {
+    return { point: 'evening', label: `${EVENING.hour}:00 ${EVENING.tz}, night before` };
+  }
+  if (mins == null) return null;
+  const b = CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
+  return b ? { point: b.point, label: `${b.minMins}-${b.maxMins}m out` } : null;
+}
 
 /* Kickoff slots, in minutes before each kickoff. Lineups are public at 75
  * minutes; 70 gives the books five minutes to reprice. With odds-kick ticking
@@ -551,8 +599,8 @@ async function captureDeadlineBand(season, boot, events) {
    * band at all and exit having written nothing. That is the common case. */
   let point = flag('point');
   if (point) {
-    if (!CAPTURES.some(c => c.point === point) && point !== 'adhoc') {
-      console.log(`  unknown --point "${point}" (expected ${CAPTURES.map(c => c.point).join('|')})`);
+    if (!CAPTURES.some(c => c.point === point) && point !== 'adhoc' && point !== 'evening') {
+      console.log(`  unknown --point "${point}" (expected ${CAPTURES.map(c => c.point).join('|')}|evening)`);
       return;
     }
     console.log(`  forced capture point: ${point}`);
@@ -570,7 +618,7 @@ async function captureDeadlineBand(season, boot, events) {
      * If the band's file already exists, fall back to 'adhoc' so the manual run
      * cannot clobber a good scheduled capture. Same if no band is open — which
      * is --any's original purpose, capturing well outside the schedule. */
-    const band = mins == null ? null : CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
+    const band = openBand(next.deadline_time, mins, now);
     if (band && !await exists(join(OUT, season, 'pre', `gw-${next.id}-${band.point}.json`))) {
       point = band.point;
       console.log(`  --any: ${mins}m out is inside the "${point}" band and that capture is missing — claiming it`);
@@ -581,14 +629,16 @@ async function captureDeadlineBand(season, boot, events) {
     }
   } else {
     if (mins == null) { console.log('  no deadline on this event, skipping'); return; }
-    const band = CAPTURES.find(c => mins >= c.minMins && mins <= c.maxMins);
+    const band = openBand(next.deadline_time, mins, now);
     if (!band) {
       const bands = CAPTURES.map(c => `${c.point} ${c.minMins}-${c.maxMins}m`).join(', ');
-      console.log(`  ${mins}m out, in no capture band (${bands}) — skipping`);
+      const ev = eveningWindow(next.deadline_time);
+      const evTxt = ev ? `, evening ${ev.start.toISOString()}` : ', no evening (afternoon deadline)';
+      console.log(`  ${mins}m out, in no capture band (${bands}${evTxt}) — skipping`);
       return;
     }
     point = band.point;
-    console.log(`  in "${point}" band (${band.minMins}-${band.maxMins}m out)`);
+    console.log(`  in "${point}" band (${band.label})`);
   }
 
   if (mins != null && mins < 0 && !FORCE) {
@@ -714,7 +764,7 @@ async function captureFixtures({ season, boot, gw, fixtures, path, meta }) {
 
   await writeJSON(path, {
     schema: 'odds-pre/2',
-    stamp: 'odds-2026-10-30b',
+    stamp: 'odds-2026-11-20a',
     season, gw,
     ...meta,
     capturedAt: now.toISOString(),

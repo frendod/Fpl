@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* odds-page-2026-10-30a — companion to index.html, same token system */
+/* odds-page-2026-11-20a — companion to index.html, same token system */
 :root{
   --ink:#10151c; --panel:#171d26; --panel2:#1e2530;
   --line:rgba(232,228,220,.10); --line2:rgba(232,228,220,.18);
@@ -257,7 +257,7 @@ footer a{color:var(--dim)}
 </div>
 
 <script>
-const ODDS_PAGE_BUILD = 'odds-page-2026-10-30a';
+const ODDS_PAGE_BUILD = 'odds-page-2026-11-20a';
 const REPO_RAW = 'https://raw.githubusercontent.com/frendod/Fpl/main/history/odds';
 
 /* ── I18N ──────────────────────────────────────────────── */
@@ -275,8 +275,8 @@ const I18N = {
     viewingGw: 'viewing GW',
     resultsUnavailable: 'results unavailable',
     gwOddsNotOutYet: (gw) => `GW ${gw} odds not out yet`,
-    pointLabel: { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture', deadline: 'deadline capture', kickoff: 'kickoff capture' },
-    pointShort: { early: 'early', late: 'late', adhoc: 'ad-hoc', preview: 'preview', deadline: 'deadline', kickoff: 'kickoff −70m' },
+    pointLabel: { early: 'early capture', late: 'late capture', adhoc: 'ad-hoc capture', preview: 'preview capture', deadline: 'deadline capture', kickoff: 'kickoff capture', evening: '9pm capture' },
+    pointShort: { early: 'early', late: 'late', adhoc: 'ad-hoc', preview: 'preview', deadline: 'deadline', kickoff: 'kickoff −70m', evening: '9pm' },
     kickoffCount: (n, m) => `kickoff ${n} / ${m}`,
     tlTitle: 'Price timeline',
     tlCols: 'home · draw · away',
@@ -331,8 +331,8 @@ const I18N = {
     viewingGw: 'viendo J',
     resultsUnavailable: 'resultados no disponibles',
     gwOddsNotOutYet: (gw) => `Cuotas de la J${gw} aún no publicadas`,
-    pointLabel: { early: 'captura temprana', late: 'captura tardía', adhoc: 'captura puntual', preview: 'captura previa', deadline: 'captura al cierre', kickoff: 'captura pre-partido' },
-    pointShort: { early: 'temprana', late: 'tardía', adhoc: 'puntual', preview: 'previa', deadline: 'cierre', kickoff: 'inicio −70m' },
+    pointLabel: { early: 'captura temprana', late: 'captura tardía', adhoc: 'captura puntual', preview: 'captura previa', deadline: 'captura al cierre', kickoff: 'captura pre-partido', evening: 'captura 21:00' },
+    pointShort: { early: 'temprana', late: 'tardía', adhoc: 'puntual', preview: 'previa', deadline: 'cierre', kickoff: 'inicio −70m', evening: '21:00' },
     kickoffCount: (n, m) => `pre-partido ${n} / ${m}`,
     tlTitle: 'Evolución de cuotas',
     tlCols: 'local · empate · visitante',
@@ -512,9 +512,10 @@ function scoresById(bundle){
 //   gw-N-ko-YYYYMMDDTHHMMZ                           one kickoff slot, ~70m before
 // Every point is fetched (in parallel) because the cards now show a timeline,
 // not just the latest file. Missing files are normal and come back null.
-const PRE_POINTS = ['preview', 'early', 'late', 'adhoc', 'deadline'];
+// evening: 9pm Nassau the night before a morning deadline (odds-2026-11-20a).
+const PRE_POINTS = ['preview', 'early', 'evening', 'late', 'adhoc', 'deadline'];
 // Latest first: the card headline uses the first of these that has the fixture.
-const PRIMARY_ORDER = ['kickoff', 'deadline', 'late', 'adhoc', 'early', 'preview'];
+const PRIMARY_ORDER = ['kickoff', 'deadline', 'late', 'evening', 'adhoc', 'early', 'preview'];
 
 async function fetchOddsFile(season, gw, point){
   const url = `${REPO_RAW}/${season}/pre/gw-${gw}-${point}.json`;
@@ -875,12 +876,15 @@ function buildCard(fixtureId, data, scoreMap, deadlineIso){
   const first = rows.early ? ['early', rows.early] : (rows.preview ? ['preview', rows.preview] : null);
   if (first) tl.push({ label: t('pointShort')[first[0]].replace(/^./, c => c.toUpperCase()), row: first[1] });
   const lbl = p => { const s = t('pointShort')[p]; return s.charAt(0).toUpperCase() + s.slice(1); };
+  // 9pm the night before, when there is one: the last price before bed.
+  if (rows.evening) tl.push({ label: lbl('evening'), row: rows.evening });
   let mid = null;
   if (rows.deadline) mid = rows.deadline;
   if (rows.deadline) tl.push({ label: lbl('deadline'), row: rows.deadline });
   else {
     const fallback = rows.late ? 'late' : (rows.adhoc ? 'adhoc' : null);
     if (fallback){ mid = rows[fallback]; tl.push({ label: lbl(fallback), row: rows[fallback] }); }
+    else if (rows.evening) mid = rows.evening;
     if (deadlineIso && minsFromNow(deadlineIso) > 0) tl.push({ label: lbl('deadline'), pending: t('dueAt')(fmtTime(new Date(new Date(deadlineIso).getTime() - 15 * 60000).toISOString())) });
   }
   const koDue = kickoffIso ? new Date(new Date(kickoffIso).getTime() - 70 * 60000).toISOString() : null;
@@ -921,7 +925,7 @@ function render(gw, season, header, rowsByDay, resultsError, fellBackFrom){
 
   const sub = document.getElementById('subline');
   const pills = [];
-  ['preview', 'early', 'late', 'deadline'].forEach(p => {
+  ['preview', 'early', 'evening', 'late', 'deadline'].forEach(p => {
     if (header.have[p]) pills.push(`<span class="pill ${p === 'deadline' ? 'live' : ''}">${t('pointShort')[p]} ✓</span>`);
   });
   if (header.koFiles) pills.push(`<span class="pill live">${t('kickoffCount')(header.koFiles, header.koSlots)}</span>`);
